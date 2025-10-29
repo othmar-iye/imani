@@ -40,6 +40,81 @@ interface SearchSuggestion {
   icon?: string;
 }
 
+// Composant ProductCard
+const ProductCard = ({ product }: { product: Product }) => {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
+
+  return (
+    <TouchableOpacity 
+      style={[
+        styles.productCard, 
+        { 
+          backgroundColor: theme.card,
+          shadowColor: colorScheme === 'dark' ? '#000' : '#8E8E93',
+        }
+      ]}
+      activeOpacity={0.9}
+      onPress={() => router.push({
+        pathname: '/screens/ProductDetailScreen',
+        params: { productId: product.id }
+      })}
+    >
+      <View style={styles.productImageContainer}>
+        <Image 
+          source={{ uri: product.image }} 
+          style={styles.productImage}
+          resizeMode="cover"
+        />
+        
+        {product.discount > 0 && (
+          <View style={[styles.discountBadge, { backgroundColor: theme.tint }]}>
+            <Text style={styles.discountText}>-{product.discount}%</Text>
+          </View>
+        )}
+        
+        <TouchableOpacity 
+          style={[
+            styles.favoriteButton, 
+            { 
+              backgroundColor: colorScheme === 'dark' 
+                ? 'rgba(255,255,255,0.9)' 
+                : 'rgba(255,255,255,0.9)',
+            }
+          ]}
+        >
+          <Ionicons 
+            name={product.isFavorite ? "heart" : "heart-outline"} 
+            size={16} 
+            color={product.isFavorite ? theme.tint : '#8E8E93'} 
+          />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.productContent}>
+        <Text style={[styles.productCategory, { color: theme.tabIconDefault }]} numberOfLines={1}>
+          {product.category}
+        </Text>
+        
+        <Text style={[styles.productName, { color: theme.text }]} numberOfLines={2}>
+          {product.name}
+        </Text>
+        
+        <View style={styles.priceContainer}>
+          <Text style={[styles.currentPrice, { color: theme.tint }]}>
+            ${product.price}
+          </Text>
+          {product.originalPrice > product.price && (
+            <Text style={[styles.originalPrice, { color: theme.tabIconDefault }]}>
+              ${product.originalPrice}
+            </Text>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 // Données de suggestions simulées
 const mockSuggestions: SearchSuggestion[] = [
   { id: 'r1', type: 'recent', title: 'iPhone 15 Pro', icon: 'time-outline' },
@@ -165,72 +240,7 @@ export default function HomeScreen() {
   );
 
   const renderProductItem = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
-      style={[
-        styles.productCard, 
-        { 
-          backgroundColor: theme.card,
-          shadowColor: colorScheme === 'dark' ? '#000' : '#8E8E93',
-        }
-      ]}
-      activeOpacity={0.9}
-      onPress={() => router.push({
-        pathname: '/screens/ProductDetailScreen',
-        params: { productId: item.id }
-      })}
-    >
-      <View style={styles.productImageContainer}>
-        <Image 
-          source={{ uri: item.image }} 
-          style={styles.productImage}
-          resizeMode="cover"
-        />
-        
-        {item.discount > 0 && (
-          <View style={[styles.discountBadge, { backgroundColor: theme.tint }]}>
-            <Text style={styles.discountText}>-{item.discount}%</Text>
-          </View>
-        )}
-        
-        <TouchableOpacity 
-          style={[
-            styles.favoriteButton, 
-            { 
-              backgroundColor: colorScheme === 'dark' 
-                ? 'rgba(255,255,255,0.9)' 
-                : 'rgba(255,255,255,0.9)',
-            }
-          ]}
-        >
-          <Ionicons 
-            name={item.isFavorite ? "heart" : "heart-outline"} 
-            size={16} 
-            color={item.isFavorite ? theme.tint : '#8E8E93'} 
-          />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.productContent}>
-        <Text style={[styles.productCategory, { color: theme.tabIconDefault }]} numberOfLines={1}>
-          {item.category}
-        </Text>
-        
-        <Text style={[styles.productName, { color: theme.text }]} numberOfLines={2}>
-          {item.name}
-        </Text>
-        
-        <View style={styles.priceContainer}>
-          <Text style={[styles.currentPrice, { color: theme.tint }]}>
-            ${item.price}
-          </Text>
-          {item.originalPrice > item.price && (
-            <Text style={[styles.originalPrice, { color: theme.tabIconDefault }]}>
-              ${item.originalPrice}
-            </Text>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
+    <ProductCard product={item} />
   );
 
   const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => (
@@ -677,6 +687,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     minWidth: 80,
     elevation: 8,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   categoryIcon: {
     width: 48,
@@ -704,6 +720,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 20,
     elevation: 8,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
     overflow: 'hidden',
   },
   productImageContainer: {
@@ -738,6 +760,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     zIndex: 3,
   },
   productContent: {

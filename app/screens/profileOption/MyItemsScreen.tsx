@@ -551,8 +551,7 @@ export default function MyItemsScreen() {
             placeholder={t('myItems:searchPlaceholder', 'Rechercher un article...')}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onFilterPress={handleFilterPress}
-            showFilterButton={true}
+            showFilterButton={false}
             colors={colors}
           />
         </View>
