@@ -1,16 +1,19 @@
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Dimensions,
     FlatList,
     Image,
+    Keyboard,
+    Modal,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     useColorScheme,
     View
 } from 'react-native';
@@ -28,6 +31,24 @@ interface Category {
   name: string;
   icon: keyof typeof Ionicons.glyphMap;
 }
+
+interface SearchSuggestion {
+  id: string;
+  type: 'recent' | 'trending' | 'category' | 'personal';
+  title: string;
+  subtitle?: string;
+  icon?: string;
+}
+
+// Données de suggestions simulées
+const mockSuggestions: SearchSuggestion[] = [
+  { id: 'r1', type: 'recent', title: 'iPhone 15 Pro', icon: 'time-outline' },
+  { id: 'r2', type: 'recent', title: 'Nike Air Jordan', icon: 'time-outline' },
+  { id: 'r3', type: 'recent', title: 'MacBook Pro', icon: 'time-outline' },
+  { id: 't1', type: 'trending', title: 'AirPods Pro', subtitle: 'Électronique • 245 recherches', icon: 'trending-up-outline' },
+  { id: 't2', type: 'trending', title: 'PlayStation 5', subtitle: 'Gaming • 189 recherches', icon: 'trending-up-outline' },
+  { id: 'c1', type: 'category', title: 'Smartphones', subtitle: 'Catégorie', icon: 'phone-portrait-outline' },
+];
 
 // Fonctions API simulées
 const fetchFeaturedProducts = async (): Promise<Product[]> => {
@@ -57,6 +78,10 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
 
+  // États simples
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Utilisation de React Query
   const { 
     data: products, 
@@ -74,6 +99,70 @@ export default function HomeScreen() {
     queryKey: ['categories'],
     queryFn: fetchCategories,
   });
+
+  // Gestion simple et fiable
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+  };
+
+  const closeSearch = () => {
+    Keyboard.dismiss();
+    setIsSearchFocused(false);
+    setSearchQuery('');
+  };
+
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      console.log('Recherche:', searchQuery);
+      closeSearch();
+    }
+  };
+
+  // Filtrer les suggestions
+  const filteredSuggestions = searchQuery 
+    ? mockSuggestions.filter(suggestion => 
+        suggestion.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : mockSuggestions;
+
+  const renderSuggestionItem = ({ item }: { item: SearchSuggestion }) => (
+    <TouchableOpacity 
+      style={[
+        styles.suggestionItem,
+        { backgroundColor: theme.card }
+      ]}
+      onPress={() => {
+        setSearchQuery(item.title);
+        closeSearch();
+      }}
+    >
+      <View style={styles.suggestionIconContainer}>
+        <Ionicons 
+          name={item.icon as any} 
+          size={22} 
+          color={
+            item.type === 'recent' ? theme.tabIconDefault :
+            item.type === 'trending' ? '#FF3B30' :
+            item.type === 'category' ? '#34C759' :
+            theme.tint
+          } 
+        />
+      </View>
+      
+      <View style={styles.suggestionContent}>
+        <Text style={[styles.suggestionTitle, { color: theme.text }]}>
+          {item.title}
+        </Text>
+        {item.subtitle && (
+          <Text style={[styles.suggestionSubtitle, { color: theme.tabIconDefault }]}>
+            {item.subtitle}
+          </Text>
+        )}
+      </View>
+      
+      <Ionicons name="chevron-forward" size={16} color={theme.tabIconDefault} />
+    </TouchableOpacity>
+  );
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <TouchableOpacity 
@@ -96,15 +185,6 @@ export default function HomeScreen() {
           style={styles.productImage}
           resizeMode="cover"
         />
-        
-        <View style={[
-          styles.imageOverlay,
-          { 
-            backgroundColor: colorScheme === 'dark' 
-              ? 'rgba(0,0,0,0.3)' 
-              : 'rgba(255,255,255,0.1)'
-          }
-        ]} />
         
         {item.discount > 0 && (
           <View style={[styles.discountBadge, { backgroundColor: theme.tint }]}>
@@ -139,17 +219,15 @@ export default function HomeScreen() {
           {item.name}
         </Text>
         
-        <View style={styles.priceRatingContainer}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.currentPrice, { color: theme.tint }]}>
-              ${item.price}
+        <View style={styles.priceContainer}>
+          <Text style={[styles.currentPrice, { color: theme.tint }]}>
+            ${item.price}
+          </Text>
+          {item.originalPrice > item.price && (
+            <Text style={[styles.originalPrice, { color: theme.tabIconDefault }]}>
+              ${item.originalPrice}
             </Text>
-            {item.originalPrice > item.price && (
-              <Text style={[styles.originalPrice, { color: theme.tabIconDefault }]}>
-                ${item.originalPrice}
-              </Text>
-            )}
-          </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -181,7 +259,6 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
-  // États de chargement
   if (productsLoading || categoriesLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
@@ -192,7 +269,6 @@ export default function HomeScreen() {
     );
   }
 
-  // Gestion d'erreur
   if (productsError) {
     return (
       <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
@@ -211,110 +287,176 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView 
-      showsVerticalScrollIndicator={false} 
-      style={[styles.scrollView, { backgroundColor: theme.background }]} 
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.background }]}>
-        <View style={styles.locationContainer}>
-          <Text style={[styles.locationText, { color: theme.text }]}>Bienvenue</Text>
-        </View>
-        <TouchableOpacity 
+    <View style={{ flex: 1 }}>
+      <ScrollView 
+        style={[styles.scrollView, { backgroundColor: theme.background }]} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: theme.background }]}>
+          <View style={styles.locationContainer}>
+            <Text style={[styles.locationText, { color: theme.text }]}>Bienvenue</Text>
+          </View>
+          <TouchableOpacity 
             style={styles.notificationButton} 
             onPress={() => router.push('/screens/homeOption/NotificationsScreen')}
-        >
-          <Ionicons name="notifications-outline" size={24} color={theme.text} />
-          <View style={[styles.notificationBadge, { backgroundColor: '#EF4444' }]} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Barre de recherche */}
-      <View style={[styles.searchSection, { backgroundColor: theme.background }]}>
-        <View style={[styles.searchContainer, { 
-          backgroundColor: colorScheme === 'dark' ? theme.card : '#eee',
-          borderColor: Theme.light.borderInput
-        }]}>
-          <Ionicons name="search" size={18} color={Theme.light.border} style={styles.searchIcon} />
-          <TextInput
-            style={[styles.searchInput, { color: Theme.light.border }]}
-            placeholder="Rechercher des produits..."
-            placeholderTextColor={Theme.light.border}
-          />
-          <TouchableOpacity 
-            style={styles.filterButton}
-            onPress={() => router.push('/screens/homeOption/FiltersScreen')}
           >
-            <Ionicons name="options-outline" size={22} color={Theme.light.border} />
+            <Ionicons name="notifications-outline" size={24} color={theme.text} />
+            <View style={[styles.notificationBadge, { backgroundColor: '#EF4444' }]} />
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Bannière promotionnelle */}
-      <View style={[styles.promoBanner, { 
-        backgroundColor: theme.tint,
-      }]}>
-        <View style={styles.promoContent}>
-          <Text style={styles.promoTitle}>Soldes d'Été</Text>
-          <Text style={styles.promoSubtitle}>Jusqu'à 50% de réduction</Text>
+        {/* Barre de recherche */}
+        <View style={[styles.searchSection, { backgroundColor: theme.background }]}>
           <TouchableOpacity 
-            style={[styles.promoButton, { backgroundColor: 'white' }]}
-            onPress={() => router.push('/screens/SalesScreen')}
+            style={[styles.searchContainer, { 
+              backgroundColor: colorScheme === 'dark' ? theme.card : '#eee',
+              borderColor: Theme.light.borderInput
+            }]}
+            onPress={handleSearchFocus}
           >
-            <Text style={[styles.promoButtonText, { color: theme.tint }]}>Découvrir</Text>
+            <Ionicons name="search" size={18} color={Theme.light.border} style={styles.searchIcon} />
+            <Text style={[styles.searchPlaceholder, { color: Theme.light.border }]}>
+              Rechercher des produits...
+            </Text>
+            <TouchableOpacity 
+              style={styles.filterButton}
+              onPress={() => router.push('/screens/homeOption/FiltersScreen')}
+            >
+              <Ionicons name="options-outline" size={22} color={Theme.light.border} />
+            </TouchableOpacity>
           </TouchableOpacity>
         </View>
-        <View style={styles.promoImageContainer}>
-          <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?w=300&h=300&fit=crop' }}
-            style={styles.promoImage}
-            resizeMode="cover"
-          />
-        </View>
-      </View>
 
-      {/* Catégories */}
-      <View style={[styles.section, { backgroundColor: theme.background }]}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Catégories</Text>
-          <TouchableOpacity>
-            <Text style={[styles.seeAllText, { color: theme.tint }]}>Tout voir</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={categories}
-          renderItem={renderCategoryItem}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesList}
-        />
-      </View>
+        {/* Contenu principal */}
+        <View>
+          <View style={[styles.promoBanner, { backgroundColor: theme.tint }]}>
+            <View style={styles.promoContent}>
+              <Text style={styles.promoTitle}>Soldes d'Été</Text>
+              <Text style={styles.promoSubtitle}>Jusqu'à 50% de réduction</Text>
+              <TouchableOpacity 
+                style={[styles.promoButton, { backgroundColor: 'white' }]}
+                onPress={() => router.push('/screens/SalesScreen')}
+              >
+                <Text style={[styles.promoButtonText, { color: theme.tint }]}>Découvrir</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.promoImageContainer}>
+              <Image 
+                source={{ uri: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?w=300&h=300&fit=crop' }}
+                style={styles.promoImage}
+                resizeMode="cover"
+              />
+            </View>
+          </View>
 
-      {/* Produits populaires */}
-      <View style={[styles.section, { backgroundColor: theme.background }]}>
-        <View style={[styles.sectionHeader, { backgroundColor: theme.background }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Produits populaires</Text>
-          <TouchableOpacity>
-            <Text style={[styles.seeAllText, { color: theme.tint }]}>Tout voir</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <FlatList
-          data={products}
-          renderItem={renderProductItem}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          scrollEnabled={false}
-          contentContainerStyle={styles.productsGrid}
-          columnWrapperStyle={styles.productsRow}
-        />
-      </View>
+          <View style={[styles.section, { backgroundColor: theme.background }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Catégories</Text>
+              <TouchableOpacity>
+                <Text style={[styles.seeAllText, { color: theme.tint }]}>Tout voir</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={categories}
+              renderItem={renderCategoryItem}
+              keyExtractor={item => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriesList}
+            />
+          </View>
 
-      {/* Espace pour la bottom navigation */}
-      <View style={{ height: 80, backgroundColor: theme.background }} />
-    </ScrollView>
+          <View style={[styles.section, { backgroundColor: theme.background }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Produits populaires</Text>
+              <TouchableOpacity>
+                <Text style={[styles.seeAllText, { color: theme.tint }]}>Tout voir</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={products}
+              renderItem={renderProductItem}
+              keyExtractor={item => item.id}
+              numColumns={2}
+              scrollEnabled={false}
+              contentContainerStyle={styles.productsGrid}
+              columnWrapperStyle={styles.productsRow}
+            />
+          </View>
+
+          <View style={{ height: 80, backgroundColor: theme.background }} />
+        </View>
+      </ScrollView>
+
+      {/* Modal Spotlight - Version fiable */}
+      <Modal
+        visible={isSearchFocused}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeSearch}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableWithoutFeedback onPress={closeSearch}>
+            <View style={[
+              styles.overlay,
+              { 
+                backgroundColor: colorScheme === 'dark' 
+                  ? 'rgba(0,0,0,0.85)' 
+                  : 'rgba(0,0,0,0.7)',
+              }
+            ]} />
+          </TouchableWithoutFeedback>
+          
+          <View style={styles.spotlightContainer}>
+            {/* Barre de recherche spotlight */}
+            <View style={styles.spotlightHeader}>
+              <View style={[
+                styles.spotlightSearchContainer,
+                { backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF' }
+              ]}>
+                <Ionicons name="search" size={20} color={theme.tint} style={styles.spotlightSearchIcon} />
+                
+                <TextInput
+                  style={[styles.spotlightSearchInput, { color: theme.text }]}
+                  placeholder="Rechercher des produits..."
+                  placeholderTextColor={theme.tabIconDefault}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoFocus
+                  onSubmitEditing={handleSearchSubmit}
+                  returnKeyType="search"
+                />
+                
+                <TouchableOpacity onPress={closeSearch} style={styles.cancelButton}>
+                  <Text style={[styles.cancelText, { color: theme.tint }]}>
+                    Annuler
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Suggestions */}
+            <View style={[
+              styles.suggestionsContainer,
+              { backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF' }
+            ]}>
+              <FlatList
+                data={filteredSuggestions}
+                renderItem={renderSuggestionItem}
+                keyExtractor={item => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.suggestionsList}
+                keyboardShouldPersistTaps="handled"
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -367,7 +509,7 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginRight: 12,
   },
-  searchInput: {
+  searchPlaceholder: {
     flex: 1,
     paddingVertical: 18,
     fontSize: 16,
@@ -376,6 +518,89 @@ const styles = StyleSheet.create({
   filterButton: {
     padding: 6,
   },
+  // Styles Spotlight
+  modalContainer: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  spotlightContainer: {
+    flex: 1,
+    paddingTop: 60,
+  },
+  spotlightHeader: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  spotlightSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+  },
+  spotlightSearchIcon: {
+    marginRight: 12,
+  },
+  spotlightSearchInput: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '500',
+    paddingVertical: 4,
+  },
+  cancelButton: {
+    marginLeft: 12,
+  },
+  cancelText: {
+    fontSize: 17,
+    fontWeight: '500',
+  },
+  suggestionsContainer: {
+    flex: 1,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
+  },
+  suggestionsList: {
+    paddingVertical: 8,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    marginHorizontal: 20,
+    marginVertical: 2,
+    borderRadius: 12,
+  },
+  suggestionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  suggestionContent: {
+    flex: 1,
+  },
+  suggestionTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  suggestionSubtitle: {
+    fontSize: 13,
+    fontWeight: '400',
+  },
+  // Styles existants
   promoBanner: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -451,7 +676,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     minWidth: 80,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
     elevation: 8,
   },
   categoryIcon: {
@@ -479,7 +703,6 @@ const styles = StyleSheet.create({
     width: (width - 60) / 2,
     borderRadius: 20,
     marginBottom: 20,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
     elevation: 8,
     overflow: 'hidden',
   },
@@ -490,28 +713,6 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: '100%',
-    position: 'relative',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8,
-    zIndex: 3,
   },
   discountBadge: {
     position: 'absolute',
@@ -526,6 +727,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '800',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    zIndex: 3,
   },
   productContent: {
     padding: 16,
@@ -542,12 +755,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 12,
     lineHeight: 20,
-  },
-  priceRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   priceContainer: {
     flexDirection: 'row',
