@@ -1,7 +1,8 @@
+import SearchBar from '@/components/SearchBar';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 export default function ChatScreen() {
   const colorScheme = useColorScheme();
@@ -118,6 +119,11 @@ export default function ChatScreen() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  const handleFilterPress = () => {
+    console.log('Ouvrir les filtres de discussion');
+    // router.push('/screens/chat/FiltersScreen');
+  };
+
   return (
     <Animated.View style={[styles.container, { backgroundColor: colors.background, opacity: fadeAnim }]}>
       {/* Header simplifié */}
@@ -182,24 +188,14 @@ export default function ChatScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.conversationsContent}
       >
-        {/* Barre de recherche large */}
-        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Rechercher une discussion..."
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        {/* Barre de recherche avec composant */}
+        <SearchBar
+          placeholder="Rechercher une discussion..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          colors={colors}
+          showFilterButton={false}
+        />
 
         {filteredConversations.map((conversation, index) => {
           const statusConfig = getStatusConfig(conversation.status);
@@ -320,7 +316,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 32,
     marginBottom: 8,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
     overflow: 'hidden',
   },
   headerTop: {
@@ -378,31 +374,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 100,
   },
-  // Nouveaux styles pour la barre de recherche
-  searchContainer: {
-    marginBottom: 16,
-    padding: 14,
-    borderRadius: 14,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
-    marginTop: 8,
-    borderColor: Theme.light.borderInput,
-    borderWidth: 1,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    paddingVertical: 8,
-  },
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -410,7 +381,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
     overflow: 'hidden',
     position: 'relative',
   },

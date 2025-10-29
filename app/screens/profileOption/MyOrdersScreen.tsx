@@ -1,22 +1,22 @@
 // screens/MyOrdersScreen.tsx
 import CustomButton from '@/components/CustomButton';
+import SearchBar from '@/components/SearchBar';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Dimensions,
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Alert,
+    Dimensions,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -175,6 +175,11 @@ export default function MyOrdersScreen() {
     }
   };
 
+  const handleFilterPress = () => {
+    console.log('Ouvrir les filtres des commandes');
+    // router.push('/screens/orders/FiltersScreen');
+  };
+
   const renderOrderItem = (order: Order) => {
     const statusConfig = getStatusConfig(order.status);
     
@@ -288,26 +293,15 @@ export default function MyOrdersScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Barre de recherche uniquement */}
-        <View style={[styles.searchContainer, { 
-          backgroundColor: colors.card,
-          borderColor: colors.border 
-        }]}>
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Rechercher une commande..."
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
+        {/* Barre de recherche avec composant SearchBar */}
+        <View style={styles.searchWrapper}>
+          <SearchBar
+            placeholder="Rechercher une commande..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            showFilterButton={false}
+            colors={colors}
+          />
         </View>
 
         {/* Liste des commandes */}
@@ -351,27 +345,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
   },
-  // Search
-  searchContainer: {
+  // Search Wrapper
+  searchWrapper: {
     marginHorizontal: 20,
     marginBottom: 20,
     marginTop: 20,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    paddingVertical: 8,
   },
   // Orders List
   ordersList: {
@@ -382,8 +360,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
     overflow: 'hidden',
   },
   orderHeader: {

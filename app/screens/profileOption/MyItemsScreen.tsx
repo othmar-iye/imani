@@ -1,4 +1,5 @@
 import CustomButton from '@/components/CustomButton';
+import SearchBar from '@/components/SearchBar';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -6,21 +7,20 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  useColorScheme,
+  View
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -201,6 +201,11 @@ export default function MyItemsScreen() {
         ]
       );
     }, 200);
+  };
+
+  const handleFilterPress = () => {
+    console.log('Ouvrir les filtres des articles');
+    // router.push('/screens/items/FiltersScreen');
   };
 
   // Gestion du long press
@@ -540,26 +545,16 @@ export default function MyItemsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Barre de recherche */}
-        <View style={[styles.searchContainer, { 
-          backgroundColor: colors.card,
-          borderColor: colors.borderInput 
-        }]}>
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder={t('myItems:searchPlaceholder', 'Rechercher un article...')}
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
+        {/* Barre de recherche avec composant SearchBar */}
+        <View style={styles.searchWrapper}>
+          <SearchBar
+            placeholder={t('myItems:searchPlaceholder', 'Rechercher un article...')}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFilterPress={handleFilterPress}
+            showFilterButton={true}
+            colors={colors}
+          />
         </View>
 
         {/* Liste des articles - Grille 2 colonnes */}
@@ -613,29 +608,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     marginTop: 25,
   },
-  // Search
-  searchContainer: {
+  // Search Wrapper
+  searchWrapper: {
     marginHorizontal: 20,
     marginBottom: 16,
-    padding: 14,
-    borderRadius: 14,
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 4,
-    borderWidth: 1,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    paddingVertical: 8,
   },
   // Products Grid
   productsGrid: { 
@@ -650,7 +626,10 @@ const styles = StyleSheet.create({
   productCard: { 
     width: (width - 60) / 2,
     borderRadius: 20,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
     elevation: 8,
     overflow: 'hidden',
   },
@@ -759,7 +738,10 @@ const styles = StyleSheet.create({
   enlargedCard: {
     width: '100%',
     borderRadius: 24,
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.3,
+    shadowRadius: 40,
     elevation: 25,
     overflow: 'hidden',
     marginBottom: 16,
@@ -815,7 +797,10 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 20,
     borderRadius: 20,
-    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
     elevation: 15,
   },
   actionButtonModal: {
