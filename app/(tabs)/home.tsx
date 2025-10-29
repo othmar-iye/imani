@@ -3,16 +3,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Dimensions,
+    FlatList,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Import React Query
@@ -223,7 +223,7 @@ export default function HomeScreen() {
         </View>
         <TouchableOpacity 
             style={styles.notificationButton} 
-            onPress={() => router.push('/screens/NotificationsScreen')}
+            onPress={() => router.push('/screens/homeOption/NotificationsScreen')}
         >
           <Ionicons name="notifications-outline" size={24} color={theme.text} />
           <View style={[styles.notificationBadge, { backgroundColor: '#EF4444' }]} />
@@ -244,7 +244,7 @@ export default function HomeScreen() {
           />
           <TouchableOpacity 
             style={styles.filterButton}
-            onPress={() => router.push('/screens/FiltersScreen')}
+            onPress={() => router.push('/screens/homeOption/FiltersScreen')}
           >
             <Ionicons name="options-outline" size={22} color={Theme.light.border} />
           </TouchableOpacity>
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     minWidth: 80,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
   },
   categoryIcon: {
     width: 48,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 20,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
     overflow: 'hidden',
   },
   productImageContainer: {
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
     zIndex: 3,
   },
   discountBadge: {
