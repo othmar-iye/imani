@@ -279,13 +279,25 @@ export default function ProfileScreen() {
     );
   };
 
+  // Menu items conditionnels selon le statut de vérification
   const menuItems = [
-    {
-      icon: 'cube-outline',
-      label: t('myItems', 'Mes articles'),
-      count: profileData?.stats.items.toString() || '12',
-      onPress: () => router.push('/screens/profileOption/MyItemsScreen')
-    },
+    // Ces éléments ne sont visibles que pour les utilisateurs vérifiés
+    ...(profileData?.sellerStatus === 'verified' ? [
+      {
+        icon: 'cube-outline',
+        label: t('myItems', 'Mes articles'),
+        count: profileData?.stats.items.toString() || '12',
+        onPress: () => router.push('/screens/profileOption/MyItemsScreen')
+      },
+      {
+        icon: 'chatbubble-outline',
+        label: t('myConversations', 'Mes discussions'),
+        count: '3',
+        onPress: () => router.push('/screens/profileOption/ConversationsScreen')
+      },
+    ] : []),
+    
+    // Ces éléments sont toujours visibles pour tous les utilisateurs
     {
       icon: 'wallet-outline',
       label: t('myWallet', 'Mon portefeuille'),
@@ -295,12 +307,6 @@ export default function ProfileScreen() {
       icon: 'cart-outline',
       label: t('myOrders', 'Mes commandes'),
       onPress: () => router.push('/screens/profileOption/MyOrdersScreen')
-    },
-    {
-      icon: 'chatbubble-outline',
-      label: t('myConversations', 'Mes discussions'),
-      count: '3',
-      onPress: () => router.push('/screens/profileOption/ConversationsScreen')
     },
     {
       icon: 'settings-outline',
@@ -329,6 +335,33 @@ export default function ProfileScreen() {
       isDestructive: true
     },
   ];
+
+  // Stats conditionnelles selon le statut de vérification
+  const stats = profileData?.sellerStatus === 'verified' ? [
+    { label: t('items', 'Articles'), value: profileData.stats.items.toString() },
+    { label: t('sales', 'Ventes'), value: profileData.stats.sales.toString() },
+    { label: t('ratings', 'Évaluations'), value: profileData.stats.ratings.toString() },
+  ] : [];
+
+  // Message d'information conditionnel - UNIQUEMENT pour le statut "pending"
+  const getPendingVerificationMessage = () => {
+    if (profileData?.sellerStatus === 'pending') {
+      return (
+        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+          <Ionicons name="time-outline" size={24} color="#FF9500" />
+          <View style={styles.infoTextContainer}>
+            <Text style={[styles.infoTitle, { color: colors.text }]}>
+              {t('verificationInProgress', 'Vérification en cours')}
+            </Text>
+            <Text style={[styles.infoDescription, { color: colors.textSecondary }]}>
+              {t('verificationTimeMessage', 'Votre demande de vérification est en cours de traitement. Cela peut prendre 24 à 48 heures. Vous serez notifié dès que votre profil sera vérifié.')}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    return null;
+  };
 
   // Skeleton Loader intégré
   const ProfileSkeleton = () => {
@@ -394,7 +427,7 @@ export default function ProfileScreen() {
             ]} />
           </View>
 
-          {/* Stats Skeleton */}
+          {/* Stats Skeleton - Toujours visible dans le skeleton */}
           <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
             {[1, 2, 3].map((_, index) => (
               <View key={index} style={styles.statItem}>
@@ -523,12 +556,6 @@ export default function ProfileScreen() {
     return <ProfileSkeleton />;
   }
 
-  const stats = [
-    { label: t('items', 'Articles'), value: profileData.stats.items.toString() },
-    { label: t('sales', 'Ventes'), value: profileData.stats.sales.toString() },
-    { label: t('ratings', 'Évaluations'), value: profileData.stats.ratings.toString() },
-  ];
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
@@ -581,18 +608,23 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Statistiques */}
-        <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
-          {stats.map((stat, index) => (
-            <View key={stat.label} style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.tint }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
-              {index < stats.length - 1 && (
-                <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
-              )}
-            </View>
-          ))}
-        </View>
+        {/* Message d'information - UNIQUEMENT pour le statut "pending" */}
+        {getPendingVerificationMessage()}
+
+        {/* Statistiques - SEULEMENT pour les utilisateurs vérifiés */}
+        {profileData.sellerStatus === 'verified' && stats.length > 0 && (
+          <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
+            {stats.map((stat, index) => (
+              <View key={stat.label} style={styles.statItem}>
+                <Text style={[styles.statValue, { color: colors.tint }]}>{stat.value}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
+                {index < stats.length - 1 && (
+                  <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
+                )}
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Menu options */}
         <View style={[styles.menuSection, { backgroundColor: colors.background }]}>
@@ -767,6 +799,29 @@ const styles = StyleSheet.create({
     top: '25%',
     width: 1,
     height: '50%',
+  },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 20,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    elevation: 8,
+  },
+  infoTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  infoDescription: {
+    fontSize: 14,
+    lineHeight: 18,
   },
   menuSection: {
     paddingHorizontal: 20,
