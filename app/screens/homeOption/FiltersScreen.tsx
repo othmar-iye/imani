@@ -4,13 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -157,15 +157,40 @@ export default function FiltersScreen() {
 
   // Fonction pour appliquer les filtres
   const applyFilters = () => {
-    const filters = {
-      categories: selectedCategories,
-      priceRange,
-      sort: selectedSort,
-      city: selectedCity,
-      condition: selectedCondition
+    // Construire les paramètres de filtre
+    const filterParams: any = {
+      searchType: 'filter'
     };
-    console.log('Filtres appliqués:', filters);
-    router.back();
+
+    // Ajouter les catégories si sélectionnées
+    if (selectedCategories.length > 0) {
+        filterParams.categories = selectedCategories.join(',');
+    }
+
+    // Ajouter la fourchette de prix
+    filterParams.minPrice = priceRange[0].toString();
+    filterParams.maxPrice = priceRange[1].toString();
+
+    // Ajouter le tri
+    filterParams.sort = selectedSort;
+
+    // Ajouter la ville si sélectionnée
+    if (selectedCity) {
+        filterParams.city = selectedCity;
+    }
+
+    // Ajouter la condition si sélectionnée
+    if (selectedCondition) {
+        filterParams.condition = selectedCondition;
+    }
+
+    console.log('Filtres appliqués new :', filterParams);
+
+    // Rediriger vers l'écran des résultats de filtres
+    router.push({
+        pathname: '/screens/homeOption/FilterResultsScreen',
+        params: filterParams
+    });
   };
 
   return (
