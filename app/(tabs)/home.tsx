@@ -188,27 +188,56 @@ export default function HomeScreen() {
     setIsSearchFocused(true);
   };
 
+  // CORRECTION : Fonction closeSearch améliorée
   const closeSearch = () => {
-    Keyboard.dismiss();
     setIsSearchFocused(false);
     setSearchQuery('');
+    // Fermer le keyboard après un petit délai pour la fluidité
+    setTimeout(() => {
+      Keyboard.dismiss();
+    }, 100);
   };
 
+  // CORRECTION : Fonction handleSearchSubmit améliorée
   const handleSearchSubmit = () => {
     if (searchQuery.trim()) {
-      console.log('Recherche:', searchQuery);
-      closeSearch();
+      console.log('Recherche lancée:', searchQuery);
+      
+      // Fermer IMMÉDIATEMENT la modal
+      setIsSearchFocused(false);
+      
+      // Redirection IMMÉDIATE sans attendre la fermeture complète
+      setTimeout(() => {
+        router.push({
+          pathname: '/screens/homeOption/SearchResultsScreen',
+          params: { 
+            query: searchQuery.trim(),
+            searchType: 'text'
+          }
+        });
+      }, 10);
     }
   };
 
-  // Fonction de gestion du clic sur une suggestion
+  // CORRECTION : Fonction handleSuggestionPress améliorée
   const handleSuggestionPress = (suggestion: SearchSuggestion) => {
-    closeSearch();
-    // Rediriger vers le détail du produit correspondant
-    router.push({
-      pathname: '/screens/ProductDetailScreen',
-      params: { productId: suggestion.id }
-    });
+    // Fermer IMMÉDIATEMENT la modal sans attendre
+    setIsSearchFocused(false);
+    
+    // Redirection IMMÉDIATE sans délai
+    setTimeout(() => {
+      router.push({
+        pathname: '/screens/ProductDetailScreen',
+        params: { productId: suggestion.id }
+      });
+    }, 10);
+  };
+
+  // CORRECTION : Fonction pour le bouton Annuler
+  const handleCancelPress = () => {
+    setIsSearchFocused(false);
+    setSearchQuery('');
+    Keyboard.dismiss();
   };
 
   // Filtrer les suggestions basées sur la requête de recherche
@@ -342,7 +371,7 @@ export default function HomeScreen() {
               <Text style={styles.promoSubtitle}>Jusqu'à 50% de réduction</Text>
               <TouchableOpacity 
                 style={[styles.promoButton, { backgroundColor: 'white' }]}
-                onPress={() => router.push('/screens/SalesScreen')}
+                onPress={() => router.push('/screens/homeOption/SalesScreen')}
               >
                 <Text style={[styles.promoButtonText, { color: theme.tint }]}>Découvrir</Text>
               </TouchableOpacity>
@@ -399,16 +428,16 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Modal Spotlight - Version fiable */}
+      {/* Modal Spotlight - Version améliorée */}
       <Modal
         visible={isSearchFocused}
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={closeSearch}
+        onRequestClose={handleCancelPress}
       >
         <View style={styles.modalContainer}>
-          <TouchableWithoutFeedback onPress={closeSearch}>
+          <TouchableWithoutFeedback onPress={handleCancelPress}>
             <View style={[
               styles.overlay,
               { 
@@ -439,7 +468,8 @@ export default function HomeScreen() {
                   returnKeyType="search"
                 />
                 
-                <TouchableOpacity onPress={closeSearch} style={styles.cancelButton}>
+                {/* CORRECTION : Utiliser handleCancelPress pour le bouton Annuler */}
+                <TouchableOpacity onPress={handleCancelPress} style={styles.cancelButton}>
                   <Text style={[styles.cancelText, { color: theme.tint }]}>
                     Annuler
                   </Text>
@@ -469,7 +499,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  // ... (tous les styles restent exactement les mêmes)
   scrollView: {
     flex: 1,
   },
@@ -579,7 +608,6 @@ const styles = StyleSheet.create({
   suggestionsList: {
     paddingVertical: 8,
   },
-  // ... (tous les autres styles restent identiques)
   promoBanner: {
     marginHorizontal: 20,
     borderRadius: 20,
