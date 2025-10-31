@@ -27,6 +27,9 @@ import { featuredProducts, Product } from '@/src/data/products';
 // Import du composant SuggestionItem
 import SuggestionItem from '@/components/SuggestionItem';
 
+// Import des categories
+import { categories as categoriesData } from '@/src/data/categories';
+
 const { width } = Dimensions.get('window');
 
 interface Category {
@@ -141,14 +144,16 @@ const fetchFeaturedProducts = async (): Promise<Product[]> => {
 const fetchCategories = async (): Promise<Category[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve([
-        { id: '1', name: 'Tous', icon: 'apps' },
-        { id: '2', name: 'Vêtements', icon: 'shirt' },
-        { id: '3', name: 'Électronique', icon: 'phone-portrait' },
-        { id: '4', name: 'Maison', icon: 'home' },
-        { id: '5', name: 'Sports', icon: 'basketball' },
-        { id: '6', name: 'Beauté', icon: 'sparkles' }
-      ]);
+      // Transformer les données depuis categories.ts vers le format attendu
+      const transformedCategories: Category[] = [
+        { id: '0', name: 'Tous', icon: 'apps' },
+        ...categoriesData.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          icon: cat.icon as keyof typeof Ionicons.glyphMap
+        }))
+      ];
+      resolve(transformedCategories);
     }, 500);
   });
 };
@@ -389,9 +394,6 @@ export default function HomeScreen() {
           <View style={[styles.section, { backgroundColor: theme.background }]}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Catégories</Text>
-              <TouchableOpacity>
-                <Text style={[styles.seeAllText, { color: theme.tint }]}>Tout voir</Text>
-              </TouchableOpacity>
             </View>
             <FlatList
               data={categories}
@@ -689,7 +691,7 @@ const styles = StyleSheet.create({
       height: 4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowRadius: 10,
   },
   categoryIcon: {
     width: 48,

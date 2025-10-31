@@ -1,5 +1,6 @@
 import CustomButton from '@/components/CustomButton';
 import { Theme } from '@/constants/theme';
+import { categories } from '@/src/data/categories';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -99,7 +100,8 @@ export default function FiltersScreen() {
     city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const categories = ['Vêtements', 'Électronique', 'Maison', 'Sports', 'Beauté', 'Accessoires'];
+  // Pour avoir seulement les noms des catégories principales
+  const categoryNames = categories.map(cat => cat.name);
   const sortOptions = [
     { id: 'popular', label: 'Populaire' },
     { id: 'newest', label: 'Plus récent' },
@@ -164,7 +166,7 @@ export default function FiltersScreen() {
 
     // Ajouter les catégories si sélectionnées
     if (selectedCategories.length > 0) {
-        filterParams.categories = selectedCategories.join(',');
+        filterParams.categoryNames = selectedCategories.join(',');
     }
 
     // Ajouter la fourchette de prix
@@ -367,7 +369,7 @@ export default function FiltersScreen() {
         <View style={[styles.section, { backgroundColor: colors.background }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Catégories</Text>
           <View style={styles.categoriesContainer}>
-            {categories.map(category => (
+            {categoryNames.map(category => (
               <TouchableOpacity
                 key={category}
                 style={[
