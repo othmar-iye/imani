@@ -24,6 +24,9 @@ import { useQuery } from '@tanstack/react-query';
 // Import des données
 import { featuredProducts, Product } from '@/src/data/products';
 
+// Import du composant SuggestionItem
+import SuggestionItem from '@/components/SuggestionItem';
+
 const { width } = Dimensions.get('window');
 
 interface Category {
@@ -115,15 +118,16 @@ const ProductCard = ({ product }: { product: Product }) => {
   );
 };
 
-// Données de suggestions simulées
-const mockSuggestions: SearchSuggestion[] = [
-  { id: 'r1', type: 'recent', title: 'iPhone 15 Pro', icon: 'time-outline' },
-  { id: 'r2', type: 'recent', title: 'Nike Air Jordan', icon: 'time-outline' },
-  { id: 'r3', type: 'recent', title: 'MacBook Pro', icon: 'time-outline' },
-  { id: 't1', type: 'trending', title: 'AirPods Pro', subtitle: 'Électronique • 245 recherches', icon: 'trending-up-outline' },
-  { id: 't2', type: 'trending', title: 'PlayStation 5', subtitle: 'Gaming • 189 recherches', icon: 'trending-up-outline' },
-  { id: 'c1', type: 'category', title: 'Smartphones', subtitle: 'Catégorie', icon: 'phone-portrait-outline' },
-];
+// Fonction pour générer les suggestions de recherche à partir des produits
+const generateSearchSuggestions = (products: Product[]): SearchSuggestion[] => {
+  return products.map(product => ({
+    id: product.id, // Utilise l'ID du produit
+    type: 'recent', // Type fixe pour toutes les suggestions
+    title: product.name, // Utilise le nom du produit comme titre
+    subtitle: product.category, // Utilise la catégorie du produit comme sous-titre
+    icon: 'time-outline' // Icône fixe pour toutes les suggestions
+  }));
+};
 
 // Fonctions API simulées
 const fetchFeaturedProducts = async (): Promise<Product[]> => {
@@ -157,7 +161,7 @@ export default function HomeScreen() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Utilisation de React Query
+  // Utilisation de React Query pour les produits
   const { 
     data: products, 
     isLoading: productsLoading, 
@@ -167,6 +171,7 @@ export default function HomeScreen() {
     queryFn: fetchFeaturedProducts,
   });
 
+  // Utilisation de React Query pour les catégories
   const { 
     data: categories, 
     isLoading: categoriesLoading 
@@ -175,7 +180,10 @@ export default function HomeScreen() {
     queryFn: fetchCategories,
   });
 
-  // Gestion simple et fiable
+  // Génération des suggestions de recherche à partir des produits
+  const searchSuggestions = products ? generateSearchSuggestions(products) : [];
+
+  // Gestion simple et fiable de la recherche
   const handleSearchFocus = () => {
     setIsSearchFocused(true);
   };
@@ -193,56 +201,40 @@ export default function HomeScreen() {
     }
   };
 
-  // Filtrer les suggestions
-  const filteredSuggestions = searchQuery 
-    ? mockSuggestions.filter(suggestion => 
-        suggestion.title.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : mockSuggestions;
+  // Fonction de gestion du clic sur une suggestion
+  const handleSuggestionPress = (suggestion: SearchSuggestion) => {
+    closeSearch();
+    // Rediriger vers le détail du produit correspondant
+    router.push({
+      pathname: '/screens/ProductDetailScreen',
+      params: { productId: suggestion.id }
+    });
+  };
 
+  // Filtrer les suggestions basées sur la requête de recherche
+  const filteredSuggestions = searchQuery 
+    ? searchSuggestions.filter(suggestion => 
+        suggestion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        suggestion.subtitle?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : searchSuggestions;
+
+  // Rendu d'un élément de suggestion utilisant le composant SuggestionItem
   const renderSuggestionItem = ({ item }: { item: SearchSuggestion }) => (
-    <TouchableOpacity 
-      style={[
-        styles.suggestionItem,
-        { backgroundColor: theme.card }
-      ]}
-      onPress={() => {
-        setSearchQuery(item.title);
-        closeSearch();
-      }}
-    >
-      <View style={styles.suggestionIconContainer}>
-        <Ionicons 
-          name={item.icon as any} 
-          size={22} 
-          color={
-            item.type === 'recent' ? theme.tabIconDefault :
-            item.type === 'trending' ? '#FF3B30' :
-            item.type === 'category' ? '#34C759' :
-            theme.tint
-          } 
-        />
-      </View>
-      
-      <View style={styles.suggestionContent}>
-        <Text style={[styles.suggestionTitle, { color: theme.text }]}>
-          {item.title}
-        </Text>
-        {item.subtitle && (
-          <Text style={[styles.suggestionSubtitle, { color: theme.tabIconDefault }]}>
-            {item.subtitle}
-          </Text>
-        )}
-      </View>
-      
-      <Ionicons name="chevron-forward" size={16} color={theme.tabIconDefault} />
-    </TouchableOpacity>
+    <SuggestionItem
+      item={item}
+      onPress={handleSuggestionPress}
+      theme={theme}
+      colorScheme={colorScheme as 'light' | 'dark'}
+    />
   );
 
+  // Rendu d'un élément produit
   const renderProductItem = ({ item }: { item: Product }) => (
     <ProductCard product={item} />
   );
 
+  // Rendu d'un élément catégorie
   const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => (
     <TouchableOpacity style={[
       styles.categoryCard,
@@ -269,6 +261,7 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+  // État de chargement
   if (productsLoading || categoriesLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
@@ -279,6 +272,7 @@ export default function HomeScreen() {
     );
   }
 
+  // État d'erreur
   if (productsError) {
     return (
       <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
@@ -303,7 +297,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header avec localisation et notifications */}
         <View style={[styles.header, { backgroundColor: theme.background }]}>
           <View style={styles.locationContainer}>
             <Text style={[styles.locationText, { color: theme.text }]}>Bienvenue</Text>
@@ -341,6 +335,7 @@ export default function HomeScreen() {
 
         {/* Contenu principal */}
         <View>
+          {/* Bannière promotionnelle */}
           <View style={[styles.promoBanner, { backgroundColor: theme.tint }]}>
             <View style={styles.promoContent}>
               <Text style={styles.promoTitle}>Soldes d'Été</Text>
@@ -361,6 +356,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
+          {/* Section Catégories */}
           <View style={[styles.section, { backgroundColor: theme.background }]}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Catégories</Text>
@@ -378,6 +374,7 @@ export default function HomeScreen() {
             />
           </View>
 
+          {/* Section Produits populaires */}
           <View style={[styles.section, { backgroundColor: theme.background }]}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Produits populaires</Text>
@@ -397,6 +394,7 @@ export default function HomeScreen() {
             />
           </View>
 
+          {/* Espace en bas pour éviter que le contenu soit caché */}
           <View style={{ height: 80, backgroundColor: theme.background }} />
         </View>
       </ScrollView>
@@ -449,7 +447,7 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Suggestions */}
+            {/* Suggestions de recherche */}
             <View style={[
               styles.suggestionsContainer,
               { backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF' }
@@ -471,6 +469,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  // ... (tous les styles restent exactement les mêmes)
   scrollView: {
     flex: 1,
   },
@@ -580,37 +579,7 @@ const styles = StyleSheet.create({
   suggestionsList: {
     paddingVertical: 8,
   },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    marginHorizontal: 20,
-    marginVertical: 2,
-    borderRadius: 12,
-  },
-  suggestionIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  suggestionContent: {
-    flex: 1,
-  },
-  suggestionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  suggestionSubtitle: {
-    fontSize: 13,
-    fontWeight: '400',
-  },
-  // Styles existants
+  // ... (tous les autres styles restent identiques)
   promoBanner: {
     marginHorizontal: 20,
     borderRadius: 20,
