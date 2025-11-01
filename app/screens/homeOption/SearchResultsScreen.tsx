@@ -1,4 +1,5 @@
 // screens/SearchResultsScreen.tsx
+import { SearchResultsSkeleton } from '@/components/SearchResultsSkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -14,6 +15,9 @@ import {
   View
 } from 'react-native';
 
+// Import React Query
+import { useQuery } from '@tanstack/react-query';
+
 // Import des données réelles
 import { featuredProducts, Product } from '@/src/data/products';
 
@@ -21,6 +25,21 @@ import { featuredProducts, Product } from '@/src/data/products';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
+
+// Fonction API simulée pour la recherche
+const fetchSearchResults = async (query: string): Promise<Product[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filtrer les produits basés sur la recherche
+      const results = featuredProducts.filter(product => 
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.category.toLowerCase().includes(query.toLowerCase()) ||
+        product.description.toLowerCase().includes(query.toLowerCase())
+      );
+      resolve(results);
+    }, 800);
+  });
+};
 
 export default function SearchResultsScreen() {
   const colorScheme = useColorScheme();
@@ -37,12 +56,16 @@ export default function SearchResultsScreen() {
     tint: colorScheme === 'dark' ? Theme.dark.tint : Theme.light.tint,
   };
 
-  // Filtrer les produits basés sur la recherche
-  const searchResults = featuredProducts.filter(product => 
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Utilisation de React Query pour les résultats de recherche
+  const { 
+    data: searchResults = [], 
+    isLoading: searchLoading, 
+    error: searchError 
+  } = useQuery({
+    queryKey: ['search-results', searchQuery],
+    queryFn: () => fetchSearchResults(searchQuery),
+    enabled: !!searchQuery, // Ne s'exécute que si searchQuery n'est pas vide
+  });
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <TouchableOpacity 
@@ -164,6 +187,48 @@ export default function SearchResultsScreen() {
     </View>
   );
 
+  // État de chargement - AVEC SKELETON
+  if (searchLoading) {
+    return <SearchResultsSkeleton 
+      colors={{
+        background: colors.background,
+        card: colors.card,
+        text: colors.text,
+        textSecondary: colors.textSecondary,
+        border: colors.border,
+        tint: colors.tint
+      }} 
+      searchQuery={searchQuery}
+    />;
+  }
+
+  // État d'erreur
+  if (searchError) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.tint} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {t('filters.results')}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            Erreur lors de la recherche
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header avec back button */}
@@ -227,6 +292,7 @@ export default function SearchResultsScreen() {
   );
 }
 
+// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
@@ -387,7 +453,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  // Styles pour l'état vide
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -416,5 +481,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 16,
+    textAlign: 'center',
   },
 });

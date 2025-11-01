@@ -1,4 +1,5 @@
 // screens/SalesScreen.tsx
+import { SalesSkeleton } from '@/components/SalesSkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -14,6 +15,9 @@ import {
   View
 } from 'react-native';
 
+// Import React Query
+import { useQuery } from '@tanstack/react-query';
+
 // Import des données réelles
 import { featuredProducts, Product } from '@/src/data/products';
 
@@ -21,6 +25,17 @@ import { featuredProducts, Product } from '@/src/data/products';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
+
+// Fonction API simulée pour les produits en promotion
+const fetchDiscountedProducts = async (): Promise<Product[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filtrer seulement les produits avec réduction
+      const discounted = featuredProducts.filter(product => product.discount > 0);
+      resolve(discounted);
+    }, 800);
+  });
+};
 
 export default function SalesScreen() {
   const colorScheme = useColorScheme();
@@ -36,8 +51,15 @@ export default function SalesScreen() {
     tint: isDark ? Theme.dark.tint : Theme.light.tint,
   };
 
-  // Filtrer les produits avec des réductions
-  const discountedProducts = featuredProducts.filter(product => product.discount > 0);
+  // Utilisation de React Query pour les produits en promotion
+  const { 
+    data: discountedProducts = [], 
+    isLoading: salesLoading, 
+    error: salesError 
+  } = useQuery({
+    queryKey: ['discounted-products'],
+    queryFn: fetchDiscountedProducts,
+  });
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <TouchableOpacity 
@@ -134,6 +156,45 @@ export default function SalesScreen() {
     </TouchableOpacity>
   );
 
+  // État de chargement - AVEC SKELETON
+  if (salesLoading) {
+    return <SalesSkeleton colors={{
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      textSecondary: colors.textSecondary,
+      border: colors.border,
+      tint: colors.tint
+    }} />;
+  }
+
+  // État d'erreur
+  if (salesError) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.tint} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {t('sales.title')}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            Erreur de chargement des promotions
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header avec back button */}
@@ -155,7 +216,6 @@ export default function SalesScreen() {
         </View>
       </View>
 
-      {/* Contenu principal - SUPPRIME le View content */}
       {/* En-tête avec description */}
       <View style={styles.infoSection}>
         <Text style={[styles.infoTitle, { color: colors.text }]}>
@@ -173,7 +233,7 @@ export default function SalesScreen() {
         </Text>
       </View>
 
-      {/* Grid des produits - FlatList prend tout l'espace */}
+      {/* Grid des produits */}
       <FlatList
         data={discountedProducts}
         renderItem={renderProductItem}
@@ -189,6 +249,7 @@ export default function SalesScreen() {
   );
 }
 
+// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
@@ -199,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 60, // ← Espace pour status bar
+    paddingTop: 60,
     borderBottomWidth: 1,
   },
   headerLeft: {
@@ -240,7 +301,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   flatList: {
-    flex: 1, // ← Prend tout l'espace restant
+    flex: 1,
   },
   productsGrid: { 
     paddingHorizontal: 10,
@@ -255,8 +316,7 @@ const styles = StyleSheet.create({
     width: (width - 60) / 2,
     borderRadius: 20,
     marginBottom: 16,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
     overflow: 'hidden',
   },
   productImageContainer: {
@@ -285,8 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
     zIndex: 3,
   },
   discountBadge: {
@@ -345,5 +404,17 @@ const styles = StyleSheet.create({
   savingsText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 16,
+    textAlign: 'center',
   },
 });
