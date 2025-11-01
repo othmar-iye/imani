@@ -1,5 +1,7 @@
 // app/(tabs)/profile.tsx
 import CustomButton from '@/components/CustomButton';
+import { MenuItem } from '@/components/MenuItem';
+import { MenuSection } from '@/components/MenuSection';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
@@ -8,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 // Types pour les données du profil
 interface ProfileStats {
@@ -20,7 +22,7 @@ interface ProfileStats {
 interface ProfileData {
   fullName: string;
   profilePicture: string | null;
-  sellerStatus: 'member' | 'pending' | 'verified';
+  sellerStatus: 'member' | 'pending' | 'verified' | 'rejected';
   location: string;
   stats: ProfileStats;
 }
@@ -90,12 +92,14 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
 };
 
 // Fonction pour mapper le statut de vérification au statut vendeur
-const getSellerStatus = (verificationStatus: string | undefined): 'member' | 'pending' | 'verified' => {
+const getSellerStatus = (verificationStatus: string | undefined): 'member' | 'pending' | 'verified' | 'rejected' => {
   switch (verificationStatus) {
     case 'verified':
       return 'verified';
     case 'pending_review':
       return 'pending';
+    case 'rejected':
+      return 'rejected';
     default:
       return 'member';
   }
@@ -160,19 +164,40 @@ export default function ProfileScreen() {
   const isDark = colorScheme === 'dark';
   const [imageError, setImageError] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Utilisation de React Query pour les données du profil
+  // 🚀 SOLUTION REACT QUERY AVEC ACTUALISATION AUTOMATIQUE
   const { 
     data: profileData, 
     isLoading, 
-    error 
+    error,
+    refetch,
+    isRefetching
   } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: () => fetchProfileData(user),
-    enabled: !!user, // Ne s'exécute que si l'user existe
-    staleTime: 5 * 60 * 1000, // 5 minutes avant de considérer les données comme périmées
-    gcTime: 10 * 60 * 1000, // 10 minutes de cache en mémoire
+    enabled: !!user,
+    
+    // ⚡ OPTIMISATIONS DES PERFORMANCES
+    staleTime: 2 * 60 * 1000, // 2 minutes avant de considérer les données comme périmées
+    gcTime: 10 * 60 * 1000, // 10 minutes de cache
+    
+    // 🔄 STRATÉGIE DE ACTUALISATION AUTOMATIQUE
+    refetchInterval: 30000, // Toutes les 30 secondes
+    refetchOnWindowFocus: true, // Recharge quand l'écran redevient actif
+    refetchOnReconnect: true, // Recharge quand la connexion revient
+    refetchIntervalInBackground: false, // Évite de drainer la batterie
   });
+
+  // Fonction pour le pull-to-refresh
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   // Mettre à jour l'URL de l'image de profil avec une URL signée si nécessaire
   React.useEffect(() => {
@@ -230,6 +255,8 @@ export default function ProfileScreen() {
         return t('verificationPending', 'Profil en cours de vérification');
       case 'verified':
         return t('verifiedSeller', 'Vendeur vérifié');
+      case 'rejected':
+        return t('verificationRejected', 'Profil rejeté');
       default:
         return t('member', 'Membre');
     }
@@ -241,6 +268,8 @@ export default function ProfileScreen() {
         return 'time-outline';
       case 'verified':
         return 'checkmark-circle-outline';
+      case 'rejected':
+        return 'close-circle-outline';
       default:
         return 'person-outline';
     }
@@ -252,6 +281,8 @@ export default function ProfileScreen() {
         return '#FF9500';
       case 'verified':
         return '#34C759';
+      case 'rejected':
+        return '#FF3B30';
       default:
         return colors.textSecondary;
     }
@@ -279,63 +310,6 @@ export default function ProfileScreen() {
     );
   };
 
-  // Menu items conditionnels selon le statut de vérification
-  const menuItems = [
-    // Ces éléments ne sont visibles que pour les utilisateurs vérifiés
-    ...(profileData?.sellerStatus === 'verified' ? [
-      {
-        icon: 'cube-outline',
-        label: t('myItems', 'Mes articles'),
-        count: profileData?.stats.items.toString() || '12',
-        onPress: () => router.push('/screens/profileOption/MyItemsScreen')
-      },
-      {
-        icon: 'chatbubble-outline',
-        label: t('myConversations', 'Mes discussions'),
-        count: '3',
-        onPress: () => router.push('/screens/profileOption/ConversationsScreen')
-      },
-    ] : []),
-    
-    // Ces éléments sont toujours visibles pour tous les utilisateurs
-    {
-      icon: 'wallet-outline',
-      label: t('myWallet', 'Mon portefeuille'),
-      onPress: () => router.push('/screens/profileOption/WalletScreen')
-    },
-    {
-      icon: 'cart-outline',
-      label: t('myOrders', 'Mes commandes'),
-      onPress: () => router.push('/screens/profileOption/MyOrdersScreen')
-    },
-    {
-      icon: 'settings-outline',
-      label: t('settings', 'Paramètres'),
-      onPress: () => router.push('/screens/profileOption/SettingsScreen')
-    },
-    {
-      icon: 'document-text-outline',
-      label: t('termsOfService', 'Conditions d\'utilisation'),
-      onPress: () => router.push('/screens/profileOption/TermsOfServiceScreen')
-    },
-    {
-      icon: 'lock-closed-outline',
-      label: t('privacyPolicy', 'Politique de confidentialité'),
-      onPress: () => router.push('/screens/profileOption/PrivacyPolicyScreen')
-    },
-    {
-      icon: 'information-circle-outline',
-      label: t('about', 'À propos'),
-      onPress: () => router.push('/screens/profileOption/AboutScreen')
-    },
-    {
-      icon: 'log-out-outline',
-      label: t('logoutMenu'),
-      onPress: handleLogout,
-      isDestructive: true
-    },
-  ];
-
   // Stats conditionnelles selon le statut de vérification
   const stats = profileData?.sellerStatus === 'verified' ? [
     { label: t('items', 'Articles'), value: profileData.stats.items.toString() },
@@ -343,8 +317,8 @@ export default function ProfileScreen() {
     { label: t('ratings', 'Évaluations'), value: profileData.stats.ratings.toString() },
   ] : [];
 
-  // Message d'information conditionnel - UNIQUEMENT pour le statut "pending"
-  const getPendingVerificationMessage = () => {
+  // Message d'information conditionnel - pour les statuts "pending" et "rejected"
+  const getStatusMessage = () => {
     if (profileData?.sellerStatus === 'pending') {
       return (
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
@@ -356,6 +330,29 @@ export default function ProfileScreen() {
             <Text style={[styles.infoDescription, { color: colors.textSecondary }]}>
               {t('verificationTimeMessage', 'Votre demande de vérification est en cours de traitement. Cela peut prendre 24 à 48 heures. Vous serez notifié dès que votre profil sera vérifié.')}
             </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (profileData?.sellerStatus === 'rejected') {
+      return (
+        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+          <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+          <View style={styles.infoTextContainer}>
+            <Text style={[styles.infoTitle, { color: colors.text }]}>
+              {t('verificationRejected', 'Profil rejeté')}
+            </Text>
+            <Text style={[styles.infoDescription, { color: colors.textSecondary }]}>
+              {t('verificationRejectedMessage', 'Votre demande de vérification a été rejetée. Veuillez vérifier vos documents et soumettre à nouveau votre profil.')}
+            </Text>
+            <CustomButton
+              title={t('resubmitProfile', 'Soumettre à nouveau')}
+              onPress={setProfile}
+              variant="primary"
+              size="small"
+              style={styles.resubmitButton}
+            />
           </View>
         </View>
       );
@@ -373,6 +370,14 @@ export default function ProfileScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.tint}
+              colors={[colors.tint]}
+            />
+          }
         >
           {/* Header Skeleton */}
           <View style={[styles.header, { backgroundColor: colors.card }]}>
@@ -543,7 +548,7 @@ export default function ProfileScreen() {
         </Text>
         <TouchableOpacity 
           style={[styles.retryButton, { backgroundColor: colors.tint }]}
-          onPress={() => window.location.reload()}
+          onPress={() => refetch()}
         >
           <Text style={styles.retryButtonText}>{t('retry', 'Réessayer')}</Text>
         </TouchableOpacity>
@@ -562,6 +567,14 @@ export default function ProfileScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.tint}
+            colors={[colors.tint]}
+          />
+        }
       >
         {/* Header avec avatar et infos */}
         <View style={[styles.header, { backgroundColor: colors.card }]}>
@@ -579,6 +592,13 @@ export default function ProfileScreen() {
                 <Text style={styles.avatarText}>{userInitials}</Text>
               )}
             </View>
+            
+            {/* Indicateur de synchronisation */}
+            {isRefetching && (
+              <View style={[styles.syncIndicator, { backgroundColor: colors.tint }]}>
+                <Ionicons name="sync" size={12} color="#FFFFFF" />
+              </View>
+            )}
           </View>
           
           <Text style={[styles.userName, { color: colors.text }]}>
@@ -608,8 +628,8 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Message d'information - UNIQUEMENT pour le statut "pending" */}
-        {getPendingVerificationMessage()}
+        {/* Message d'information - pour les statuts "pending" et "rejected" */}
+        {getStatusMessage()}
 
         {/* Statistiques - SEULEMENT pour les utilisateurs vérifiés */}
         {profileData.sellerStatus === 'verified' && stats.length > 0 && (
@@ -626,53 +646,73 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Menu options */}
-        <View style={[styles.menuSection, { backgroundColor: colors.background }]}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              style={[
-                styles.menuItem,
-                { 
-                  backgroundColor: colors.card,
-                  marginBottom: index === menuItems.length - 1 ? 0 : 8,
-                }
-              ]}
-              onPress={item.onPress}
-            >
-              <View style={styles.menuItemLeft}>
-                <Ionicons 
-                  name={item.icon as any} 
-                  size={22} 
-                  color={item.isDestructive ? '#FF3B30' : colors.tint} 
-                />
-                <Text style={[
-                  styles.menuText, 
-                  { 
-                    color: item.isDestructive ? '#FF3B30' : colors.text 
-                  }
-                ]}>
-                  {item.label}
-                </Text>
-              </View>
-              
-              <View style={styles.menuItemRight}>
-                {item.count && !item.isDestructive && (
-                  <View style={[styles.countBadge, { backgroundColor: colors.tint }]}>
-                    <Text style={styles.countText}>{item.count}</Text>
-                  </View>
-                )}
-                {!item.isDestructive && (
-                  <Ionicons 
-                    name="chevron-forward" 
-                    size={18} 
-                    color={colors.textSecondary} 
-                  />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Menu options avec composants modulaires */}
+        <MenuSection backgroundColor={colors.background}>
+          {/* Items pour utilisateurs vérifiés */}
+          {profileData?.sellerStatus === 'verified' && (
+            <>
+              <MenuItem
+                icon="cube-outline"
+                label={t('myItems', 'Mes articles')}
+                count={profileData?.stats.items.toString() || '12'}
+                onPress={() => router.push('/screens/profileOption/MyItemsScreen')}
+                colors={colors}
+              />
+              <MenuItem
+                icon="chatbubble-outline"
+                label={t('myConversations', 'Mes discussions')}
+                count="3"
+                onPress={() => router.push('/screens/profileOption/ConversationsScreen')}
+                colors={colors}
+              />
+            </>
+          )}
+          
+          {/* Items pour tous les utilisateurs */}
+          <MenuItem
+            icon="wallet-outline"
+            label={t('myWallet', 'Mon portefeuille')}
+            onPress={() => router.push('/screens/profileOption/WalletScreen')}
+            colors={colors}
+          />
+          <MenuItem
+            icon="cart-outline"
+            label={t('myOrders', 'Mes commandes')}
+            onPress={() => router.push('/screens/profileOption/MyOrdersScreen')}
+            colors={colors}
+          />
+          <MenuItem
+            icon="settings-outline"
+            label={t('settings', 'Paramètres')}
+            onPress={() => router.push('/screens/profileOption/SettingsScreen')}
+            colors={colors}
+          />
+          <MenuItem
+            icon="document-text-outline"
+            label={t('termsOfService', 'Conditions d\'utilisation')}
+            onPress={() => router.push('/screens/profileOption/TermsOfServiceScreen')}
+            colors={colors}
+          />
+          <MenuItem
+            icon="lock-closed-outline"
+            label={t('privacyPolicy', 'Politique de confidentialité')}
+            onPress={() => router.push('/screens/profileOption/PrivacyPolicyScreen')}
+            colors={colors}
+          />
+          <MenuItem
+            icon="information-circle-outline"
+            label={t('about', 'À propos')}
+            onPress={() => router.push('/screens/profileOption/AboutScreen')}
+            colors={colors}
+          />
+          <MenuItem
+            icon="log-out-outline"
+            label={t('logoutMenu')}
+            onPress={handleLogout}
+            isDestructive={true}
+            colors={colors}
+          />
+        </MenuSection>
 
         {/* Version de l'app */}
         <Text style={[styles.version, { color: colors.textSecondary }]}>
@@ -751,6 +791,18 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
   },
+  syncIndicator: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
   userName: {
     fontSize: 24,
     fontWeight: '700',
@@ -822,6 +874,10 @@ const styles = StyleSheet.create({
   infoDescription: {
     fontSize: 14,
     lineHeight: 18,
+    marginBottom: 12,
+  },
+  resubmitButton: {
+    alignSelf: 'flex-start',
   },
   menuSection: {
     paddingHorizontal: 20,
