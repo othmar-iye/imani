@@ -1,3 +1,4 @@
+import { FavoritesSkeleton } from '@/components/FavoritesSkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
@@ -92,15 +93,16 @@ export default function FavoritesScreen() {
     <ProductCardWithLocation product={item} />
   );
 
-  // États de chargement
+  // États de chargement - AVEC SKELETON
   if (favoritesLoading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <Text style={[styles.loadingText, { color: theme.text }]}>
-          {t('loading')}
-        </Text>
-      </View>
-    );
+    return <FavoritesSkeleton colors={{
+      background: theme.background,
+      card: theme.card,
+      text: theme.text,
+      textSecondary: colors.textSecondary,
+      border: theme.border,
+      tint: theme.tint
+    }} />;
   }
 
   // Gestion d'erreur
@@ -170,6 +172,7 @@ export default function FavoritesScreen() {
   );
 }
 
+// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: {
     flex: 1,

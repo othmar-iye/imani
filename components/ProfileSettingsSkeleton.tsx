@@ -1,10 +1,9 @@
-// components/ProfileSettingsSkeleton.tsx
+// components/ProfileSettingsSkeleton.tsx - VERSION OPTION 1
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
-import { ScrollView, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   Easing,
-  interpolate,
-  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -15,63 +14,36 @@ interface ProfileSettingsSkeletonProps {
   colors: {
     background: string;
     card: string;
+    text: string;
+    textSecondary: string;
     border: string;
+    tint: string;
   };
 }
 
 export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = ({ colors }) => {
   const isDark = useColorScheme() === 'dark';
-  const skeletonColor = isDark ? '#2A2A2A' : '#E1E9EE';
-  const highlightColor = isDark ? '#3A3A3A' : '#F0F4F8';
   
-  // Animation value
-  const shimmer = useSharedValue(0);
+  // Animation simple
+  const opacity = useSharedValue(0.3);
 
   useEffect(() => {
-    shimmer.value = withRepeat(
-      withTiming(1, { 
-        duration: 1500, 
+    opacity.value = withRepeat(
+      withTiming(0.7, { 
+        duration: 1000, 
         easing: Easing.ease 
       }),
-      -1, // Infinite repetition
-      true // Reverse animation
+      -1,
+      true
     );
   }, []);
 
-  // Style animé pour l'effet shimmer
-  const animatedShimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      shimmer.value,
-      [0, 1],
-      [-100, 100]
-    );
-
-    const opacity = interpolate(
-      shimmer.value,
-      [0, 0.5, 1],
-      [0.3, 0.8, 0.3]
-    );
-
+  const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateX }],
-      opacity,
+      opacity: opacity.value,
     };
   });
 
-  // Style animé pour le background
-  const animatedBackgroundStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
-      shimmer.value,
-      [0, 0.5, 1],
-      [skeletonColor, highlightColor, skeletonColor]
-    );
-
-    return {
-      backgroundColor,
-    };
-  });
-
-  // Composant Skeleton animé
   const AnimatedSkeletonBox = ({ 
     width, 
     height, 
@@ -90,22 +62,12 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
           width, 
           height, 
           borderRadius,
-          overflow: 'hidden',
+          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
         },
-        animatedBackgroundStyle,
+        animatedStyle,
         style
       ]}
-    >
-      <Animated.View 
-        style={[
-          styles.shimmer,
-          animatedShimmerStyle,
-          {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
-          }
-        ]} 
-      />
-    </Animated.View>
+    />
   );
 
   const AnimatedSkeletonCircle = ({ 
@@ -119,102 +81,152 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
         { 
           width: size, 
           height: size,
-          overflow: 'hidden',
+          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
         },
-        animatedBackgroundStyle
+        animatedStyle
       ]}
-    >
-      <Animated.View 
-        style={[
-          styles.shimmer,
-          animatedShimmerStyle,
-          {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
-          }
-        ]} 
-      />
-    </Animated.View>
+    />
   );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
-      {/* Header Skeleton */}
+      {/* Header INSTANTANÉ */}
       <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <AnimatedSkeletonBox width={40} height={40} borderRadius={8} />
-        <AnimatedSkeletonBox width={150} height={24} borderRadius={4} />
-        <AnimatedSkeletonBox width={60} height={24} borderRadius={4} />
+        <Ionicons name="chevron-back" size={24} color={colors.tint} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          Modifier le profil
+        </Text>
+        <View style={[styles.saveButton, { backgroundColor: colors.tint }]}>
+          <Text style={styles.saveButtonText}>Enregistrer</Text>
+        </View>
       </View>
 
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Photo de profil Skeleton */}
+        {/* Section Photo de profil - Titre instantané, photo skeleton */}
         <View style={styles.section}>
-          <AnimatedSkeletonBox 
-            width={120} 
-            height={20} 
-            borderRadius={4}
-            style={{ marginBottom: 12 }}
-          />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Photo de profil
+          </Text>
           <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             <AnimatedSkeletonCircle size={120} />
           </View>
         </View>
 
-        {/* Sections Skeleton */}
-        {[1, 2, 3].map((sectionIndex) => (
-          <View key={sectionIndex} style={styles.section}>
-            <AnimatedSkeletonBox 
-              width={160} 
-              height={20} 
-              borderRadius={4}
-              style={{ marginBottom: 12 }}
-            />
-            
-            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-              {[1, 2, 3].map((itemIndex) => (
-                <View 
-                  key={itemIndex} 
-                  style={[
-                    styles.skeletonItem,
-                    { borderBottomColor: colors.border },
-                    itemIndex === 3 && { borderBottomWidth: 0 }
-                  ]}
-                >
-                  <View style={styles.skeletonItemLeft}>
-                    <AnimatedSkeletonBox width={20} height={20} borderRadius={4} />
-                    <View style={styles.skeletonTextContainer}>
-                      <AnimatedSkeletonBox 
-                        width={120} 
-                        height={16} 
-                        borderRadius={4}
-                        style={{ marginBottom: 6 }}
-                      />
-                      <AnimatedSkeletonBox width={80} height={14} borderRadius={4} />
-                    </View>
+        {/* Section Informations personnelles - Titre instantané, champs skeleton */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Informations personnelles
+          </Text>
+          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+            {[1, 2].map((item) => (
+              <View 
+                key={item} 
+                style={[
+                  styles.skeletonItem,
+                  { borderBottomColor: colors.border },
+                  item === 2 && { borderBottomWidth: 0 }
+                ]}
+              >
+                <View style={styles.skeletonItemLeft}>
+                  <Ionicons name="ellipse-outline" size={20} color={colors.textSecondary} />
+                  <View style={styles.skeletonTextContainer}>
+                    <AnimatedSkeletonBox 
+                      width={120} 
+                      height={16} 
+                      borderRadius={4}
+                      style={{ marginBottom: 6 }}
+                    />
+                    <AnimatedSkeletonBox width={80} height={14} borderRadius={4} />
                   </View>
-                  <AnimatedSkeletonBox width={16} height={16} borderRadius={2} />
                 </View>
-              ))}
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Section Localisation - Titre instantané, champs skeleton */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Localisation
+          </Text>
+          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+            {[1, 2].map((item) => (
+              <View 
+                key={item} 
+                style={[
+                  styles.skeletonItem,
+                  { borderBottomColor: colors.border },
+                  item === 2 && { borderBottomWidth: 0 }
+                ]}
+              >
+                <View style={styles.skeletonItemLeft}>
+                  <Ionicons name="ellipse-outline" size={20} color={colors.textSecondary} />
+                  <View style={styles.skeletonTextContainer}>
+                    <AnimatedSkeletonBox 
+                      width={120} 
+                      height={16} 
+                      borderRadius={4}
+                      style={{ marginBottom: 6 }}
+                    />
+                    <AnimatedSkeletonBox width={80} height={14} borderRadius={4} />
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Section Vérification d'identité - Titre instantané, champs skeleton */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Vérification d'identité
+          </Text>
+          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+            {[1, 2, 3].map((item) => (
+              <View 
+                key={item} 
+                style={[
+                  styles.skeletonItem,
+                  { borderBottomColor: colors.border },
+                  item === 3 && { borderBottomWidth: 0 }
+                ]}
+              >
+                <View style={styles.skeletonItemLeft}>
+                  <Ionicons name="ellipse-outline" size={20} color={colors.textSecondary} />
+                  <View style={styles.skeletonTextContainer}>
+                    <AnimatedSkeletonBox 
+                      width={120} 
+                      height={16} 
+                      borderRadius={4}
+                      style={{ marginBottom: 6 }}
+                    />
+                    <AnimatedSkeletonBox width={80} height={14} borderRadius={4} />
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+              </View>
+            ))}
+            
+            {/* Upload document skeleton */}
+            <View style={styles.uploadItem}>
+              <AnimatedSkeletonBox width="100%" height={100} borderRadius={12} />
             </View>
           </View>
-        ))}
+        </View>
 
-        {/* Info section Skeleton */}
+        {/* Information importante INSTANTANÉE */}
         <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
-          <AnimatedSkeletonBox width={20} height={20} borderRadius={4} />
-          <View style={styles.skeletonTextContainer}>
-            <AnimatedSkeletonBox 
-              width="100%" 
-              height={14} 
-              borderRadius={4}
-              style={{ marginBottom: 6 }}
-            />
-            <AnimatedSkeletonBox width="80%" height={14} borderRadius={4} />
-          </View>
+          <Ionicons name="information-circle" size={20} color={colors.tint} />
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+            La vérification de votre identité est nécessaire pour devenir vendeur. Le traitement peut prendre 24-48h.
+          </Text>
         </View>
       </ScrollView>
     </View>
@@ -233,6 +245,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingTop: 60,
   },
+  headerTitle: { 
+    fontSize: 18, 
+    fontWeight: '700',
+  },
+  saveButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
@@ -241,6 +267,12 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 20,
     marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 12,
+    paddingLeft: 4,
   },
   sectionCard: {
     borderRadius: 12,
@@ -264,6 +296,9 @@ const styles = StyleSheet.create({
   skeletonTextContainer: {
     flex: 1,
   },
+  uploadItem: {
+    marginTop: 16,
+  },
   infoSection: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -272,23 +307,16 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
   },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 18,
+  },
   skeletonBox: {
     borderRadius: 6,
-    position: 'relative',
-    overflow: 'hidden',
   },
   skeletonCircle: {
     borderRadius: 60,
     alignSelf: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  shimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    transform: [{ skewX: '-20deg' }],
   },
 });

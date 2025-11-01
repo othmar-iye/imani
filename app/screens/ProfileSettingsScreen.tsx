@@ -927,7 +927,14 @@ export default function ProfileSettingsScreen() {
 
   // Afficher le skeleton pendant le chargement
   if (isProfileLoading) {
-    return <ProfileSettingsSkeleton colors={colors} />;
+    return <ProfileSettingsSkeleton colors={{
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      textSecondary: colors.textSecondary,
+      border: colors.border,
+      tint: colors.tint
+    }} />;
   }
 
   if (profileError) {
@@ -1023,7 +1030,7 @@ export default function ProfileSettingsScreen() {
         <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
           <Ionicons name="information-circle" size={20} color={colors.tint} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {t('verificationInfo')}
+            {t('verificationInfo', { appName: 'IMANI' })}
           </Text>
         </View>
       </ScrollView>
