@@ -3,19 +3,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  Keyboard,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  useColorScheme,
-  View
+    Dimensions,
+    FlatList,
+    Image,
+    Keyboard,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Import React Query
@@ -29,6 +29,9 @@ import SuggestionItem from '@/components/SuggestionItem';
 
 // Import des categories
 import { categories as categoriesData } from '@/src/data/categories';
+
+// Import i18n
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -50,6 +53,7 @@ interface SearchSuggestion {
 const ProductCard = ({ product }: { product: Product }) => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity 
@@ -124,11 +128,11 @@ const ProductCard = ({ product }: { product: Product }) => {
 // Fonction pour générer les suggestions de recherche à partir des produits
 const generateSearchSuggestions = (products: Product[]): SearchSuggestion[] => {
   return products.map(product => ({
-    id: product.id, // Utilise l'ID du produit
-    type: 'recent', // Type fixe pour toutes les suggestions
-    title: product.name, // Utilise le nom du produit comme titre
-    subtitle: product.category, // Utilise la catégorie du produit comme sous-titre
-    icon: 'time-outline' // Icône fixe pour toutes les suggestions
+    id: product.id,
+    type: 'recent',
+    title: product.name,
+    subtitle: product.category,
+    icon: 'time-outline'
   }));
 };
 
@@ -161,6 +165,7 @@ const fetchCategories = async (): Promise<Category[]> => {
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
+  const { t } = useTranslation();
 
   // États simples
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -269,38 +274,41 @@ export default function HomeScreen() {
   );
 
   // Rendu d'un élément catégorie
-  const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => (
-    <TouchableOpacity style={[
-      styles.categoryCard,
-      { backgroundColor: index === 0 ? theme.tint : theme.card },
-    ]}>
-      <View style={[
-        styles.categoryIcon,
-        { 
-          backgroundColor: index === 0 ? theme.card : colorScheme === 'dark' ? '#2A2A2A' : '#F7F7F7',
-        }
-      ]}>
-        <Ionicons 
-          name={item.icon} 
-          size={20} 
-          color={index === 0 ? theme.tint : theme.tint} 
-        />
-      </View>
-      <Text style={[
-        styles.categoryName,
-        { color: index === 0 ? theme.card : theme.text }
-      ]}>
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
+    const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => {
+    
+    return (
+        <TouchableOpacity style={[
+        styles.categoryCard,
+        { backgroundColor: index === 0 ? theme.tint : theme.card },
+        ]}>
+        <View style={[
+            styles.categoryIcon,
+            { 
+            backgroundColor: index === 0 ? theme.card : colorScheme === 'dark' ? '#2A2A2A' : '#F7F7F7',
+            }
+        ]}>
+            <Ionicons 
+            name={item.icon} 
+            size={20} 
+            color={index === 0 ? theme.tint : theme.tint} 
+            />
+        </View>
+        <Text style={[
+            styles.categoryName,
+            { color: index === 0 ? theme.card : theme.text }
+        ]}>
+            {t(item.name)}  {/* ← ICI : Remplacer item.name par t(item.name) */}
+        </Text>
+        </TouchableOpacity>
+    );
+    };
 
   // État de chargement
   if (productsLoading || categoriesLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <Text style={[styles.loadingText, { color: theme.text }]}>
-          Chargement...
+          {t('home.loading')}
         </Text>
       </View>
     );
@@ -312,13 +320,13 @@ export default function HomeScreen() {
       <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
         <Ionicons name="alert-circle-outline" size={48} color={theme.tint} />
         <Text style={[styles.errorText, { color: theme.text }]}>
-          Erreur de chargement
+          {t('home.errorLoading')}
         </Text>
         <TouchableOpacity 
           style={[styles.retryButton, { backgroundColor: theme.tint }]}
           onPress={() => window.location.reload()}
         >
-          <Text style={styles.retryButtonText}>Réessayer</Text>
+          <Text style={styles.retryButtonText}>{t('home.retry')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -334,7 +342,9 @@ export default function HomeScreen() {
         {/* Header avec localisation et notifications */}
         <View style={[styles.header, { backgroundColor: theme.background }]}>
           <View style={styles.locationContainer}>
-            <Text style={[styles.locationText, { color: theme.text }]}>Bienvenue</Text>
+            <Text style={[styles.locationText, { color: theme.text }]}>
+              {t('home.welcome')}
+            </Text>
           </View>
           <TouchableOpacity 
             style={styles.notificationButton} 
@@ -356,7 +366,7 @@ export default function HomeScreen() {
           >
             <Ionicons name="search" size={18} color={Theme.light.border} style={styles.searchIcon} />
             <Text style={[styles.searchPlaceholder, { color: Theme.light.border }]}>
-              Rechercher des produits...
+              {t('home.searchPlaceholder')}
             </Text>
             <TouchableOpacity 
               style={styles.filterButton}
@@ -372,13 +382,15 @@ export default function HomeScreen() {
           {/* Bannière promotionnelle */}
           <View style={[styles.promoBanner, { backgroundColor: theme.tint }]}>
             <View style={styles.promoContent}>
-              <Text style={styles.promoTitle}>Soldes d'Été</Text>
-              <Text style={styles.promoSubtitle}>Jusqu'à 50% de réduction</Text>
+              <Text style={styles.promoTitle}>{t('home.summerSales')}</Text>
+              <Text style={styles.promoSubtitle}>{t('home.upToDiscount')}</Text>
               <TouchableOpacity 
                 style={[styles.promoButton, { backgroundColor: 'white' }]}
                 onPress={() => router.push('/screens/homeOption/SalesScreen')}
               >
-                <Text style={[styles.promoButtonText, { color: theme.tint }]}>Découvrir</Text>
+                <Text style={[styles.promoButtonText, { color: theme.tint }]}>
+                  {t('home.discover')}
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={styles.promoImageContainer}>
@@ -393,7 +405,9 @@ export default function HomeScreen() {
           {/* Section Catégories */}
           <View style={[styles.section, { backgroundColor: theme.background }]}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Catégories</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>
+                {t('home.categories')}
+              </Text>
             </View>
             <FlatList
               data={categories}
@@ -408,9 +422,13 @@ export default function HomeScreen() {
           {/* Section Produits populaires */}
           <View style={[styles.section, { backgroundColor: theme.background }]}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Produits populaires</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>
+                {t('home.popularProducts')}
+              </Text>
               <TouchableOpacity>
-                <Text style={[styles.seeAllText, { color: theme.tint }]}>Tout voir</Text>
+                <Text style={[styles.seeAllText, { color: theme.tint }]}>
+                  {t('home.seeAll')}
+                </Text>
               </TouchableOpacity>
             </View>
             
@@ -461,7 +479,7 @@ export default function HomeScreen() {
                 
                 <TextInput
                   style={[styles.spotlightSearchInput, { color: theme.text }]}
-                  placeholder="Rechercher des produits..."
+                  placeholder={t('home.searchPlaceholder')}
                   placeholderTextColor={theme.tabIconDefault}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -473,7 +491,7 @@ export default function HomeScreen() {
                 {/* CORRECTION : Utiliser handleCancelPress pour le bouton Annuler */}
                 <TouchableOpacity onPress={handleCancelPress} style={styles.cancelButton}>
                   <Text style={[styles.cancelText, { color: theme.tint }]}>
-                    Annuler
+                    {t('home.cancel')}
                   </Text>
                 </TouchableOpacity>
               </View>

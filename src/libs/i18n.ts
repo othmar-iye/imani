@@ -7,6 +7,70 @@ const resources = {
   fr: {
     translation: {
 
+        // CATEGORIE FILE
+        categories: {
+        clothing: "Vêtements",
+        shoes: "Chaussures",
+        accessories: "Accessoires",
+        brands: "Marques & Créateurs",
+        beauty: "Beauté & Parfums",
+        home: "Maison & Déco",
+        others: "Autres",
+        sub: {
+            women: "Femmes",
+            men: "Hommes",
+            children: "Enfants & Bébés",
+            maternity: "Maternité",
+            plusSize: "Grandes Tailles",
+            sneakers: "Baskets & Sneakers",
+            sandals: "Sandales & Tongs",
+            boots: "Bottes & Bottines",
+            heels: "Escarpins",
+            flats: "Chaussures plates",
+            bags: "Sacs",
+            jewelry: "Bijoux",
+            watches: "Montres",
+            glasses: "Lunettes",
+            scarves: "Écharpes & Foulards",
+            hats: "Chapeaux & Casquettes",
+            belts: "Ceintures",
+            trendingBrands: "Marques Tendances",
+            luxuryBrands: "Luxe & Créateurs",
+            vintageBrands: "Marques Vintage",
+            smallBrands: "Petites Marques",
+            fragrances: "Parfums",
+            makeup: "Maquillage",
+            skincare: "Soins de la peau",
+            haircare: "Soins des cheveux",
+            hygiene: "Hygiène & Bien-être",
+            decoration: "Décoration",
+            homeLinens: "Linge de maison",
+            art: "Art & Posters",
+            lighting: "Luminaires",
+            sports: "Sports & Loisirs",
+            tech: "High-Tech",
+            books: "Livres & Médias",
+            toys: "Jouets & Jeux",
+            creative: "Matériel Créatif"
+        }
+        },
+
+        // Home Screen
+        home: {
+        welcome: "Bienvenue",
+        searchPlaceholder: "Rechercher des produits...",
+        cancel: "Annuler",
+        summerSales: "Soldes d'Été",
+        upToDiscount: "Jusqu'à 50% de réduction",
+        discover: "Découvrir",
+        categories: "Catégories",
+        popularProducts: "Produits populaires",
+        seeAll: "Tout voir",
+        loading: "Chargement...",
+        errorLoading: "Erreur de chargement",
+        retry: "Réessayer",
+        },
+
         // Profile Settings
         photoRequired: "Photo de profil requise",
         photoRequiredMessage: "Veuillez ajouter une photo de profil",
@@ -259,6 +323,70 @@ const resources = {
 
   en: {
     translation: {
+
+        // CATEGORIE FILE
+        categories: {
+        clothing: "Clothing",
+        shoes: "Shoes",
+        accessories: "Accessories",
+        brands: "Brands & Designers",
+        beauty: "Beauty & Fragrances",
+        home: "Home & Decor",
+        others: "Others",
+        sub: {
+            women: "Women",
+            men: "Men",
+            children: "Children & Babies",
+            maternity: "Maternity",
+            plusSize: "Plus Size",
+            sneakers: "Sneakers & Athletic",
+            sandals: "Sandals & Flip Flops",
+            boots: "Boots & Booties",
+            heels: "Heels",
+            flats: "Flats",
+            bags: "Bags",
+            jewelry: "Jewelry",
+            watches: "Watches",
+            glasses: "Glasses",
+            scarves: "Scarves & Shawls",
+            hats: "Hats & Caps",
+            belts: "Belts",
+            trendingBrands: "Trending Brands",
+            luxuryBrands: "Luxury & Designers",
+            vintageBrands: "Vintage Brands",
+            smallBrands: "Small Brands",
+            fragrances: "Fragrances",
+            makeup: "Makeup",
+            skincare: "Skincare",
+            haircare: "Hair Care",
+            hygiene: "Hygiene & Wellness",
+            decoration: "Decoration",
+            homeLinens: "Home Linens",
+            art: "Art & Posters",
+            lighting: "Lighting",
+            sports: "Sports & Leisure",
+            tech: "High-Tech",
+            books: "Books & Media",
+            toys: "Toys & Games",
+            creative: "Creative Materials"
+        }
+        },
+
+        // Home Screen
+        home: {
+        welcome: "Welcome",
+        searchPlaceholder: "Search products...",
+        cancel: "Cancel",
+        summerSales: "Summer Sales",
+        upToDiscount: "Up to 50% off",
+        discover: "Discover",
+        categories: "Categories",
+        popularProducts: "Popular Products",
+        seeAll: "See All",
+        loading: "Loading...",
+        errorLoading: "Error loading",
+        retry: "Retry",
+        },
 
         // Profile Settings
         photoRequired: "Profile Photo Required",

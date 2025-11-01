@@ -1,97 +1,98 @@
 // data/categories.ts
 export interface Category {
   id: string;
-  name: string;
+  name: string; // Devient une clé de traduction
   icon: string;
-  subCategories: string[];
+  subCategories: string[]; // Deviennent des clés de traduction
 }
 
+// Utiliser des clés de traduction au lieu de texte brut
 export const categories: Category[] = [
   {
     id: '1',
-    name: 'Vêtements',
+    name: 'categories.clothing',
     icon: 'shirt',
     subCategories: [
-      'Femmes',
-      'Hommes',
-      'Enfants & Bébés',
-      'Maternité',
-      'Grandes Tailles'
+      'categories.sub.women',
+      'categories.sub.men',
+      'categories.sub.children',
+      'categories.sub.maternity',
+      'categories.sub.plusSize'
     ]
   },
   {
     id: '2',
-    name: 'Chaussures',
+    name: 'categories.shoes',
     icon: 'footsteps',
     subCategories: [
-      'Femmes',
-      'Hommes',
-      'Enfants & Bébés',
-      'Baskets & Sneakers',
-      'Sandales & Tongs',
-      'Bottes & Bottines',
-      'Escarpins',
-      'Chaussures plates'
+      'categories.sub.women',
+      'categories.sub.men',
+      'categories.sub.children',
+      'categories.sub.sneakers',
+      'categories.sub.sandals',
+      'categories.sub.boots',
+      'categories.sub.heels',
+      'categories.sub.flats'
     ]
   },
   {
     id: '3',
-    name: 'Accessoires',
+    name: 'categories.accessories',
     icon: 'glasses',
     subCategories: [
-      'Sacs',
-      'Bijoux',
-      'Montres',
-      'Lunettes',
-      'Écharpes & Foulards',
-      'Chapeaux & Casquettes',
-      'Ceintures'
+      'categories.sub.bags',
+      'categories.sub.jewelry',
+      'categories.sub.watches',
+      'categories.sub.glasses',
+      'categories.sub.scarves',
+      'categories.sub.hats',
+      'categories.sub.belts'
     ]
   },
   {
     id: '4',
-    name: 'Marques & Créateurs',
+    name: 'categories.brands',
     icon: 'ribbon',
     subCategories: [
-      'Marques Tendances',
-      'Luxe & Créateurs',
-      'Marques Vintage',
-      'Petites Marques'
+      'categories.sub.trendingBrands',
+      'categories.sub.luxuryBrands',
+      'categories.sub.vintageBrands',
+      'categories.sub.smallBrands'
     ]
   },
   {
     id: '5',
-    name: 'Beauté & Parfums',
+    name: 'categories.beauty',
     icon: 'sparkles',
     subCategories: [
-      'Parfums',
-      'Maquillage',
-      'Soins de la peau',
-      'Soins des cheveux',
-      'Hygiène & Bien-être'
+      'categories.sub.fragrances',
+      'categories.sub.makeup',
+      'categories.sub.skincare',
+      'categories.sub.haircare',
+      'categories.sub.hygiene'
     ]
   },
   {
     id: '6',
-    name: 'Maison & Déco',
+    name: 'categories.home',
     icon: 'home',
     subCategories: [
-      'Décoration',
-      'Linge de maison',
-      'Art & Posters',
-      'Luminaires'
+      'categories.sub.decoration',
+      'categories.sub.homeLinens',
+      'categories.sub.art',
+      'categories.sub.lighting'
     ]
   },
   {
     id: '7',
-    name: 'Autres',
+    name: 'categories.others',
     icon: 'ellipsis-horizontal',
     subCategories: [
-      'Sports & Loisirs',
-      'High-Tech',
-      'Livres & Médias',
-      'Jouets & Jeux',
-      'Matériel Créatif'
+      'categories.sub.sports',
+      'categories.sub.tech',
+      'categories.sub.books',
+      'categories.sub.toys',
+      'categories.sub.creative'
     ]
   }
 ];
