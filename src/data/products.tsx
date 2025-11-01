@@ -61,7 +61,7 @@ export const featuredProducts: Product[] = [
     id: '2',
     name: 'iPhone 14 Pro',
     category: 'Autres',
-    subCategory: 'Téléphones & Smartphones',
+    subCategory: 'High-Tech',
     price: 999.99,
     originalPrice: 1199.99,
     discount: 17,
@@ -91,7 +91,7 @@ export const featuredProducts: Product[] = [
     id: '3',
     name: 'MacBook Air M2',
     category: 'Autres',
-    subCategory: 'Ordinateurs & Tablettes',
+    subCategory: 'High-Tech',
     price: 1199.99,
     originalPrice: 1299.99,
     discount: 8,
@@ -151,7 +151,7 @@ export const featuredProducts: Product[] = [
     id: '5',
     name: 'Casque Audio Sony WH-1000XM4',
     category: 'Autres',
-    subCategory: 'Audio & Casques',
+    subCategory: 'High-Tech',
     price: 199.99,
     originalPrice: 249.99,
     discount: 20,
@@ -211,7 +211,7 @@ export const featuredProducts: Product[] = [
     id: '7',
     name: 'Appareil Photo Canon EOS R6',
     category: 'Autres',
-    subCategory: 'Photo & Vidéo',
+    subCategory: 'High-Tech',
     price: 1899.99,
     originalPrice: 2199.99,
     discount: 14,
@@ -233,13 +233,15 @@ export const featuredProducts: Product[] = [
     },
     images: [
       'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1521334884684-d80222895322?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=400&h=400&fit=crop',
     ]
   },
   {
     id: '8',
     name: 'Bureau Gaming RGB',
-    category: 'Meubles',
-    subCategory: 'Mobilier de Bureau',
+    category: 'Maison & Déco',
+    subCategory: 'Décoration',
     price: 349.99,
     originalPrice: 429.99,
     discount: 19,
@@ -261,13 +263,15 @@ export const featuredProducts: Product[] = [
     },
     images: [
       'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=400&fit=crop',
     ]
   },
   {
     id: '9',
     name: 'PlayStation 5 Edition Digital',
     category: 'Autres',
-    subCategory: 'Jeux vidéo & Consoles',
+    subCategory: 'Jouets & Jeux',
     price: 449.99,
     originalPrice: 499.99,
     discount: 10,
@@ -297,8 +301,8 @@ export const featuredProducts: Product[] = [
   {
     id: '10',
     name: 'Canapé d\'Angle en Cuir',
-    category: 'Meubles',
-    subCategory: 'Canapés & Salons',
+    category: 'Maison & Déco',
+    subCategory: 'Décoration',
     price: 899.99,
     originalPrice: 1199.99,
     discount: 25,
@@ -329,8 +333,8 @@ export const featuredProducts: Product[] = [
   {
     id: '11',
     name: 'Vélo de Route Professionnel',
-    category: 'Sports',
-    subCategory: 'Vélos',
+    category: 'Autres',
+    subCategory: 'Sports & Loisirs',
     price: 799.99,
     originalPrice: 999.99,
     discount: 20,
@@ -360,8 +364,8 @@ export const featuredProducts: Product[] = [
   {
     id: '12',
     name: 'Machine à Café Automatique',
-    category: 'Électroménager',
-    subCategory: 'Cuisine',
+    category: 'Autres',
+    subCategory: 'High-Tech',
     price: 299.99,
     originalPrice: 399.99,
     discount: 25,
@@ -391,12 +395,12 @@ export const featuredProducts: Product[] = [
   {
     id: '13',
     name: 'Tapis Oriental Authentique',
-    category: 'Décoration',
-    subCategory: 'Tapis',
+    category: 'Maison & Déco',
+    subCategory: 'Décoration',
     price: 459.99,
     originalPrice: 599.99,
     discount: 23,
-    image: 'https://images.unsplash.com/photo-1584231631973-db47d1b274e7?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&h=400&fit=crop',
     isFavorite: false,
     description: 'Tapis oriental authentique en laine pure, dimensions 200x300cm, motifs traditionnels, excellent état de conservation.',
     condition: 'Bon état',
@@ -413,9 +417,7 @@ export const featuredProducts: Product[] = [
       itemsSold: 39
     },
     images: [
-      'https://images.unsplash.com/photo-1584231631973-db47d1b274e7?w=400&h=400&fit=crop',
       'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1578898887932-9d6c7f8e7c17?w=400&h=400&fit=crop',
       'https://images.unsplash.com/photo-1534889156217-d643df14f14a?w=400&h=400&fit=crop'
     ]
   },
@@ -423,7 +425,7 @@ export const featuredProducts: Product[] = [
     id: '14',
     name: 'Drone DJI Mavic Air 2',
     category: 'Autres',
-    subCategory: 'Drones & Accessoires',
+    subCategory: 'High-Tech',
     price: 699.99,
     originalPrice: 899.99,
     discount: 22,
@@ -452,44 +454,13 @@ export const featuredProducts: Product[] = [
   },
   {
     id: '15',
-    name: 'Ensemble de Casseroles Inox',
-    category: 'Maison',
-    subCategory: 'Cuisine',
-    price: 129.99,
-    originalPrice: 199.99,
-    discount: 35,
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop',
-    isFavorite: false,
-    description: 'Ensemble complet de 7 casseroles et poêles en inox 18/10, qualité professionnelle. Presque jamais utilisées.',
-    condition: 'Comme neuf',
-    location: 'Kipushi',
-    views: 67,
-    createdAt: '2025-01-22',
-    seller: {
-      id: 'SEL_0027',
-      name: 'Cuisine Pro',
-      rating: 4.3,
-      verified: true,
-      responseRate: '87%',
-      responseTime: '5h',
-      itemsSold: 27
-    },
-    images: [
-      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1546940511-59a0c6d35f8c?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1584990347449-a5dbb07d06b3?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop'
-    ]
-  },
-  {
-    id: '16',
     name: 'Guitare Acoustique Yamaha',
-    category: 'Loisirs',
-    subCategory: 'Instruments de musique',
+    category: 'Autres',
+    subCategory: 'Sports & Loisirs',
     price: 199.99,
     originalPrice: 299.99,
     discount: 33,
-    image: 'https://images.unsplash.com/photo-1525202012277-1e3ca5f5e7ac?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=400&fit=crop',
     isFavorite: true,
     description: 'Guitare acoustique Yamaha FG800, table d\'harmonie en épicéa, manche en nato. Son riche et équilibre parfait.',
     condition: 'Excellent état',
@@ -506,17 +477,14 @@ export const featuredProducts: Product[] = [
       itemsSold: 59
     },
     images: [
-      'https://images.unsplash.com/photo-1525202012277-1e3ca5f5e7ac?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1564186763535-ebb9c0ee4c5c?w=400&h=400&fit=crop',
       'https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1571974599782-87624638275f?w=400&h=400&fit=crop'
     ]
   },
   {
-    id: '17',
+    id: '16',
     name: 'Télévision Samsung 55" 4K',
-    category: 'Électronique',
-    subCategory: 'TV & Home Cinema',
+    category: 'Autres',
+    subCategory: 'High-Tech',
     price: 599.99,
     originalPrice: 799.99,
     discount: 25,
@@ -544,10 +512,10 @@ export const featuredProducts: Product[] = [
     ]
   },
   {
-    id: '18',
+    id: '17',
     name: 'Trottinette Électrique Xiaomi',
-    category: 'Transport',
-    subCategory: 'Trottinettes',
+    category: 'Autres',
+    subCategory: 'Sports & Loisirs',
     price: 349.99,
     originalPrice: 449.99,
     discount: 22,
@@ -575,10 +543,10 @@ export const featuredProducts: Product[] = [
     ]
   },
   {
-    id: '19',
+    id: '18',
     name: 'Montre Rolex Submariner',
     category: 'Accessoires',
-    subCategory: 'Montres de Luxe',
+    subCategory: 'Montres',
     price: 8999.99,
     originalPrice: 11999.99,
     discount: 25,
@@ -603,37 +571,6 @@ export const featuredProducts: Product[] = [
       'https://images.unsplash.com/photo-1547996160-81dfd9eb9001?w=400&h=400&fit=crop',
       'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop',
       'https://images.unsplash.com/photo-1622434641406-a158123450f9?w=400&h=400&fit=crop'
-    ]
-  },
-  {
-    id: '20',
-    name: 'Réfrigérateur Samsung Side-by-Side',
-    category: 'Électroménager',
-    subCategory: 'Gros électroménager',
-    price: 1299.99,
-    originalPrice: 1699.99,
-    discount: 24,
-    image: 'https://images.unsplash.com/photo-1599623560574-39d485900c95?w=400&h=400&fit=crop',
-    isFavorite: true,
-    description: 'Réfrigérateur Samsung Side-by-Side 615L, technologie Twin Cooling, distributeur d\'eau et de glace. Très bon état.',
-    condition: 'Très bon état',
-    location: 'Lubumbashi',
-    views: 112,
-    createdAt: '2024-12-12',
-    seller: {
-      id: 'SEL_0063',
-      name: 'Electro Plus',
-      rating: 4.4,
-      verified: true,
-      responseRate: '90%',
-      responseTime: '4h',
-      itemsSold: 63
-    },
-    images: [
-      'https://images.unsplash.com/photo-1599623560574-39d485900c95?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1584568696-66b043ce2c1c?w=400&h=400&fit=crop'
     ]
   }
 ];

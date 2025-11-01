@@ -17,11 +17,15 @@ import {
 // Import des données réelles
 import { featuredProducts, Product } from '@/src/data/products';
 
+// Import i18n
+import { useTranslation } from 'react-i18next';
+
 const { width } = Dimensions.get('window');
 
 export default function SalesScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useTranslation();
 
   const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
@@ -123,7 +127,7 @@ export default function SalesScreen() {
         {/* Économie réalisée */}
         <View style={styles.savingsContainer}>
           <Text style={[styles.savingsText, { color: colors.tint }]}>
-            Économie: ${(item.originalPrice - item.price).toFixed(2)}
+            {t('filters.savings')}: ${(item.originalPrice - item.price).toFixed(2)}
           </Text>
         </View>
       </View>
@@ -146,7 +150,7 @@ export default function SalesScreen() {
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Soldes 
+            {t('sales.title')}
           </Text>
         </View>
       </View>
@@ -155,18 +159,17 @@ export default function SalesScreen() {
       {/* En-tête avec description */}
       <View style={styles.infoSection}>
         <Text style={[styles.infoTitle, { color: colors.text }]}>
-          Économisez jusqu'à 50%
+          {t('sales.discountTitle')}
         </Text>
         <Text style={[styles.infoSubtitle, { color: colors.textSecondary }]}>
-          Découvrez nos meilleures offres et promotions exclusives. 
-          Des réductions exceptionnelles sur des produits de qualité.
+          {t('sales.description')}
         </Text>
       </View>
 
       {/* Compteur des produits */}
       <View style={styles.counterContainer}>
         <Text style={[styles.counterText, { color: colors.textSecondary }]}>
-          {discountedProducts.length} produits en promotion
+          {t('sales.productCount', { count: discountedProducts.length })}
         </Text>
       </View>
 

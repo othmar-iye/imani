@@ -17,7 +17,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, 
 // Types pour les données du profil
 interface ProfileStats {
   items: number;
-  sales: number;
+  salesStat: number;
   ratings: number;
 }
 
@@ -68,9 +68,9 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
       sellerStatus: getSellerStatus(userProfile?.verification_status),
       location: userProfile?.city || 'Lubumbashi, RDC',
       stats: {
-        items: 12,
-        sales: 8,
-        ratings: 4.8
+        items: userProfile?.items_count || 12,
+        salesStat: userProfile?.sales_count || 8,
+        ratings: userProfile?.rating || 4.8
       }
     };
 
@@ -86,7 +86,7 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
       location: 'Lubumbashi, RDC',
       stats: {
         items: 12,
-        sales: 8,
+        salesStat: 8,
         ratings: 4.8
       }
     };
@@ -315,7 +315,7 @@ export default function ProfileScreen() {
   // Stats conditionnelles selon le statut de vérification
   const stats = profileData?.sellerStatus === 'verified' ? [
     { label: t('items'), value: profileData.stats.items.toString() },
-    { label: t('sales'), value: profileData.stats.sales.toString() },
+    { label: t('salesStat'), value: profileData.stats.salesStat.toString() },
     { label: t('ratings'), value: profileData.stats.ratings.toString() },
   ] : [];
 

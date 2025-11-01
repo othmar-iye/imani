@@ -393,7 +393,7 @@ export default function FiltersScreen() {
                   styles.categoryText,
                   { color: selectedCategories.includes(category.name) ? '#FFF' : colors.text }
                 ]}>
-                  {category.name}
+                  {t(`categories.${category.name}`)}
                 </Text>
               </TouchableOpacity>
             ))}

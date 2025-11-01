@@ -313,7 +313,7 @@ export default function HomeScreen() {
           styles.categoryName,
           { color: theme.text }
         ]}>
-          {item.name}  {/* ← ICI : Utiliser directement item.name sans traduction */}
+          {t(`categories.${item.name}`)}
         </Text>
       </TouchableOpacity>
     );

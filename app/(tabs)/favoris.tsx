@@ -21,6 +21,9 @@ import { featuredProducts, Product } from '@/src/data/products';
 // Import du composant ProductCard
 import ProductCard from '@/components/ProductCard';
 
+// Import i18n
+import { useTranslation } from 'react-i18next';
+
 const { width } = Dimensions.get('window');
 
 // Fonction API simulée pour les favoris
@@ -38,6 +41,7 @@ export default function FavoritesScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
   const isDark = colorScheme === 'dark';
+  const { t } = useTranslation();
 
   const colors = {
       background: isDark ? Theme.dark.background : Theme.light.background,
@@ -93,7 +97,7 @@ export default function FavoritesScreen() {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <Text style={[styles.loadingText, { color: theme.text }]}>
-          Chargement des favoris...
+          {t('loading')}
         </Text>
       </View>
     );
@@ -105,13 +109,13 @@ export default function FavoritesScreen() {
       <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
         <Ionicons name="alert-circle-outline" size={48} color={theme.tint} />
         <Text style={[styles.errorText, { color: theme.text }]}>
-          Erreur de chargement des favoris
+          {t('home.errorLoading')}
         </Text>
         <TouchableOpacity 
           style={[styles.retryButton, { backgroundColor: theme.tint }]}
           onPress={() => refetch()}
         >
-          <Text style={styles.retryButtonText}>Réessayer</Text>
+          <Text style={styles.retryButtonText}>{t('home.retry')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -123,10 +127,10 @@ export default function FavoritesScreen() {
         <Ionicons name="heart-outline" size={48} color={theme.tabIconDefault} />
       </View>
       <Text style={[styles.emptyTitle, { color: theme.text }]}>
-        Aucun favori
+        {t('favorites.emptyTitle')}
       </Text>
       <Text style={[styles.emptySubtitle, { color: theme.tabIconDefault }]}>
-        Les produits que vous ajoutez à vos favoris apparaîtront ici
+        {t('favorites.emptySubtitle')}
       </Text>
     </View>
   );
@@ -137,9 +141,11 @@ export default function FavoritesScreen() {
       <View style={[styles.header, { backgroundColor: theme.card }]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>Favoris</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>
+              {t('tabs.favorites')}
+            </Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              {favoriteProducts.length} produits sauvegardés
+              {t('favorites.count', { count: favoriteProducts.length })}
             </Text>
           </View>
         </View>

@@ -7,6 +7,35 @@ const resources = {
   fr: {
     translation: {
 
+        // SALES
+        sales: {
+            title: "Soldes",
+            discountTitle: "Économisez jusqu'à 50%",
+            description: "Découvrez nos meilleures offres et promotions exclusives. Des réductions exceptionnelles sur des produits de qualité.",
+            productCount: "{{count}} produit en promotion",
+            productCount_plural: "{{count}} produits en promotion",
+        },
+
+        // FAVORIS
+        favorites: {
+            emptyTitle: "Aucun favori",
+            emptySubtitle: "Les produits que vous ajoutez à vos favoris apparaîtront ici",
+            count: "{{count}} produit sauvegardé",
+            count_plural: "{{count}} produits sauvegardés"
+        },
+
+        // CATEGORIES
+        categories: {
+            'Vêtements': 'Vêtements',
+            'Chaussures': 'Chaussures',
+            'Accessoires': 'Accessoires',
+            'Marques & Créateurs': 'Marques & Créateurs',
+            'Beauté & Parfums': 'Beauté & Parfums', 
+            'Maison & Déco': 'Maison & Déco',
+            'Autres': 'Autres',
+            'Tous': 'Tous'
+        },
+
         // RECHERCHE
         searchResults: {
             results: "Résultats de recherche",
@@ -261,7 +290,7 @@ const resources = {
       
       // Statistiques
       items: "Articles",
-      sales: "Ventes",
+      salesStat: "Ventes",
       ratings: "Évaluations",
       
       // Upload d'images
@@ -342,6 +371,35 @@ const resources = {
 
   en: {
     translation: {
+
+        // Dans en.translation - AJOUTER :
+        sales: {
+            title: "Sales", 
+            discountTitle: "Save up to 50%",
+            description: "Discover our best offers and exclusive promotions. Exceptional discounts on quality products.",
+            productCount: "{{count}} product on sale",
+            productCount_plural: "{{count}} products on sale"
+        },
+
+        // FAVORIS
+        favorites: {
+            emptyTitle: "No favorites",
+            emptySubtitle: "Products you add to your favorites will appear here",
+            count: "{{count}} saved product",
+            count_plural: "{{count}} saved products"
+        },
+
+        // CATEGORIE
+        categories: {
+            'Vêtements': 'Clothing',
+            'Chaussures': 'Shoes',
+            'Accessoires': 'Accessories',
+            'Marques & Créateurs': 'Brands & Designers',
+            'Beauté & Parfums': 'Beauty & Fragrances',
+            'Maison & Déco': 'Home & Decor',
+            'Autres': 'Other',
+            'Tous': 'All'
+        },
 
         // RECHERCHE
         searchResults: {
@@ -596,7 +654,7 @@ const resources = {
       
       // Statistics
       items: "Items",
-      sales: "Sales",
+      salesStat: "Sales",
       ratings: "Ratings",
       
       // Image upload
