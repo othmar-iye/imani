@@ -7,6 +7,54 @@ const resources = {
   fr: {
     translation: {
 
+        // PRODUCT DETAIL
+        productDetail: {
+            productNotFound: "Produit non trouvé",
+            back: "Retour",
+            gallery: "Galerie",
+            description: "Description",
+            securePayment: "Paiement sécurisé",
+            responseRate: "Taux de réponse",
+            responseTime: "Temps de réponse",
+            fixedPrice: "Prix ferme",
+            sales: "ventes",
+            views: "vues",
+            condition: "Condition",
+            seller: "Vendeur",
+            chatWithSeller: "Discuter avec le vendeur",
+            buy: "Acheter",
+            itemsSold: "articles vendus",
+            verified: "Vérifié",
+            
+            // Tags d'information
+            tags: {
+                securePayment: "Paiement sécurisé",
+                location: "Localisation",
+                condition: "Condition"
+            },
+            
+            // États du produit
+            conditionTypes: {
+                new: "Neuf",
+                likeNew: "Comme neuf", 
+                good: "Bon état",
+                fair: "État correct"
+            },
+            
+            // Messages de statut
+            loading: "Chargement du produit...",
+            error: "Erreur lors du chargement",
+            
+            // Actions
+            share: "Partager",
+            favorite: "Favori",
+            unfavorite: "Retirer des favoris",
+            
+            // Galerie
+            photoCount: "{{current}}/{{total}}",
+            closeGallery: "Fermer la galerie"
+        },
+
         // SALES
         sales: {
             title: "Soldes",
@@ -372,7 +420,55 @@ const resources = {
   en: {
     translation: {
 
-        // Dans en.translation - AJOUTER :
+        // PRODUCT DETAIL
+        productDetail: {
+            productNotFound: "Product not found",
+            back: "Back",
+            gallery: "Gallery",
+            description: "Description", 
+            securePayment: "Secure payment",
+            responseRate: "Response rate",
+            responseTime: "Response time",
+            fixedPrice: "Fixed price",
+            sales: "sales",
+            views: "views",
+            condition: "Condition",
+            seller: "Seller",
+            chatWithSeller: "Chat with seller",
+            buy: "Buy",
+            itemsSold: "items sold",
+            verified: "Verified",
+        
+            // Tags d'information
+            tags: {
+                securePayment: "Secure payment",
+                location: "Location", 
+                condition: "Condition"
+            },
+            
+            // États du produit
+            conditionTypes: {
+                new: "New",
+                likeNew: "Like new",
+                good: "Good condition",
+                fair: "Fair condition"
+            },
+            
+            // Messages de statut
+            loading: "Loading product...",
+            error: "Error loading product",
+            
+            // Actions
+            share: "Share",
+            favorite: "Favorite",
+            unfavorite: "Remove from favorites",
+            
+            // Galerie
+            photoCount: "{{current}}/{{total}}",
+            closeGallery: "Close gallery"
+        },
+
+        // SALES
         sales: {
             title: "Sales", 
             discountTitle: "Save up to 50%",

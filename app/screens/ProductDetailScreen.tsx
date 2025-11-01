@@ -4,22 +4,24 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  Modal,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    Animated,
+    Dimensions,
+    FlatList,
+    Modal,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
 } from 'react-native';
 
 // Import des données
 import CustomButton from '@/components/CustomButton';
 import { featuredProducts } from '@/src/data/products';
+// Import pour la traduction
+import { useTranslation } from 'react-i18next';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,6 +42,9 @@ export default function ProductDetailScreen() {
   const carouselRef = useRef<FlatList>(null);
   const galleryRef = useRef<FlatList>(null);
 
+  // For traduction  
+  const { t } = useTranslation();
+
   const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
     card: isDark ? Theme.dark.card : Theme.light.card,
@@ -59,13 +64,13 @@ export default function ProductDetailScreen() {
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.tint} />
           <Text style={[styles.errorText, { color: colors.text }]}>
-            Produit non trouvé
+            {t('productDetail.productNotFound')}
           </Text>
           <TouchableOpacity 
             style={[styles.backButton, { backgroundColor: colors.tint }]}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Retour</Text>
+            <Text style={styles.backButtonText}>{t('productDetail.back')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -262,9 +267,7 @@ export default function ProductDetailScreen() {
             onPress={() => openGallery(activeIndex)}
           >
             <Ionicons name="grid" size={16} color="#FFF" />
-            <Text style={styles.galleryButtonText}>
-              Galerie
-            </Text>
+            <Text style={styles.galleryButtonText}>{t('productDetail.gallery')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -314,7 +317,7 @@ export default function ProductDetailScreen() {
               </Text>
             )}
             <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
-              {product.discount > 0 ? `-${product.discount}%` : 'Prix ferme'}
+                {product.discount > 0 ? `-${product.discount}%` : t('productDetail.fixedPrice')}
             </Text>
           </View>
         </View>
@@ -323,7 +326,7 @@ export default function ProductDetailScreen() {
         {/* Description */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Description
+            {t('productDetail.description')}
           </Text>
           <Text style={[styles.description, { color: colors.textSecondary }]}>
             {product.description}
@@ -342,7 +345,7 @@ export default function ProductDetailScreen() {
           <View style={[styles.tag, { backgroundColor: colors.card }]}>
             <Ionicons name="shield-checkmark" size={16} color={colors.tint} />
             <Text style={[styles.tagText, { color: colors.text }]}>
-              Paiement sécurisé
+                {t('productDetail.tags.securePayment')}
             </Text>
           </View>
           
@@ -396,7 +399,7 @@ export default function ProductDetailScreen() {
                 {product.seller.responseRate}
               </Text>
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Taux de réponse
+                {t('productDetail.responseRate')}
               </Text>
             </View>
             <View style={[styles.metricDivider, { backgroundColor: colors.border }]} />
@@ -405,7 +408,7 @@ export default function ProductDetailScreen() {
                 {product.seller.responseTime}
               </Text>
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Temps de réponse
+                {t('productDetail.responseTime')}
               </Text>
             </View>
           </View>
@@ -419,14 +422,14 @@ export default function ProductDetailScreen() {
       <View style={[styles.actionBar, { backgroundColor: colors.background }]}>
         
         <CustomButton
-            title="Discuter avec le vendeur"
+            title={t('productDetail.chatWithSeller')}
             onPress={handleSell}
             variant="secondary"
             size="large"
         />
        
         <CustomButton
-            title="Acheter"
+            title={t('productDetail.buy')}
             onPress={handleSell}
             variant="primary"
             size="large"
