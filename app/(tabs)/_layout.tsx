@@ -7,11 +7,32 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useColorScheme } from 'react-native';
 
+// Hook simulé - À remplacer par votre logique backend
+function useUnreadMessagesCount() {
+  // Simulation données backend
+  const [unreadCount, setUnreadCount] = React.useState(3);
+  
+  // En production, utiliser :
+  // const { data } = useQuery('unread-messages', fetchUnreadCount);
+  // const unreadCount = data?.count || 0;
+  
+  React.useEffect(() => {
+    // Simulation mise à jour en temps réel
+    const interval = setInterval(() => {
+      setUnreadCount(prev => Math.max(0, prev + (Math.random() > 0.7 ? 1 : 0)));
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return unreadCount;
+}
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { t } = useTranslation();
+  const unreadCount = useUnreadMessagesCount();
 
-  // Choisir le thème dynamiquement
   const currentTheme = colorScheme === 'dark' ? Theme.dark : Theme.light;
 
   return (
@@ -22,10 +43,11 @@ export default function TabLayout() {
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
         tabBarButton: HapticTab,
-        lazy: false, // ← Garde tous les onglets en mémoire
+        lazy: false,
         tabBarStyle: {
           backgroundColor: currentTheme.background,
           borderTopColor: currentTheme.card,
+          borderTopWidth: 1,
         },
       }}>
       
@@ -72,6 +94,17 @@ export default function TabLayout() {
         name="chat"
         options={{
           title: t('tabs.chat'),
+          tabBarBadge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: currentTheme.tint,
+            color: currentTheme.background,
+            fontSize: 10,
+            fontWeight: 'bold',
+            minWidth: 18,
+            height: 18,
+            borderRadius: 9,
+            lineHeight: 16,
+          },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'chatbubble' : 'chatbubble-outline'}

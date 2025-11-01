@@ -1,3 +1,4 @@
+import { HomeSkeleton } from '@/components/HomeSkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -319,15 +320,16 @@ export default function HomeScreen() {
     );
   };
 
-  // État de chargement
+  // État de chargement - AVEC SKELETON PARTIEL
   if (productsLoading || categoriesLoading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <Text style={[styles.loadingText, { color: theme.text }]}>
-          {t('home.loading')}
-        </Text>
-      </View>
-    );
+    return <HomeSkeleton colors={{
+      background: theme.background,
+      card: theme.card,
+      text: theme.text,
+      textSecondary: theme.tabIconDefault,
+      border: theme.border,
+      tint: theme.tint
+    }} />;
   }
 
   // État d'erreur

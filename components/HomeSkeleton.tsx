@@ -1,0 +1,313 @@
+// components/HomeSkeleton.tsx - VERSION PRO
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect } from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withTiming
+} from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window');
+
+interface HomeSkeletonProps {
+  colors: {
+    background: string;
+    card: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    tint: string;
+  };
+}
+
+export const HomeSkeleton: React.FC<HomeSkeletonProps> = ({ colors }) => {
+  const isDark = useColorScheme() === 'dark';
+  
+  // Animation simple
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(0.7, { 
+        duration: 1000, 
+        easing: Easing.ease 
+      }),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
+  const AnimatedSkeletonBox = ({ 
+    width, 
+    height, 
+    borderRadius = 6,
+    style 
+  }: { 
+    width: number | string; 
+    height: number; 
+    borderRadius?: number;
+    style?: any;
+  }) => (
+    <Animated.View 
+      style={[
+        styles.skeletonBox, 
+        { 
+          width, 
+          height, 
+          borderRadius,
+          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
+        },
+        animatedStyle,
+        style
+      ]}
+    />
+  );
+
+  const AnimatedSkeletonCircle = ({ 
+    size 
+  }: { 
+    size: number;
+  }) => (
+    <Animated.View 
+      style={[
+        styles.skeletonCircle, 
+        { 
+          width: size, 
+          height: size,
+          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
+        },
+        animatedStyle
+      ]}
+    />
+  );
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header INSTANTANÉ */}
+        <View style={[styles.header, { backgroundColor: colors.background }]}>
+          <View style={styles.locationContainer}>
+            <Text style={[styles.locationText, { color: colors.text }]}>
+              Bienvenue
+            </Text>
+          </View>
+          <View style={styles.notificationButton}>
+            <Ionicons name="notifications-outline" size={24} color={colors.text} />
+            <View style={[styles.notificationBadge, { backgroundColor: '#EF4444' }]} />
+          </View>
+        </View>
+
+        {/* Barre de recherche INSTANTANÉE */}
+        <View style={[styles.searchSection, { backgroundColor: colors.background }]}>
+          <View style={[styles.searchContainer, { 
+            backgroundColor: isDark ? colors.card : '#eee',
+            borderColor: colors.border
+          }]}>
+            <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
+            <Text style={[styles.searchPlaceholder, { color: colors.textSecondary }]}>
+              Rechercher des produits...
+            </Text>
+            <View style={styles.filterButton}>
+              <Ionicons name="options-outline" size={22} color={colors.textSecondary} />
+            </View>
+          </View>
+        </View>
+
+        {/* Bannière SKELETON (car image externe) */}
+        <View style={styles.promoBanner}>
+          <AnimatedSkeletonBox width="100%" height={150} borderRadius={20} />
+        </View>
+
+        {/* Section Catégories - Titre instantané, contenu skeleton */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Catégories
+            </Text>
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.categoriesList}
+          >
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <View key={item} style={styles.categoryCard}>
+                <AnimatedSkeletonCircle size={48} />
+                <AnimatedSkeletonBox 
+                  width={60} 
+                  height={12} 
+                  borderRadius={4} 
+                  style={{ marginTop: 8 }} 
+                />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Section Produits - Titre instantané, produits skeleton */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Produits populaires
+            </Text>
+            <Text style={[styles.seeAllText, { color: colors.tint }]}>
+              Tout voir
+            </Text>
+          </View>
+          
+          <View style={styles.productsGrid}>
+            {[1, 2, 3, 4].map((item) => (
+              <View key={item} style={styles.productCard}>
+                <AnimatedSkeletonBox width="100%" height={200} borderRadius={20} />
+                <View style={styles.productContent}>
+                  <AnimatedSkeletonBox width={60} height={12} borderRadius={4} />
+                  <AnimatedSkeletonBox 
+                    width="100%" 
+                    height={16} 
+                    borderRadius={4} 
+                    style={{ marginVertical: 8 }} 
+                  />
+                  <AnimatedSkeletonBox width={80} height={18} borderRadius={4} />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Espace en bas */}
+        <View style={{ height: 80, backgroundColor: colors.background }} />
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingTop: 60,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  notificationButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  searchSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginBottom: 15,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    padding: 3,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchPlaceholder: {
+    flex: 1,
+    paddingVertical: 18,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  filterButton: {
+    padding: 6,
+  },
+  promoBanner: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  section: {
+    paddingVertical: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  seeAllText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  categoriesList: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  categoryCard: {
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    minWidth: 80,
+  },
+  productsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 10,
+    justifyContent: 'space-between',
+  },
+  productCard: {
+    width: (width - 60) / 2,
+    marginBottom: 20,
+  },
+  productContent: {
+    padding: 16,
+  },
+  skeletonBox: {
+    borderRadius: 6,
+  },
+  skeletonCircle: {
+    borderRadius: 60,
+    alignSelf: 'center',
+  },
+});
