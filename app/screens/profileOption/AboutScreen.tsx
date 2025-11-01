@@ -40,23 +40,23 @@ export default function AboutScreen() {
   const features = [
     {
       icon: 'shield-checkmark',
-      title: t('secure', 'Sécurisé'),
-      description: t('secureDesc', 'Transactions protégées')
+      title: t('secure'),
+      description: t('secureDesc')
     },
     {
       icon: 'flash',
-      title: t('fast', 'Rapide'),
-      description: t('fastDesc', 'Interface fluide')
+      title: t('fast'),
+      description: t('fastDesc')
     },
     {
       icon: 'heart',
-      title: t('reliable', 'Fiable'),
-      description: t('reliableDesc', 'Communauté de confiance')
+      title: t('reliable'),
+      description: t('reliableDesc')
     },
     {
       icon: 'star',
-      title: t('quality', 'Qualité'),
-      description: t('qualityDesc', 'Expérience optimale')
+      title: t('quality'),
+      description: t('qualityDesc')
     }
   ];
 
@@ -68,7 +68,7 @@ export default function AboutScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
-      {/* Header simplifié */}
+      {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -81,7 +81,7 @@ export default function AboutScreen() {
           />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('about', 'À propos')}
+          {t('about')}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -90,7 +90,7 @@ export default function AboutScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Section Hero simplifiée */}
+        {/* Section Hero */}
         <View style={[styles.heroSection, { backgroundColor: colors.card }]}>
           <View style={styles.logoContainer}>
             <Image 
@@ -105,30 +105,30 @@ export default function AboutScreen() {
           </Text>
           
           <Text style={[styles.appTagline, { color: colors.textSecondary }]}>
-            {t('appTagline', 'Votre marketplace de confiance')}
+            {t('appTagline')}
           </Text>
           
           <View style={[styles.versionBadge, { backgroundColor: colors.tint + '15' }]}>
             <Text style={[styles.versionText, { color: colors.tint }]}>
-              {t('version', 'Version')} {appInfo.version}
+              {t('version')} {appInfo.version}
             </Text>
           </View>
         </View>
 
-        {/* Section Description compacte */}
+        {/* Section Description */}
         <View style={styles.contentSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('ourMission', 'Notre Mission')}
+            {t('ourMission')}
           </Text>
           <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            {t('missionDescription', '{{appName}} connecte acheteurs et vendeurs dans une expérience sécurisée et intuitive. Nous simplifions le commerce en ligne avec une plateforme fiable et performante.', { appName: AppConfig.name })}
+            {t('missionDescription', { appName: AppConfig.name })}
           </Text>
         </View>
 
-        {/* Section Features en ligne */}
+        {/* Section Features */}
         <View style={styles.contentSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('ourStrengths', 'Nos Atouts')}
+            {t('ourStrengths')}
           </Text>
           
           <View style={styles.featuresList}>
@@ -153,10 +153,10 @@ export default function AboutScreen() {
           </View>
         </View>
 
-        {/* Section Contact unifiée */}
+        {/* Section Contact */}
         <View style={styles.contentSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('contact', 'Contact')}
+            {t('contact')}
           </Text>
           
           <View style={[styles.contactCard, { backgroundColor: colors.card }]}>
@@ -185,16 +185,16 @@ export default function AboutScreen() {
             <View style={styles.contactButton}>
               <Ionicons name="location-outline" size={20} color={colors.tint} />
               <Text style={[styles.contactText, { color: colors.text }]}>
-                {t('location', 'Lubumbashi, RDC')}
+                {t('location')}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Footer minimaliste */}
+        {/* Footer */}
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            © 2025 {AppConfig.name} • {t('madeWithLove', 'Fait avec ❤️')}
+            © 2025 {AppConfig.name} • {t('madeWithLove')}
           </Text>
         </View>
       </ScrollView>
@@ -202,7 +202,6 @@ export default function AboutScreen() {
   );
 }
 
-// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: { 
     flex: 1,

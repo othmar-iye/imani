@@ -33,7 +33,7 @@ export default function PrivacyPolicyScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
-      {/* Header harmonisé avec AboutScreen */}
+      {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -46,7 +46,7 @@ export default function PrivacyPolicyScreen() {
           />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('privacyTitle', "Politique de confidentialité")}
+          {t('privacyTitle')}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -57,84 +57,84 @@ export default function PrivacyPolicyScreen() {
       >
         <View style={[styles.content, { backgroundColor: colors.card }]}>
           <Text style={[styles.lastUpdated, { color: colors.textSecondary }]}>
-            {t('lastUpdated', "Dernière mise à jour : Décembre 2025")}
+            {t('lastUpdated')}
           </Text>
 
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('privacyIntro', "{{appName}} (\"nous\", \"notre\", \"nos\") s'engage à protéger votre vie privée. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations personnelles.", { appName: AppConfig.name })}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            1. {t('infoCollectionTitle', "Informations que nous collectons")}
-          </Text>
-          <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('infoCollectionText', "Nous collectons les informations que vous nous fournissez directement, telles que votre nom, adresse e-mail, numéro de téléphone, et les informations de votre profil lorsque vous créez un compte sur {{appName}}.", { appName: AppConfig.name })}
+            {t('privacyIntro', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            2. {t('infoUsageTitle', "Utilisation des informations")}
+            1. {t('infoCollectionTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('infoUsageText1', "Nous utilisons vos informations pour :")}
-            {"\n"}• {t('infoUsageItem1', "Fournir et améliorer nos services")}
-            {"\n"}• {t('infoUsageItem2', "Personnaliser votre expérience utilisateur")}
-            {"\n"}• {t('infoUsageItem3', "Communiquer avec vous concernant votre compte")}
-            {"\n"}• {t('infoUsageItem4', "Assurer la sécurité de notre plateforme")}
+            {t('infoCollectionText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            3. {t('infoSharingTitle', "Partage des informations")}
+            2. {t('infoUsageTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('infoSharingText', "Nous ne vendons, n'échangeons ni ne transférons vos informations personnelles à des tiers sans votre consentement, sauf dans les cas prévus par la loi ou pour fournir nos services.")}
+            {t('infoUsageText1')}
+            {"\n"}• {t('infoUsageItem1')}
+            {"\n"}• {t('infoUsageItem2')}
+            {"\n"}• {t('infoUsageItem3')}
+            {"\n"}• {t('infoUsageItem4')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            4. {t('dataProtectionTitle', "Protection des données")}
+            3. {t('infoSharingTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('dataProtectionText', "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles appropriées pour protéger vos informations personnelles contre tout accès non autorisé, modification, divulgation ou destruction.")}
+            {t('infoSharingText')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            5. {t('yourRightsTitle', "Vos droits")}
+            4. {t('dataProtectionTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('yourRightsText', "Vous avez le droit d'accéder à vos informations personnelles, de les rectifier, de les supprimer, ou de vous opposer à leur traitement. Vous pouvez exercer ces droits en nous contactant à privacy@imani.com.")}
+            {t('dataProtectionText')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            6. {t('cookiesTitle', "Cookies et technologies similaires")}
+            5. {t('yourRightsTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('cookiesText', "Nous utilisons des cookies et des technologies similaires pour améliorer votre expérience, analyser l'utilisation de notre application et personnaliser le contenu.")}
+            {t('yourRightsText')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            7. {t('dataRetentionTitle', "Conservation des données")}
+            6. {t('cookiesTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('dataRetentionText', "Nous conservons vos informations personnelles aussi longtemps que nécessaire pour fournir nos services et respecter nos obligations légales.")}
+            {t('cookiesText')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            8. {t('policyChangesTitle', "Modifications de la politique")}
+            7. {t('dataRetentionTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('policyChangesText', "Nous pouvons modifier cette politique de confidentialité. Nous vous informerons de tout changement important en publiant la nouvelle politique sur cette page.")}
+            {t('dataRetentionText')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            9. {t('contactPrivacyTitle', "Nous contacter")}
+            8. {t('policyChangesTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('contactPrivacyText1', "Si vous avez des questions concernant cette politique de confidentialité, veuillez nous contacter à :")}
-            {"\n\n"}{t('email', "Email")} : privacy@imani.com
-            {"\n"}{t('website', "Site web")} : www.imani.com
+            {t('policyChangesText')}
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            9. {t('contactPrivacyTitle')}
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.text }]}>
+            {t('contactPrivacyText1')}
+            {"\n\n"}{t('email')} : privacy@imani.com
+            {"\n"}{t('website')} : www.imani.com
           </Text>
 
           <Text style={[styles.footer, { color: colors.textSecondary }]}>
-            {t('privacyFooter', "En utilisant {{appName}}, vous acceptez les termes de cette politique de confidentialité.", { appName: AppConfig.name })}
+            {t('privacyFooter', { appName: AppConfig.name })}
           </Text>
         </View>
       </ScrollView>
@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1,
   },
-  // Header harmonisé avec AboutScreen
   header: { 
     flexDirection: 'row',
     alignItems: 'center',
@@ -174,9 +173,6 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 24,
     borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
-    overflow: 'hidden',
   },
   lastUpdated: {
     fontSize: 14,

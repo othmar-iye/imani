@@ -2,6 +2,8 @@
 import CustomButton from '@/components/CustomButton';
 import { MenuItem } from '@/components/MenuItem';
 import { MenuSection } from '@/components/MenuSection';
+import { ProfileHeader } from '@/components/ProfileHeader';
+import { ProfileSkeleton } from '@/components/ProfileSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
@@ -10,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 // Types pour les données du profil
 interface ProfileStats {
@@ -221,7 +223,7 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: isDark ? Theme.dark.background : Theme.light.background }]}>
-        <Text style={{ color: isDark ? Theme.dark.text : Theme.light.text }}>{t('loading', 'Chargement...')}</Text>
+        <Text style={{ color: isDark ? Theme.dark.text : Theme.light.text }}>{t('loading')}</Text>
       </View>
     );
   }
@@ -254,11 +256,11 @@ export default function ProfileScreen() {
       case 'pending':
         return t('verificationPending', 'Profil en cours de vérification');
       case 'verified':
-        return t('verifiedSeller', 'Vendeur vérifié');
+        return t('verifiedSeller');
       case 'rejected':
         return t('verificationRejected', 'Profil rejeté');
       default:
-        return t('member', 'Membre');
+        return t('member');
     }
   };
 
@@ -294,15 +296,15 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      t('logoutTitle', 'Déconnexion'),
-      t('logoutMessage', 'Êtes-vous sûr de vouloir vous déconnecter ?'),
+      t('logoutTitle'),
+      t('logoutMessage'),
       [
         {
           text: t('cancel', 'Annuler'),
           style: 'cancel',
         },
         {
-          text: t('logout', 'Log out'),
+          text: t('logout'),
           style: 'destructive',
           onPress: () => { signOut(); router.replace('/(auth)/welcome'); },
         },
@@ -312,9 +314,9 @@ export default function ProfileScreen() {
 
   // Stats conditionnelles selon le statut de vérification
   const stats = profileData?.sellerStatus === 'verified' ? [
-    { label: t('items', 'Articles'), value: profileData.stats.items.toString() },
-    { label: t('sales', 'Ventes'), value: profileData.stats.sales.toString() },
-    { label: t('ratings', 'Évaluations'), value: profileData.stats.ratings.toString() },
+    { label: t('items'), value: profileData.stats.items.toString() },
+    { label: t('sales'), value: profileData.stats.sales.toString() },
+    { label: t('ratings'), value: profileData.stats.ratings.toString() },
   ] : [];
 
   // Message d'information conditionnel - pour les statuts "pending" et "rejected"
@@ -360,183 +362,9 @@ export default function ProfileScreen() {
     return null;
   };
 
-  // Skeleton Loader intégré
-  const ProfileSkeleton = () => {
-    const skeletonColor = isDark ? '#2A2A2A' : '#E1E9EE';
-    
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.tint}
-              colors={[colors.tint]}
-            />
-          }
-        >
-          {/* Header Skeleton */}
-          <View style={[styles.header, { backgroundColor: colors.card }]}>
-            <View style={[
-              styles.skeletonCircle, 
-              { 
-                width: 100, 
-                height: 100, 
-                backgroundColor: skeletonColor,
-                marginBottom: 16,
-              }
-            ]} />
-            
-            <View style={[
-              styles.skeletonBox, 
-              { 
-                width: 150, 
-                height: 24, 
-                backgroundColor: skeletonColor,
-                marginBottom: 8,
-              }
-            ]} />
-            
-            <View style={[
-              styles.skeletonBox, 
-              { 
-                width: 100, 
-                height: 16, 
-                backgroundColor: skeletonColor,
-                marginBottom: 4,
-              }
-            ]} />
-            
-            <View style={[
-              styles.skeletonBox, 
-              { 
-                width: 120, 
-                height: 14, 
-                backgroundColor: skeletonColor,
-                marginBottom: 16,
-              }
-            ]} />
-            
-            <View style={[
-              styles.skeletonBox, 
-              { 
-                width: 120, 
-                height: 44, 
-                backgroundColor: skeletonColor,
-                borderRadius: 12,
-              }
-            ]} />
-          </View>
-
-          {/* Stats Skeleton - Toujours visible dans le skeleton */}
-          <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
-            {[1, 2, 3].map((_, index) => (
-              <View key={index} style={styles.statItem}>
-                <View style={[
-                  styles.skeletonBox, 
-                  { 
-                    width: 40, 
-                    height: 20, 
-                    backgroundColor: skeletonColor,
-                    marginBottom: 4,
-                  }
-                ]} />
-                <View style={[
-                  styles.skeletonBox, 
-                  { 
-                    width: 60, 
-                    height: 12, 
-                    backgroundColor: skeletonColor,
-                  }
-                ]} />
-                {index < 2 && (
-                  <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
-                )}
-              </View>
-            ))}
-          </View>
-
-          {/* Menu Items Skeleton */}
-          <View style={[styles.menuSection, { backgroundColor: colors.background }]}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item, index) => (
-              <View
-                key={item}
-                style={[
-                  styles.menuItem,
-                  { 
-                    backgroundColor: colors.card,
-                    marginBottom: index === 8 ? 0 : 8,
-                  }
-                ]}
-              >
-                <View style={styles.menuItemLeft}>
-                  <View style={[
-                    styles.skeletonBox, 
-                    { 
-                      width: 22, 
-                      height: 22, 
-                      backgroundColor: skeletonColor,
-                      borderRadius: 4,
-                    }
-                  ]} />
-                  <View style={[
-                    styles.skeletonBox, 
-                    { 
-                      width: 150, 
-                      height: 16, 
-                      backgroundColor: skeletonColor,
-                    }
-                  ]} />
-                </View>
-                
-                <View style={styles.menuItemRight}>
-                  {index < 3 && (
-                    <View style={[
-                      styles.skeletonBox, 
-                      { 
-                        width: 20, 
-                        height: 20, 
-                        backgroundColor: skeletonColor,
-                        borderRadius: 10,
-                      }
-                    ]} />
-                  )}
-                  <View style={[
-                    styles.skeletonBox, 
-                    { 
-                      width: 16, 
-                      height: 16, 
-                      backgroundColor: skeletonColor,
-                    }
-                  ]} />
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Version Skeleton */}
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 80, 
-              height: 14, 
-              backgroundColor: skeletonColor,
-              alignSelf: 'center',
-              marginTop: 10,
-            }
-          ]} />
-        </ScrollView>
-      </View>
-    );
-  };
-
   // Gestion des états de chargement et d'erreur
   if (isLoading) {
-    return <ProfileSkeleton />;
+    return <ProfileSkeleton colors={colors} refreshing={refreshing} onRefresh={onRefresh} />;
   }
 
   if (error) {
@@ -558,7 +386,7 @@ export default function ProfileScreen() {
 
   // Afficher le skeleton pendant le chargement
   if (!profileData) {
-    return <ProfileSkeleton />;
+    return <ProfileSkeleton colors={colors} refreshing={refreshing} onRefresh={onRefresh} />;
   }
 
   return (
@@ -576,57 +404,21 @@ export default function ProfileScreen() {
           />
         }
       >
-        {/* Header avec avatar et infos */}
-        <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <View style={styles.avatarSection}>
-            <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
-              {(profileImageUrl && !imageError) ? (
-                <Image 
-                  source={{ uri: profileImageUrl }} 
-                  style={styles.avatarImage}
-                  resizeMode="cover"
-                  onError={() => setImageError(true)}
-                  onLoad={() => setImageError(false)}
-                />
-              ) : (
-                <Text style={styles.avatarText}>{userInitials}</Text>
-              )}
-            </View>
-            
-            {/* Indicateur de synchronisation */}
-            {isRefetching && (
-              <View style={[styles.syncIndicator, { backgroundColor: colors.tint }]}>
-                <Ionicons name="sync" size={12} color="#FFFFFF" />
-              </View>
-            )}
-          </View>
-          
-          <Text style={[styles.userName, { color: colors.text }]}>
-            {profileData.fullName}
-          </Text>
-          
-          <View style={styles.userInfo}>
-            <Ionicons 
-              name={getStatusIcon() as any} 
-              size={14} 
-              color={getStatusColor()} 
-            />
-            <Text style={[styles.userStatus, { color: getStatusColor() }]}>
-              {getStatusText()}
-            </Text>
-          </View>
-          
-          <Text style={[styles.userLocation, { color: colors.textSecondary }]}>
-            {profileData.location}
-          </Text>
-
-          <CustomButton
-            title={t('editProfile', 'Modifier profil')}
-            onPress={setProfile}
-            variant="primary"
-            size="large"
-          />
-        </View>
+        {/* Header avec composant ProfileHeader */}
+        <ProfileHeader
+          profileImageUrl={profileImageUrl}
+          imageError={imageError}
+          userInitials={userInitials}
+          fullName={profileData.fullName}
+          statusText={getStatusText()}
+          statusIcon={getStatusIcon()}
+          statusColor={getStatusColor()}
+          location={profileData.location}
+          isRefetching={isRefetching}
+          onEditProfile={setProfile}
+          colors={colors}
+          editButtonText={t('editProfile')}
+        />
 
         {/* Message d'information - pour les statuts "pending" et "rejected" */}
         {getStatusMessage()}
@@ -653,14 +445,14 @@ export default function ProfileScreen() {
             <>
               <MenuItem
                 icon="cube-outline"
-                label={t('myItems', 'Mes articles')}
+                label={t('myItems')}
                 count={profileData?.stats.items.toString() || '12'}
                 onPress={() => router.push('/screens/profileOption/MyItemsScreen')}
                 colors={colors}
               />
               <MenuItem
                 icon="chatbubble-outline"
-                label={t('myConversations', 'Mes discussions')}
+                label={t('myConversations')}
                 count="3"
                 onPress={() => router.push('/screens/profileOption/ConversationsScreen')}
                 colors={colors}
@@ -671,13 +463,13 @@ export default function ProfileScreen() {
           {/* Items pour tous les utilisateurs */}
           <MenuItem
             icon="wallet-outline"
-            label={t('myWallet', 'Mon portefeuille')}
+            label={t('myWallet')}
             onPress={() => router.push('/screens/profileOption/WalletScreen')}
             colors={colors}
           />
           <MenuItem
             icon="cart-outline"
-            label={t('myOrders', 'Mes commandes')}
+            label={t('myOrders')}
             onPress={() => router.push('/screens/profileOption/MyOrdersScreen')}
             colors={colors}
           />
@@ -689,13 +481,13 @@ export default function ProfileScreen() {
           />
           <MenuItem
             icon="document-text-outline"
-            label={t('termsOfService', 'Conditions d\'utilisation')}
+            label={t('termsOfService')}
             onPress={() => router.push('/screens/profileOption/TermsOfServiceScreen')}
             colors={colors}
           />
           <MenuItem
             icon="lock-closed-outline"
-            label={t('privacyPolicy', 'Politique de confidentialité')}
+            label={t('privacyPolicy')}
             onPress={() => router.push('/screens/profileOption/PrivacyPolicyScreen')}
             colors={colors}
           />
@@ -757,79 +549,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
   },
-  header: {
-    padding: 24,
-    alignItems: 'center',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    marginBottom: 16,
-    paddingTop: 60,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
-  },
-  avatarSection: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  syncIndicator: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  userStatus: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  userLocation: {
-    fontSize: 14,
-    marginBottom: 16,
-  },
   statsSection: {
     flexDirection: 'row',
     marginHorizontal: 20,
     borderRadius: 16,
     paddingVertical: 20,
     marginBottom: 20,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
   },
   statItem: {
     flex: 1,
@@ -859,8 +584,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8,
   },
   infoTextContainer: {
     flex: 1,
@@ -879,54 +602,10 @@ const styles = StyleSheet.create({
   resubmitButton: {
     alignSelf: 'flex-start',
   },
-  menuSection: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
-  },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  menuItemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  menuText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  countBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  countText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   version: {
     textAlign: 'center',
     fontSize: 14,
     marginBottom: 20,
     marginTop: 10,
-  },
-  // Styles pour le skeleton
-  skeletonBox: {
-    borderRadius: 6,
-  },
-  skeletonCircle: {
-    borderRadius: 50,
   },
 });

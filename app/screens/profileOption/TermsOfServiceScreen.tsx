@@ -33,7 +33,7 @@ export default function TermsOfServiceScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
-      {/* Header harmonisé avec AboutScreen */}
+      {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -46,7 +46,7 @@ export default function TermsOfServiceScreen() {
           />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('termsTitle', "Conditions d'utilisation")}
+          {t('termsTitle')}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -57,101 +57,101 @@ export default function TermsOfServiceScreen() {
       >
         <View style={[styles.content, { backgroundColor: colors.card }]}>
           <Text style={[styles.lastUpdated, { color: colors.textSecondary }]}>
-            {t('lastUpdated', "Dernière mise à jour : Décembre 2025")}
+            {t('lastUpdated')}
           </Text>
 
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('welcomeTerms', "Bienvenue sur {{appName}}. En utilisant notre application, vous acceptez les présentes conditions d'utilisation. Veuillez les lire attentivement.", { appName: AppConfig.name })}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            1. {t('acceptanceTitle', "Acceptation des conditions")}
-          </Text>
-          <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('acceptanceText', "En accédant et en utilisant {{appName}}, vous acceptez d'être lié par ces conditions d'utilisation et par notre politique de confidentialité. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre application.", { appName: AppConfig.name })}
+            {t('welcomeTerms', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            2. {t('userAccountTitle', "Compte utilisateur")}
+            1. {t('acceptanceTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('userAccountText1', "Pour utiliser certaines fonctionnalités de {{appName}}, vous devez créer un compte. Vous êtes responsable de :", { appName: AppConfig.name })}
-            {"\n"}• {t('userAccountItem1', "Maintenir la confidentialité de vos identifiants")}
-            {"\n"}• {t('userAccountItem2', "Toutes les activités effectuées via votre compte")}
-            {"\n"}• {t('userAccountItem3', "Fournir des informations exactes et à jour")}
+            {t('acceptanceText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            3. {t('allowedUseTitle', "Utilisation autorisée")}
+            2. {t('userAccountTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('allowedUseText1', "Vous vous engagez à utiliser {{appName}} uniquement à des fins légales et conformément à ces conditions. Vous ne devez pas :", { appName: AppConfig.name })}
-            {"\n"}• {t('allowedUseItem1', "Violer les droits de propriété intellectuelle")}
-            {"\n"}• {t('allowedUseItem2', "Publier du contenu illégal ou nuisible")}
-            {"\n"}• {t('allowedUseItem3', "Perturber le fonctionnement de l'application")}
-            {"\n"}• {t('allowedUseItem4', "Tenter d'accéder à des comptes non autorisés")}
+            {t('userAccountText1', { appName: AppConfig.name })}
+            {"\n"}• {t('userAccountItem1')}
+            {"\n"}• {t('userAccountItem2')}
+            {"\n"}• {t('userAccountItem3')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            4. {t('userContentTitle', "Contenu des utilisateurs")}
+            3. {t('allowedUseTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('userContentText', "Vous conservez tous les droits sur le contenu que vous publiez sur {{appName}}. En publiant du contenu, vous nous accordez une licence mondiale pour l'utiliser, le reproduire et l'afficher dans le cadre du fonctionnement de l'application.", { appName: AppConfig.name })}
+            {t('allowedUseText1', { appName: AppConfig.name })}
+            {"\n"}• {t('allowedUseItem1')}
+            {"\n"}• {t('allowedUseItem2')}
+            {"\n"}• {t('allowedUseItem3')}
+            {"\n"}• {t('allowedUseItem4')}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            5. {t('transactionsTitle', "Transactions et paiements")}
+            4. {t('userContentTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('transactionsText', "{{appName}} facilite les transactions entre acheteurs et vendeurs. Nous ne sommes pas responsables des litiges entre utilisateurs. Les paiements sont traités par des prestataires tiers sécurisés.", { appName: AppConfig.name })}
+            {t('userContentText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            6. {t('intellectualPropertyTitle', "Propriété intellectuelle")}
+            5. {t('transactionsTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('intellectualPropertyText', "Tous les droits de propriété intellectuelle relatifs à l'application {{appName}}, y compris le code source, le design, et le contenu, sont la propriété exclusive de {{appName}} ou de ses concédants de licence.", { appName: AppConfig.name })}
+            {t('transactionsText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            7. {t('liabilityTitle', "Limitation de responsabilité")}
+            6. {t('intellectualPropertyTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('liabilityText', "{{appName}} est fourni \"tel quel\". Nous ne garantissons pas que l'application sera ininterrompue ou exempte d'erreurs. Dans la mesure permise par la loi, notre responsabilité est limitée.", { appName: AppConfig.name })}
+            {t('intellectualPropertyText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            8. {t('terminationTitle', "Résiliation")}
+            7. {t('liabilityTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('terminationText', "Nous pouvons résilier ou suspendre votre accès à {{appName}} à tout moment, sans préavis, si vous violez ces conditions d'utilisation.", { appName: AppConfig.name })}
+            {t('liabilityText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            9. {t('modificationsTitle', "Modifications des conditions")}
+            8. {t('terminationTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('modificationsText', "Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet dès leur publication dans l'application. Votre utilisation continue de {{appName}} constitue votre acceptation des modifications.", { appName: AppConfig.name })}
+            {t('terminationText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            10. {t('governingLawTitle', "Loi applicable")}
+            9. {t('modificationsTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('governingLawText', "Ces conditions sont régies et interprétées conformément aux lois de la République Démocratique du Congo. Tout litige sera soumis à la juridiction compétente des tribunaux de Lubumbashi.")}
+            {t('modificationsText', { appName: AppConfig.name })}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            11. {t('contactUsTitle', "Nous contacter")}
+            10. {t('governingLawTitle')}
           </Text>
           <Text style={[styles.paragraph, { color: colors.text }]}>
-            {t('contactUsText1', "Pour toute question concernant ces conditions d'utilisation, veuillez nous contacter à :")}
-            {"\n\n"}{t('email', "Email")} : legal@imani.com
-            {"\n"}{t('website', "Site web")} : www.imani.com
+            {t('governingLawText')}
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            11. {t('contactUsTitle')}
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.text }]}>
+            {t('contactUsText1')}
+            {"\n\n"}{t('email')} : legal@imani.com
+            {"\n"}{t('website')} : www.imani.com
           </Text>
 
           <Text style={[styles.footer, { color: colors.textSecondary }]}>
-            {t('termsFooter', "En utilisant {{appName}}, vous reconnaissez avoir lu, compris et accepté ces conditions d'utilisation.", { appName: AppConfig.name })}
+            {t('termsFooter', { appName: AppConfig.name })}
           </Text>
         </View>
       </ScrollView>
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1,
   },
-  // Header harmonisé avec AboutScreen
   header: { 
     flexDirection: 'row',
     alignItems: 'center',
@@ -191,9 +190,6 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 24,
     borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
-    overflow: 'hidden',
   },
   lastUpdated: {
     fontSize: 14,
