@@ -1,4 +1,9 @@
+// screens/ProfileSettingsScreen.tsx
 import CustomButton from '@/components/CustomButton';
+import { EditFieldModal } from '@/components/EditFieldModal';
+import { ProfileFormItem } from '@/components/ProfileFormItem';
+import { ProfileFormSection } from '@/components/ProfileFormSection';
+import { ProfileSettingsSkeleton } from '@/components/ProfileSettingsSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
@@ -16,7 +21,6 @@ import {
     StatusBar,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     useColorScheme,
     View
@@ -237,16 +241,16 @@ export default function ProfileSettingsScreen() {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       
       Alert.alert(
-        t('success', 'Succès'),
-        t('profileUpdated', 'Profil mis à jour avec succès'),
-        [{ text: t('okText', 'OK'), onPress: () => router.back() }]
+        t('success'),
+        t('profileUpdated'),
+        [{ text: t('okText'), onPress: () => router.back() }]
       );
     },
     onError: (error) => {
       Alert.alert(
-        t('error', 'Erreur'),
-        t('saveError', 'Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.'),
-        [{ text: t('okText', 'OK') }]
+        t('error'),
+        t('saveError'),
+        [{ text: t('okText') }]
       );
     },
   });
@@ -274,7 +278,7 @@ export default function ProfileSettingsScreen() {
     outputRange: ['0deg', '360deg']
   });
 
-  // Fonctions utilitaires (conservées de ton code original)
+  // Fonctions utilitaires
   const compressImage = async (imageUri: string, quality: number = 0.7): Promise<string> => {
     try {
       return imageUri;
@@ -362,7 +366,7 @@ export default function ProfileSettingsScreen() {
     }
   };
 
-  // Fonctions de formatage et validation (conservées)
+  // Fonctions de formatage et validation
   const formatDate = (input: string): string => {
     const numbers = input.replace(/\D/g, '');
     
@@ -403,7 +407,7 @@ export default function ProfileSettingsScreen() {
     return cleaned.startsWith('243') && cleaned.length === 12;
   };
 
-  // Gestion de l'édition des champs - CORRIGÉE
+  // Gestion de l'édition des champs
   const startEditing = (field: string, currentValue: string) => {
     setEditingField(field);
     setTempValue(currentValue);
@@ -415,9 +419,9 @@ export default function ProfileSettingsScreen() {
       if (editingField === 'phoneNumber') {
         if (!isValidPhoneNumber(tempValue)) {
           Alert.alert(
-            t('invalidPhone', 'Numéro invalide'),
-            t('invalidPhoneMessage', 'Le numéro doit commencer par +243 et avoir 13 caractères au total (ex: +243 81 234 5678)'),
-            [{ text: t('okText', 'OK') }]
+            t('invalidPhone'),
+            t('invalidPhoneMessage'),
+            [{ text: t('okText') }]
           );
           return;
         }
@@ -426,9 +430,9 @@ export default function ProfileSettingsScreen() {
       if (editingField === 'birthDate') {
         if (tempValue.length < 8) {
           Alert.alert(
-            t('invalidDate', 'Date invalide'),
-            t('invalidDateMessage', 'Veuillez entrer une date complète (JJ/MM/AAAA)'),
-            [{ text: t('okText', 'OK') }]
+            t('invalidDate'),
+            t('invalidDateMessage'),
+            [{ text: t('okText') }]
           );
           return;
         }
@@ -460,15 +464,15 @@ export default function ProfileSettingsScreen() {
     }
   };
 
-  // Fonctions pour les images (conservées)
+  // Fonctions pour les images
   const takePhoto = async (type: 'profile' | 'identity') => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       
       if (status !== 'granted') {
         Alert.alert(
-          t('permissionRequired', 'Permission requise'),
-          t('cameraPermissionMessage', 'Nous avons besoin de votre permission pour utiliser la caméra.')
+          t('permissionRequired'),
+          t('cameraPermissionMessage')
         );
         return;
       }
@@ -497,8 +501,8 @@ export default function ProfileSettingsScreen() {
     } catch (error) {
       console.error('Erreur caméra:', error);
       Alert.alert(
-        t('error', 'Erreur'),
-        t('cameraError', 'Impossible d\'accéder à la caméra.')
+        t('error'),
+        t('cameraError')
       );
     }
   };
@@ -509,8 +513,8 @@ export default function ProfileSettingsScreen() {
       
       if (status !== 'granted') {
         Alert.alert(
-          t('permissionRequired', 'Permission requise'),
-          t('galleryPermissionMessage', 'Nous avons besoin de votre permission pour accéder à vos photos.')
+          t('permissionRequired'),
+          t('galleryPermissionMessage')
         );
         return;
       }
@@ -540,70 +544,70 @@ export default function ProfileSettingsScreen() {
     } catch (error) {
       console.error('Erreur sélection photo:', error);
       Alert.alert(
-        t('error', 'Erreur'),
-        t('galleryError', 'Impossible d\'accéder à la galerie photos.')
+        t('error'),
+        t('galleryError')
       );
     }
   };
 
   const openImagePicker = (type: 'profile' | 'identity') => {
     Alert.alert(
-      t('addPhoto', 'Ajouter une photo'),
-      t('chooseSource', 'Choisir la source de la photo'),
+      t('addPhoto'),
+      t('chooseSource'),
       [
         {
-          text: t('takePhoto', 'Prendre une photo'),
+          text: t('takePhoto'),
           onPress: () => takePhoto(type),
         },
         {
-          text: t('chooseFromGallery', 'Choisir depuis la galerie'),
+          text: t('chooseFromGallery'),
           onPress: () => chooseFromGallery(type),
         },
         {
-          text: t('cancel', 'Annuler'),
+          text: t('cancel'),
           style: 'cancel',
         },
       ]
     );
   };
 
-  // Sections du profil - UTILISANT localProfileData
+  // Sections du profil
   const profileSections = [
     {
-      title: t('personalInfo', 'Informations personnelles'),
+      title: t('personalInfo'),
       items: [
         {
           icon: 'call',
-          label: t('phoneNumber', 'Numéro de téléphone'),
+          label: t('phoneNumber'),
           type: 'input',
           value: localProfileData.phoneNumber,
-          placeholder: t('phonePlaceholder', '+243 XX XXX XXXX'),
+          placeholder: t('phonePlaceholder'),
           onPress: () => startEditing('phoneNumber', localProfileData.phoneNumber),
         },
         {
           icon: 'calendar',
-          label: t('birthDate', 'Date de naissance'),
+          label: t('birthDate'),
           type: 'input',
           value: localProfileData.birthDate,
-          placeholder: t('datePlaceholder', 'JJ/MM/AAAA'),
+          placeholder: t('datePlaceholder'),
           onPress: () => startEditing('birthDate', localProfileData.birthDate),
         },
       ],
     },
     {
-      title: t('locationInfo', 'Localisation'),
+      title: t('locationInfo'),
       items: [
         {
           icon: 'location',
-          label: t('address', 'Adresse'),
+          label: t('address'),
           type: 'input',
           value: localProfileData.address,
-          placeholder: t('enterAddress', 'Votre adresse complète'),
+          placeholder: t('enterAddress'),
           onPress: () => startEditing('address', localProfileData.address),
         },
         {
           icon: 'business',
-          label: t('city', 'Ville'),
+          label: t('city'),
           type: 'select',
           value: localProfileData.city,
           options: citiesRDC.map(city => ({ value: city, label: city })),
@@ -612,31 +616,31 @@ export default function ProfileSettingsScreen() {
       ],
     },
     {
-      title: t('identityVerification', 'Vérification d\'identité'),
+      title: t('identityVerification'),
       items: [
         {
           icon: 'card',
-          label: t('identityType', 'Type de pièce d\'identité'),
+          label: t('identityType'),
           type: 'select',
           value: localProfileData.identityType,
           options: [
-            { value: 'voter_card' as const, label: t('voterCard', 'Carte d\'électeur') },
-            { value: 'passport' as const, label: t('passport', 'Passeport') },
-            { value: 'driving_license' as const, label: t('drivingLicense', 'Permis de conduire') },
+            { value: 'voter_card' as const, label: t('voterCard') },
+            { value: 'passport' as const, label: t('passport') },
+            { value: 'driving_license' as const, label: t('drivingLicense') },
           ],
           onPress: () => showIdentityTypeSelector(),
         },
         {
           icon: 'document-text',
-          label: t('identityNumber', 'Numéro de la pièce'),
+          label: t('identityNumber'),
           type: 'input',
           value: localProfileData.identityNumber,
-          placeholder: t('enterIdentityNumber', 'Numéro de la pièce'),
+          placeholder: t('enterIdentityNumber'),
           onPress: () => startEditing('identityNumber', localProfileData.identityNumber),
         },
         {
           icon: 'camera',
-          label: t('uploadIdentityDocument', 'Photo de la pièce d\'identité'),
+          label: t('uploadIdentityDocument'),
           type: 'upload',
           value: localProfileData.identityDocument,
           onPress: () => openImagePicker('identity'),
@@ -648,7 +652,7 @@ export default function ProfileSettingsScreen() {
 
   const showCitySelector = () => {
     Alert.alert(
-      t('selectCity', 'Choisir une ville'),
+      t('selectCity'),
       '',
       citiesRDC.map(city => ({
         text: city,
@@ -662,13 +666,13 @@ export default function ProfileSettingsScreen() {
 
   const showIdentityTypeSelector = () => {
     const identityTypes = [
-      { value: 'voter_card' as const, label: t('voterCard', 'Carte d\'électeur') },
-      { value: 'passport' as const, label: t('passport', 'Passeport') },
-      { value: 'driving_license' as const, label: t('drivingLicense', 'Permis de conduire') },
+      { value: 'voter_card' as const, label: t('voterCard') },
+      { value: 'passport' as const, label: t('passport') },
+      { value: 'driving_license' as const, label: t('drivingLicense') },
     ];
 
     Alert.alert(
-      t('selectIdentityType', 'Type de pièce d\'identité'),
+      t('selectIdentityType'),
       '',
       identityTypes.map(type => ({
         text: type.label,
@@ -683,14 +687,14 @@ export default function ProfileSettingsScreen() {
     );
   };
 
-  // Validation et sauvegarde - UTILISANT localProfileData
+  // Validation et sauvegarde
   const handleSave = async () => {
     // Validation de la photo de profil
     if (!localProfileData.profilePicture) {
         Alert.alert(
-        t('photoRequired', 'Photo requise'),
-        t('photoRequiredMessage', 'La photo de profil est obligatoire pour mettre à jour votre profil.'),
-        [{ text: t('okText', 'OK') }]
+        t('photoRequired'),
+        t('photoRequiredMessage'),
+        [{ text: t('okText') }]
         );
         return;
     }
@@ -698,20 +702,20 @@ export default function ProfileSettingsScreen() {
     // Validation du numéro de téléphone
     if (!isValidPhoneNumber(localProfileData.phoneNumber)) {
       Alert.alert(
-        t('invalidPhone', 'Numéro invalide'),
-        t('invalidPhoneMessage', 'Le numéro doit commencer par +243 et avoir 13 caractères au total (ex: +243 81 234 5678)'),
-        [{ text: t('okText', 'OK') }]
+        t('invalidPhone'),
+        t('invalidPhoneMessage'),
+        [{ text: t('okText') }]
       );
       return;
     }
 
     // Vérification des champs obligatoires
     const requiredFields = {
-      'Photo de profil': localProfileData.profilePicture,
-      'Numéro de téléphone': localProfileData.phoneNumber,
-      'Type de pièce d\'identité': localProfileData.identityType,
-      'Numéro de pièce': localProfileData.identityNumber,
-      'Document d\'identité': localProfileData.identityDocument,
+      [t('profilePicture')]: localProfileData.profilePicture,
+      [t('phoneNumber')]: localProfileData.phoneNumber,
+      [t('identityType')]: localProfileData.identityType,
+      [t('identityNumber')]: localProfileData.identityNumber,
+      [t('uploadIdentityDocument')]: localProfileData.identityDocument,
     };
 
     const missingFields = Object.entries(requiredFields)
@@ -720,9 +724,9 @@ export default function ProfileSettingsScreen() {
 
     if (missingFields.length > 0) {
       Alert.alert(
-        t('incompleteProfile', 'Profil incomplet'),
-        t('missingFields', `Veuillez remplir les champs suivants: ${missingFields.join(', ')}`),
-        [{ text: t('okText', 'OK') }]
+        t('incompleteProfile'),
+        t('missingFields', { fields: missingFields.join(', ') }),
+        [{ text: t('okText') }]
       );
       return;
     }
@@ -730,104 +734,7 @@ export default function ProfileSettingsScreen() {
     saveMutation.mutate(localProfileData);
   };
 
-  // Composants UI
-  const renderEditField = () => {
-    if (!editingField) return null;
-
-    const getPlaceholder = () => {
-      switch (editingField) {
-        case 'phoneNumber': return t('phonePlaceholder', '+243 81 234 5678');
-        case 'birthDate': return t('datePlaceholder', 'JJ/MM/AAAA');
-        case 'address': return t('enterAddress', 'Votre adresse complète');
-        case 'identityNumber': return t('enterIdentityNumber', 'Numéro de la pièce');
-        default: return '';
-      }
-    };
-
-    const getKeyboardType = () => {
-      switch (editingField) {
-        case 'phoneNumber': return 'phone-pad';
-        case 'birthDate': return 'numeric';
-        default: return 'default';
-      }
-    };
-
-    const getMaxLength = () => {
-      switch (editingField) {
-        case 'phoneNumber': return 17;
-        case 'birthDate': return 10;
-        default: return undefined;
-      }
-    };
-
-    const getEditTitle = () => {
-      switch (editingField) {
-        case 'phoneNumber': return t('editPhoneNumber', 'Modifier le numéro de téléphone');
-        case 'birthDate': return t('editBirthDate', 'Modifier la date de naissance');
-        case 'address': return t('editAddress', 'Modifier l\'adresse');
-        case 'identityNumber': return t('editIdentityNumber', 'Modifier le numéro de pièce');
-        default: return '';
-      }
-    };
-
-    return (
-      <View style={[styles.editModal, { backgroundColor: colors.background }]}>
-        <View style={[styles.editContainer, { backgroundColor: colors.card }]}>
-          <Text style={[styles.editTitle, { color: colors.text }]}>
-            {getEditTitle()}
-          </Text>
-          
-          <TextInput
-            style={[styles.editInput, { 
-              color: colors.text, 
-              borderColor: colors.border,
-              backgroundColor: colors.background 
-            }]}
-            value={tempValue}
-            onChangeText={handleTextChange}
-            placeholder={getPlaceholder()}
-            placeholderTextColor={colors.textSecondary}
-            keyboardType={getKeyboardType()}
-            maxLength={getMaxLength()}
-            autoFocus
-          />
-
-          {editingField === 'phoneNumber' && (
-            <Text style={[styles.helperText, { color: colors.textSecondary }]}>
-              {t('phoneFormat', 'Format: +243 XX XXX XXXX (13 caractères)')}
-            </Text>
-          )}
-
-          {editingField === 'birthDate' && (
-            <Text style={[styles.helperText, { color: colors.textSecondary }]}>
-              {t('dateFormat', 'Format: JJ/MM/AAAA')}
-            </Text>
-          )}
-          
-          <View style={styles.editButtons}>
-            <CustomButton
-              title={t('cancel', 'Annuler')}
-              onPress={cancelEditing}
-              variant="primary"
-              size="medium"
-              style={StyleSheet.flatten([
-                    styles.editButton, 
-                    { backgroundColor: colors.border }
-                ])}
-            />
-            <CustomButton
-              title={t('save', 'Enregistrer')}
-              onPress={saveEditing}
-              variant="primary"
-              size="medium"
-              style={styles.editButton}
-            />
-          </View>
-        </View>
-      </View>
-    );
-  };
-
+  // Composant OptimizedImage
   const OptimizedImage = ({ source, style, isProfile = false }: any) => {
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -855,10 +762,10 @@ export default function ProfileSettingsScreen() {
         <View style={[style, styles.imageErrorContainer]}>
           <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
           <Text style={[styles.imageErrorText, { color: colors.textSecondary }]}>
-            Image non chargée
+            {t('imageNotLoaded')}
           </Text>
           <CustomButton
-            title="Réessayer"
+            title={t('retry')}
             onPress={refreshUrl}
             variant="primary"
             size="small"
@@ -957,11 +864,11 @@ export default function ProfileSettingsScreen() {
               { color: colors.textSecondary },
               isProfilePicture && styles.profileUploadText
             ]}>
-              {isProfilePicture ? t('uploadProfilePicture', 'Photo de profil') : item.label}
+              {isProfilePicture ? t('uploadProfilePicture') : item.label}
             </Text>
             {!isProfilePicture && (
               <Text style={[styles.uploadSubtext, { color: colors.textSecondary }]}>
-                {t('tapToUpload', 'Appuyez pour ajouter')}
+                {t('tapToUpload')}
               </Text>
             )}
           </View>
@@ -980,238 +887,19 @@ export default function ProfileSettingsScreen() {
     }
 
     return (
-      <TouchableOpacity
+      <ProfileFormItem
         key={index}
-        style={[
-          styles.profileItem,
-          { 
-            backgroundColor: colors.card,
-            borderBottomColor: colors.border,
-            borderBottomWidth: isLast ? 0 : 1,
-          },
-          item.style
-        ]}
+        item={item}
+        isLast={isLast}
+        colors={colors}
         onPress={item.onPress}
-      >
-        <View style={styles.profileItemLeft}>
-          <Ionicons 
-            name={item.icon as any} 
-            size={20} 
-            color={colors.tint} 
-          />
-          <View style={styles.profileItemText}>
-            <Text style={[styles.profileLabel, { color: colors.text }]}>
-              {item.label}
-            </Text>
-            {item.value ? (
-              <Text style={[styles.profileValue, { color: colors.textSecondary }]}>
-                {item.value}
-              </Text>
-            ) : (
-              <Text style={[styles.profilePlaceholder, { color: colors.textSecondary }]}>
-                {item.placeholder}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.profileItemRight}>
-          {item.type === 'select' && (
-            <View style={styles.selectValue}>
-              <Text style={[styles.selectText, { color: colors.textSecondary }]}>
-                {item.value || t('notSelected', 'Non sélectionné')}
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-            </View>
-          )}
-          
-          {item.type === 'input' && (
-            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  // Skeleton Loader
-  const SkeletonLoader = () => {
-    const skeletonColor = isDark ? '#2A2A2A' : '#E1E9EE';
-
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        
-        {/* Header Skeleton */}
-        <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 40, 
-              height: 40, 
-              backgroundColor: skeletonColor,
-              borderRadius: 8 
-            }
-          ]} />
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 150, 
-              height: 24, 
-              backgroundColor: skeletonColor,
-              borderRadius: 4 
-            }
-          ]} />
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 60, 
-              height: 24, 
-              backgroundColor: skeletonColor,
-              borderRadius: 4 
-            }
-          ]} />
-        </View>
-
-        <ScrollView 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Photo de profil Skeleton */}
-          <View style={styles.section}>
-            <View style={[
-              styles.skeletonBox, 
-              { 
-                width: 120, 
-                height: 20, 
-                marginBottom: 12, 
-                backgroundColor: skeletonColor,
-                borderRadius: 4 
-              }
-            ]} />
-            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-              <View style={[
-                styles.skeletonCircle, 
-                { 
-                  width: 120, 
-                  height: 120, 
-                  backgroundColor: skeletonColor,
-                }
-              ]} />
-            </View>
-          </View>
-
-          {/* Sections Skeleton */}
-          {[1, 2, 3].map((sectionIndex) => (
-            <View key={sectionIndex} style={styles.section}>
-              <View style={[
-                styles.skeletonBox, 
-                { 
-                  width: 160, 
-                  height: 20, 
-                  marginBottom: 12, 
-                  backgroundColor: skeletonColor,
-                  borderRadius: 4 
-                }
-              ]} />
-              
-              <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-                {[1, 2, 3].map((itemIndex) => (
-                  <View 
-                    key={itemIndex} 
-                    style={[
-                      styles.skeletonItem,
-                      { borderBottomColor: colors.border },
-                      itemIndex === 3 && { borderBottomWidth: 0 }
-                    ]}
-                  >
-                    <View style={styles.skeletonItemLeft}>
-                      <View style={[
-                        styles.skeletonBox, 
-                        { 
-                          width: 20, 
-                          height: 20, 
-                          backgroundColor: skeletonColor,
-                          borderRadius: 4 
-                        }
-                      ]} />
-                      <View style={styles.skeletonTextContainer}>
-                        <View style={[
-                          styles.skeletonBox, 
-                          { 
-                            width: 120, 
-                            height: 16, 
-                            marginBottom: 6, 
-                            backgroundColor: skeletonColor,
-                            borderRadius: 4 
-                          }
-                        ]} />
-                        <View style={[
-                          styles.skeletonBox, 
-                          { 
-                            width: 80, 
-                            height: 14, 
-                            backgroundColor: skeletonColor,
-                            borderRadius: 4 
-                          }
-                        ]} />
-                      </View>
-                    </View>
-                    <View style={[
-                      styles.skeletonBox, 
-                      { 
-                        width: 16, 
-                        height: 16, 
-                        backgroundColor: skeletonColor,
-                        borderRadius: 2 
-                      }
-                    ]} />
-                  </View>
-                ))}
-              </View>
-            </View>
-          ))}
-
-          {/* Info section Skeleton */}
-          <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
-            <View style={[
-              styles.skeletonBox, 
-              { 
-                width: 20, 
-                height: 20, 
-                backgroundColor: skeletonColor,
-                borderRadius: 4 
-              }
-            ]} />
-            <View style={styles.skeletonTextContainer}>
-              <View style={[
-                styles.skeletonBox, 
-                { 
-                  width: '100%', 
-                  height: 14, 
-                  marginBottom: 6, 
-                  backgroundColor: skeletonColor,
-                  borderRadius: 4 
-                }
-              ]} />
-              <View style={[
-                styles.skeletonBox, 
-                { 
-                  width: '80%', 
-                  height: 14, 
-                  backgroundColor: skeletonColor,
-                  borderRadius: 4 
-                }
-              ]} />
-            </View>
-          </View>
-        </ScrollView>
-      </View>
+      />
     );
   };
 
   // Afficher le skeleton pendant le chargement
   if (isProfileLoading) {
-    return <SkeletonLoader />;
+    return <ProfileSettingsSkeleton colors={colors} />;
   }
 
   if (profileError) {
@@ -1226,17 +914,17 @@ export default function ProfileSettingsScreen() {
             <Ionicons name="chevron-back" size={24} color={colors.tint} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {t('editProfileTitle', 'Modifier le profil')}
+            {t('editProfileTitle')}
           </Text>
           <View style={styles.saveButtonContainer} />
         </View>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
           <Text style={[styles.errorText, { color: colors.text }]}>
-            {t('errorLoadingProfile', 'Erreur lors du chargement du profil')}
+            {t('errorLoadingProfile')}
           </Text>
           <CustomButton
-            title={t('retry', 'Réessayer')}
+            title={t('retry')}
             onPress={() => queryClient.invalidateQueries({ queryKey: ['user-profile'] })}
             variant="primary"
             size="medium"
@@ -1263,10 +951,10 @@ export default function ProfileSettingsScreen() {
           />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('editProfileTitle', 'Modifier le profil')}
+          {t('editProfileTitle')}
         </Text>
         <CustomButton
-          title={isLoading ? t('saving', 'Enregistrement...') : t('save', 'Enregistrer')}
+          title={isLoading ? t('saving') : t('save')}
           onPress={handleSave}
           variant="primary"
           size="small"
@@ -1283,7 +971,7 @@ export default function ProfileSettingsScreen() {
         {/* Section Photo de profil seule en premier */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('profilePicture', 'Photo de profil')}
+            {t('profilePicture')}
           </Text>
           <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             {renderUploadItem({
@@ -1295,30 +983,32 @@ export default function ProfileSettingsScreen() {
 
         {/* Sections du profil */}
         {profileSections.map((section, sectionIndex) => (
-          <View key={sectionIndex} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {section.title}
-            </Text>
-            
-            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-              {section.items.map((item, itemIndex) => 
-                renderProfileItem(item, itemIndex, itemIndex === section.items.length - 1)
-              )}
-            </View>
-          </View>
+          <ProfileFormSection
+            key={sectionIndex}
+            section={section}
+            colors={colors}
+            renderProfileItem={renderProfileItem}
+          />
         ))}
 
         {/* Information importante */}
         <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
           <Ionicons name="information-circle" size={20} color={colors.tint} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {t('verificationInfo', 'La vérification de votre identité est nécessaire pour devenir vendeur sur IMANI. Le traitement peut prendre 24-48h.')}
+            {t('verificationInfo')}
           </Text>
         </View>
       </ScrollView>
 
       {/* Modal d'édition */}
-      {renderEditField()}
+      <EditFieldModal
+        editingField={editingField}
+        tempValue={tempValue}
+        colors={colors}
+        onTextChange={handleTextChange}
+        onSave={saveEditing}
+        onCancel={cancelEditing}
+      />
     </View>
   );
 }

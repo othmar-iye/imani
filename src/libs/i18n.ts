@@ -7,6 +7,14 @@ const resources = {
   fr: {
     translation: {
 
+        // Profile Settings
+        photoRequired: "Photo de profil requise",
+        photoRequiredMessage: "Veuillez ajouter une photo de profil",
+        saveError: "Erreur lors de la sauvegarde",
+        profileUpdated: "Profil mis à jour avec succès",
+        imageNotLoaded: "Image non chargée",
+        saving: "Enregistrement...",
+
         // NOUVELLES TRADUCTIONS POUR CONDITIONS D'UTILISATION
         termsTitle: "Conditions d'utilisation",
         welcomeTerms: "Bienvenue sur {{appName}}. En utilisant notre application, vous acceptez les présentes conditions d'utilisation. Veuillez les lire attentivement.",
@@ -249,6 +257,14 @@ const resources = {
 
   en: {
     translation: {
+
+        // Profile Settings
+        photoRequired: "Profile Photo Required",
+        photoRequiredMessage: "Please add a profile photo",
+        saveError: "Error saving profile",
+        profileUpdated: "Profile updated successfully",
+        imageNotLoaded: "Image not loaded",
+        saving: "Saving...",
 
         // NEW TRANSLATIONS FOR TERMS OF SERVICE
         termsTitle: "Terms of Service",
