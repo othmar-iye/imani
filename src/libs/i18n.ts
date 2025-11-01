@@ -7,52 +7,71 @@ const resources = {
   fr: {
     translation: {
 
-        // CATEGORIE FILE
-        categories: {
-        clothing: "Vêtements",
-        shoes: "Chaussures",
-        accessories: "Accessoires",
-        brands: "Marques & Créateurs",
-        beauty: "Beauté & Parfums",
-        home: "Maison & Déco",
-        others: "Autres",
-        sub: {
-            women: "Femmes",
-            men: "Hommes",
-            children: "Enfants & Bébés",
-            maternity: "Maternité",
-            plusSize: "Grandes Tailles",
-            sneakers: "Baskets & Sneakers",
-            sandals: "Sandales & Tongs",
-            boots: "Bottes & Bottines",
-            heels: "Escarpins",
-            flats: "Chaussures plates",
-            bags: "Sacs",
-            jewelry: "Bijoux",
-            watches: "Montres",
-            glasses: "Lunettes",
-            scarves: "Écharpes & Foulards",
-            hats: "Chapeaux & Casquettes",
-            belts: "Ceintures",
-            trendingBrands: "Marques Tendances",
-            luxuryBrands: "Luxe & Créateurs",
-            vintageBrands: "Marques Vintage",
-            smallBrands: "Petites Marques",
-            fragrances: "Parfums",
-            makeup: "Maquillage",
-            skincare: "Soins de la peau",
-            haircare: "Soins des cheveux",
-            hygiene: "Hygiène & Bien-être",
-            decoration: "Décoration",
-            homeLinens: "Linge de maison",
-            art: "Art & Posters",
-            lighting: "Luminaires",
-            sports: "Sports & Loisirs",
-            tech: "High-Tech",
-            books: "Livres & Médias",
-            toys: "Jouets & Jeux",
-            creative: "Matériel Créatif"
-        }
+        // RECHERCHE
+        searchResults: {
+            results: "Résultats de recherche",
+            noResults: "Aucun résultat trouvé",
+            noResultsFor: 'Aucun produit ne correspond à "{{query}}"',
+            modifySearch: "Modifier la recherche",
+            productsFound: "produit(s) trouvé(s)",
+            resultsFor: 'Résultats pour "{{query}}"'
+        },
+
+        // FILTER SCREEN
+        filters: {
+
+            allProducts: "Tous les produits",
+            savings: "Économie",
+            noProductsFound: "Aucun produit trouvé",
+            noProductsMatch: "Aucun produit ne correspond à vos critères de filtrage",
+            results: "Résultats des filtres",
+            modify: "Modifier",
+            productsMatch: "Produits correspondant à vos critères",
+            noProductsMatchFilters: "Aucun produit ne correspond à vos filtres",
+            productsFound: "produit(s) trouvé(s)",
+            modifyFilters: "Modifier les filtres",
+            title: "Filtres",
+            reset: "Réinitialiser",
+            clearAll: "Tout effacer",
+            apply: "Appliquer",
+            
+            location: {
+                title: "Localisation",
+                subtitle: "Haut-Katanga, RD Congo",
+                description: "Recherchez votre ville pour voir les annonces locales",
+                searchPlaceholder: "Rechercher une ville...",
+                citiesFound: "{{count}} ville(s) trouvée(s)",
+                selectedCity: "Ville sélectionnée: {{city}}",
+                popularCities: "Villes populaires"
+            },
+            
+            categories: {
+                title: "Catégories"
+            },
+            
+            sort: {
+                title: "Trier par",
+                popular: "Populaire",
+                newest: "Plus récent",
+                priceLow: "Prix croissant",
+                priceHigh: "Prix décroissant"
+            },
+            
+            price: {
+                title: "Fourchette de prix",
+                lessThan50: "Moins de $50",
+                "50to100": "$50-$100",
+                "100to500": "$100-$500",
+                moreThan500: "Plus de $500"
+            },
+            
+            condition: {
+                title: "Condition",
+                new: "Neuf",
+                likeNew: "Comme neuf",
+                good: "Bon état",
+                fair: "État correct"
+            }
         },
 
         // Home Screen
@@ -324,52 +343,70 @@ const resources = {
   en: {
     translation: {
 
-        // CATEGORIE FILE
-        categories: {
-        clothing: "Clothing",
-        shoes: "Shoes",
-        accessories: "Accessories",
-        brands: "Brands & Designers",
-        beauty: "Beauty & Fragrances",
-        home: "Home & Decor",
-        others: "Others",
-        sub: {
-            women: "Women",
-            men: "Men",
-            children: "Children & Babies",
-            maternity: "Maternity",
-            plusSize: "Plus Size",
-            sneakers: "Sneakers & Athletic",
-            sandals: "Sandals & Flip Flops",
-            boots: "Boots & Booties",
-            heels: "Heels",
-            flats: "Flats",
-            bags: "Bags",
-            jewelry: "Jewelry",
-            watches: "Watches",
-            glasses: "Glasses",
-            scarves: "Scarves & Shawls",
-            hats: "Hats & Caps",
-            belts: "Belts",
-            trendingBrands: "Trending Brands",
-            luxuryBrands: "Luxury & Designers",
-            vintageBrands: "Vintage Brands",
-            smallBrands: "Small Brands",
-            fragrances: "Fragrances",
-            makeup: "Makeup",
-            skincare: "Skincare",
-            haircare: "Hair Care",
-            hygiene: "Hygiene & Wellness",
-            decoration: "Decoration",
-            homeLinens: "Home Linens",
-            art: "Art & Posters",
-            lighting: "Lighting",
-            sports: "Sports & Leisure",
-            tech: "High-Tech",
-            books: "Books & Media",
-            toys: "Toys & Games",
-            creative: "Creative Materials"
-        }
+        // RECHERCHE
+        searchResults: {
+            results: "Search Results", 
+            noResults: "No results found",
+            noResultsFor: 'No products match "{{query}}"',
+            modifySearch: "Modify search",
+            productsFound: "product(s) found",
+            resultsFor: 'Results for "{{query}}"',
+        },
+
+        // FILTER SCREEN
+        filters: {
+            allProducts: "All products",
+            savings: "Savings",
+            noProductsFound: "No products found",
+            noProductsMatch: "No products match your filtering criteria",
+            results: "Filter results",
+            modify: "Modify",
+            productsMatch: "Products matching your criteria",
+            noProductsMatchFilters: "No products match your filters",
+            productsFound: "product(s) found",
+            modifyFilters: "Modify filters",
+            title: "Filters",
+            reset: "Reset",
+            clearAll: "Clear All",
+            apply: "Apply",
+            
+            location: {
+                title: "Location",
+                subtitle: "Haut-Katanga, DRC",
+                description: "Search your city to see local listings",
+                searchPlaceholder: "Search a city...",
+                citiesFound: "{{count}} city(ies) found",
+                selectedCity: "Selected city: {{city}}",
+                popularCities: "Popular cities"
+            },
+            
+            categories: {
+                title: "Categories"
+            },
+            
+            sort: {
+                title: "Sort by",
+                popular: "Popular",
+                newest: "Newest",
+                priceLow: "Price: Low to High",
+                priceHigh: "Price: High to Low"
+            },
+            
+            price: {
+                title: "Price Range",
+                lessThan50: "Less than $50",
+                "50to100": "$50-$100",
+                "100to500": "$100-$500",
+                moreThan500: "More than $500"
+            },
+            
+            condition: {
+                title: "Condition",
+                new: "New",
+                likeNew: "Like New",
+                good: "Good",
+                fair: "Fair"
+            }
         },
 
         // Home Screen

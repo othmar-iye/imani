@@ -4,6 +4,7 @@ import { categories } from '@/src/data/categories';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -15,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Composant Slider personnalisé simple - TYPES CORRIGÉS
+// Composant Slider personnalisé simple
 const PriceSlider = ({ 
   min, 
   max, 
@@ -25,7 +26,7 @@ const PriceSlider = ({
 }: { 
   min: number; 
   max: number; 
-  value: [number, number]; // Tuple de 2 nombres
+  value: [number, number];
   onValueChange: (value: [number, number]) => void;
   colors: any;
 }) => {
@@ -55,29 +56,30 @@ const PriceSlider = ({
 };
 
 export default function FiltersScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]); // CORRIGÉ: Tuple
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [selectedSort, setSelectedSort] = useState('popular');
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCondition, setSelectedCondition] = useState<string>('');
 
-  // Mêmes couleurs que NotificationsScreen
- const colors = {
-  background: isDark ? Theme.dark.background : Theme.light.background,
-  card: isDark ? Theme.dark.card : Theme.light.card,
-  text: isDark ? Theme.dark.text : Theme.light.text,
-  textSecondary: isDark ? '#8E8E93' : '#666666',
-  border: isDark ? Theme.dark.border : Theme.light.border,
-  tint: isDark ? Theme.dark.tint : Theme.light.tint, // ✅ Maintenant cohérent
-  success: isDark ? '#30D158' : '#34C759',
-  warning: isDark ? '#FF9F0A' : '#FF9500',
-  error: isDark ? '#FF453A' : '#FF3B30',
-};
+  // Couleurs
+  const colors = {
+    background: isDark ? Theme.dark.background : Theme.light.background,
+    card: isDark ? Theme.dark.card : Theme.light.card,
+    text: isDark ? Theme.dark.text : Theme.light.text,
+    textSecondary: isDark ? '#8E8E93' : '#666666',
+    border: isDark ? Theme.dark.border : Theme.light.border,
+    tint: isDark ? Theme.dark.tint : Theme.light.tint,
+    success: isDark ? '#30D158' : '#34C759',
+    warning: isDark ? '#FF9F0A' : '#FF9500',
+    error: isDark ? '#FF453A' : '#FF3B30',
+  };
 
   // Villes du Haut-Katanga, RD Congo
   const allCities = [
@@ -89,10 +91,24 @@ export default function FiltersScreen() {
 
   // Conditions des produits
   const conditions = [
-    { id: 'new', label: 'Neuf', icon: 'sparkles' },
-    { id: 'like-new', label: 'Comme neuf', icon: 'diamond' },
-    { id: 'good', label: 'Bon état', icon: 'checkmark-circle' },
-    { id: 'fair', label: 'État correct', icon: 'build' }
+    { id: 'new', label: t('filters.condition.new'), icon: 'sparkles' },
+    { id: 'like-new', label: t('filters.condition.likeNew'), icon: 'diamond' },
+    { id: 'good', label: t('filters.condition.good'), icon: 'checkmark-circle' },
+    { id: 'fair', label: t('filters.condition.fair'), icon: 'build' }
+  ];
+
+  // SIMPLIFICATION : Utiliser directement les noms des catégories
+  const categoryNames = categories.map(cat => ({
+    id: cat.id,
+    name: cat.name, // Nom réel de la catégorie
+  }));
+
+  // Options de tri
+  const sortOptions = [
+    { id: 'popular', label: t('filters.sort.popular') },
+    { id: 'newest', label: t('filters.sort.newest') },
+    { id: 'price-low', label: t('filters.sort.priceLow') },
+    { id: 'price-high', label: t('filters.sort.priceHigh') },
   ];
 
   // Filtrer les villes basé sur la recherche
@@ -100,20 +116,11 @@ export default function FiltersScreen() {
     city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Pour avoir seulement les noms des catégories principales
-  const categoryNames = categories.map(cat => cat.name);
-  const sortOptions = [
-    { id: 'popular', label: 'Populaire' },
-    { id: 'newest', label: 'Plus récent' },
-    { id: 'price-low', label: 'Prix croissant' },
-    { id: 'price-high', label: 'Prix décroissant' },
-  ];
-
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (categoryKey: string) => {
     setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+      prev.includes(categoryKey)
+        ? prev.filter(c => c !== categoryKey)
+        : [...prev, categoryKey]
     );
   };
 
@@ -125,7 +132,7 @@ export default function FiltersScreen() {
 
   const resetFilters = () => {
     setSelectedCategories([]);
-    setPriceRange([0, 1000]); // CORRIGÉ: Tuple
+    setPriceRange([0, 10000]);
     setSelectedSort('popular');
     setSelectedCity('');
     setSearchQuery('');
@@ -147,26 +154,24 @@ export default function FiltersScreen() {
     setShowCityDropdown(false);
   };
 
-  // CORRIGÉ: Typage correct pour la fonction
   const handlePriceChange = (newRange: [number, number]) => {
     setPriceRange(newRange);
   };
 
-  // CORRIGÉ: Typage correct pour les options rapides
   const handleQuickPriceSelect = (range: [number, number]) => {
     setPriceRange(range);
   };
 
-  // Fonction pour appliquer les filtres
+  // SIMPLIFICATION : Fonction pour appliquer les filtres
   const applyFilters = () => {
     // Construire les paramètres de filtre
     const filterParams: any = {
       searchType: 'filter'
     };
 
-    // Ajouter les catégories si sélectionnées
+    // SIMPLIFICATION : Utiliser directement les noms des catégories
     if (selectedCategories.length > 0) {
-        filterParams.categoryNames = selectedCategories.join(',');
+      filterParams.categoryNames = selectedCategories.join(',');
     }
 
     // Ajouter la fourchette de prix
@@ -178,20 +183,20 @@ export default function FiltersScreen() {
 
     // Ajouter la ville si sélectionnée
     if (selectedCity) {
-        filterParams.city = selectedCity;
+      filterParams.city = selectedCity;
     }
 
     // Ajouter la condition si sélectionnée
     if (selectedCondition) {
-        filterParams.condition = selectedCondition;
+      filterParams.condition = selectedCondition;
     }
 
     console.log('Filtres appliqués new :', filterParams);
 
     // Rediriger vers l'écran des résultats de filtres
     router.push({
-        pathname: '/screens/homeOption/FilterResultsScreen',
-        params: filterParams
+      pathname: '/screens/homeOption/FilterResultsScreen',
+      params: filterParams
     });
   };
 
@@ -211,13 +216,13 @@ export default function FiltersScreen() {
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Filtres
+            {t('filters.title')}
           </Text>
         </View>
         
         <TouchableOpacity onPress={resetFilters}>
           <Text style={[styles.clearAll, { color: Theme.light.tint }]}>
-            Réinitialiser
+            {t('filters.reset')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -231,15 +236,15 @@ export default function FiltersScreen() {
         <View style={[styles.section, { backgroundColor: colors.background }]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Localisation
+              {t('filters.location.title')}
             </Text>
             <Text style={[styles.locationSubtitle, { color: Theme.light.tint }]}>
-              Haut-Katanga, RD Congo
+              {t('filters.location.subtitle')}
             </Text>
           </View>
           
           <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Recherchez votre ville pour voir les annonces locales
+            {t('filters.location.description')}
           </Text>
 
           {/* Barre de recherche de ville */}
@@ -259,7 +264,7 @@ export default function FiltersScreen() {
             />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Rechercher une ville..."
+              placeholder={t('filters.location.searchPlaceholder')}
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={handleSearchChange}
@@ -284,7 +289,7 @@ export default function FiltersScreen() {
             ]}>
               <View style={[styles.dropdownHeader, { borderBottomColor: Theme.light.borderInput }]}>
                 <Text style={[styles.dropdownHeaderText, { color: colors.textSecondary }]}>
-                  {filteredCities.length} ville(s) trouvée(s)
+                  {t('filters.location.citiesFound', { count: filteredCities.length })}
                 </Text>
               </View>
               <ScrollView 
@@ -327,7 +332,7 @@ export default function FiltersScreen() {
             <View style={[styles.selectedCityContainer, { backgroundColor: Theme.light.tint }]}>
               <Ionicons name="checkmark-circle" size={20} color="#FFF" />
               <Text style={styles.selectedCityText}>
-                Ville sélectionnée: {selectedCity}
+                {t('filters.location.selectedCity', { city: selectedCity })}
               </Text>
               <TouchableOpacity onPress={clearCitySelection}>
                 <Ionicons name="close" size={18} color="#FFF" />
@@ -339,7 +344,7 @@ export default function FiltersScreen() {
           {!selectedCity && !showCityDropdown && (
             <View style={styles.popularCitiesSection}>
               <Text style={[styles.popularCitiesTitle, { color: colors.textSecondary }]}>
-                Villes populaires
+                {t('filters.location.popularCities')}
               </Text>
               <View style={styles.popularCitiesContainer}>
                 {['Lubumbashi', 'Likasi', 'Kipushi', 'Kamina'].map(city => (
@@ -365,28 +370,30 @@ export default function FiltersScreen() {
           )}
         </View>
 
-        {/* Catégories */}
+        {/* Catégories SIMPLIFIÉES */}
         <View style={[styles.section, { backgroundColor: colors.background }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Catégories</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('filters.categories.title')}
+          </Text>
           <View style={styles.categoriesContainer}>
             {categoryNames.map(category => (
               <TouchableOpacity
-                key={category}
+                key={category.id}
                 style={[
                   styles.categoryChip,
                   { 
-                    backgroundColor: selectedCategories.includes(category) ? Theme.light.tint : colors.card,
+                    backgroundColor: selectedCategories.includes(category.name) ? Theme.light.tint : colors.card,
                     borderColor: Theme.light.borderInput,
                     shadowColor: isDark ? '#000' : '#8E8E93',
                   }
                 ]}
-                onPress={() => toggleCategory(category)}
+                onPress={() => toggleCategory(category.name)}
               >
                 <Text style={[
                   styles.categoryText,
-                  { color: selectedCategories.includes(category) ? '#FFF' : colors.text }
+                  { color: selectedCategories.includes(category.name) ? '#FFF' : colors.text }
                 ]}>
-                  {category}
+                  {category.name}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -395,7 +402,9 @@ export default function FiltersScreen() {
 
         {/* Trier par */}
         <View style={[styles.section, { backgroundColor: colors.background }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Trier par</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('filters.sort.title')}
+          </Text>
           {sortOptions.map(option => (
             <TouchableOpacity
               key={option.id}
@@ -416,31 +425,29 @@ export default function FiltersScreen() {
           ))}
         </View>
 
-        {/* Fourchette de prix FONCTIONNELLE */}
+        {/* Fourchette de prix */}
         <View style={[styles.section, { backgroundColor: colors.background }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Fourchette de prix
+            {t('filters.price.title')}
           </Text>
           <Text style={[styles.priceRangeText, { color: Theme.light.tint, fontWeight: '700' }]}>
             ${priceRange[0]} - ${priceRange[1]}
           </Text>
           
-          {/* Slider personnalisé - CORRIGÉ: value est maintenant un tuple */}
           <PriceSlider 
             min={0}
-            max={1000}
+            max={10000}
             value={priceRange}
             onValueChange={handlePriceChange}
             colors={colors}
           />
           
-          {/* Options de prix rapides - CORRIGÉ: tuples explicites */}
           <View style={styles.quickPriceContainer}>
             {[
-              { label: 'Moins de $50', range: [0, 50] as [number, number] },
-              { label: '$50-$100', range: [50, 100] as [number, number] },
-              { label: '$100-$500', range: [100, 500] as [number, number] },
-              { label: 'Plus de $500', range: [500, 1000] as [number, number] }
+              { label: t('filters.price.lessThan50'), range: [0, 50] as [number, number] },
+              { label: t('filters.price.50to100'), range: [50, 100] as [number, number] },
+              { label: t('filters.price.100to500'), range: [100, 500] as [number, number] },
+              { label: t('filters.price.moreThan500'), range: [500, 10000] as [number, number] }
             ].map((option, index) => (
               <TouchableOpacity
                 key={index}
@@ -472,9 +479,11 @@ export default function FiltersScreen() {
           </View>
         </View>
 
-        {/* Condition FONCTIONNELLE */}
+        {/* Condition */}
         <View style={[styles.section, { backgroundColor: colors.background }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Condition</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('filters.condition.title')}
+          </Text>
           <View style={styles.conditionContainer}>
             {conditions.map(condition => (
               <TouchableOpacity
@@ -510,17 +519,17 @@ export default function FiltersScreen() {
       </ScrollView>
 
       {/* Footer avec boutons */}
-      <View style={[styles.footer, { backgroundColor: 'colors.card', borderColor: Theme.light.borderInput }]}>
+      <View style={[styles.footer, { backgroundColor: colors.background, borderColor: Theme.light.borderInput }]}>
 
         <CustomButton
-            title="Tout effacer"
+            title={t('filters.clearAll')}
             onPress={resetFilters}
             variant="secondary"
             size="large"
         />
 
         <CustomButton
-            title={"Appliquer"}
+            title={t('filters.apply')}
             onPress={applyFilters}
             variant="primary"
             size="large"
@@ -529,6 +538,7 @@ export default function FiltersScreen() {
     </SafeAreaView>
   );
 }
+
 
 // Les styles restent identiques...
 const styles = StyleSheet.create({
@@ -794,27 +804,5 @@ const styles = StyleSheet.create({
     padding: 20, 
     borderTopWidth: 1,
     gap: 12 
-  },
-  resetButton: { 
-    flex: 1, 
-    padding: 16, 
-    borderRadius: 12, 
-    borderWidth: 1, 
-    alignItems: 'center' 
-  },
-  resetText: { 
-    fontSize: 16, 
-    fontWeight: '600' 
-  },
-  applyButton: { 
-    flex: 2, 
-    padding: 16, 
-    borderRadius: 12, 
-    alignItems: 'center' 
-  },
-  applyText: { 
-    color: '#FFF', 
-    fontSize: 16, 
-    fontWeight: '600' 
   },
 });

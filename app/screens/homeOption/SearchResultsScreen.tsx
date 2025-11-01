@@ -4,18 +4,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import des données réelles
 import { featuredProducts, Product } from '@/src/data/products';
+
+// Import i18n
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +26,7 @@ export default function SearchResultsScreen() {
   const colorScheme = useColorScheme();
   const { query } = useLocalSearchParams();
   const searchQuery = typeof query === 'string' ? query : '';
+  const { t } = useTranslation();
 
   const colors = {
     background: colorScheme === 'dark' ? Theme.dark.background : Theme.light.background,
@@ -129,7 +133,7 @@ export default function SearchResultsScreen() {
         {item.discount > 0 && (
           <View style={styles.savingsContainer}>
             <Text style={[styles.savingsText, { color: colors.tint }]}>
-              Économie: ${(item.originalPrice - item.price).toFixed(2)}
+              {t('filters.savings')}: ${(item.originalPrice - item.price).toFixed(2)}
             </Text>
           </View>
         )}
@@ -146,16 +150,16 @@ export default function SearchResultsScreen() {
         color={colors.textSecondary} 
       />
       <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-        Aucun résultat trouvé
+        {t('filters.noProductsFound')}
       </Text>
       <Text style={[styles.emptyStateSubtitle, { color: colors.textSecondary }]}>
-        Aucun produit ne correspond à "{searchQuery}"
+        {t('filters.noProductsMatchFilters', { query: searchQuery })}
       </Text>
       <TouchableOpacity 
         style={[styles.emptyStateButton, { backgroundColor: colors.tint }]}
         onPress={() => router.back()}
       >
-        <Text style={styles.emptyStateButtonText}>Modifier la recherche</Text>
+        <Text style={styles.emptyStateButtonText}>{t('filters.modifyFilters')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -176,7 +180,7 @@ export default function SearchResultsScreen() {
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Résultats de recherche
+            {t('filters.results')}
           </Text>
         </View>
       </View>
@@ -188,8 +192,8 @@ export default function SearchResultsScreen() {
         </Text>
         <Text style={[styles.infoSubtitle, { color: colors.textSecondary }]}>
           {searchResults.length > 0 
-            ? `Résultats pour votre recherche`
-            : `Aucun résultat pour votre recherche`
+            ? t('filters.productsMatch')
+            : t('filters.noProductsMatch')
           }
         </Text>
       </View>
@@ -198,7 +202,7 @@ export default function SearchResultsScreen() {
       {searchResults.length > 0 && (
         <View style={styles.counterContainer}>
           <Text style={[styles.counterText, { color: colors.textSecondary }]}>
-            {searchResults.length} produit{searchResults.length > 1 ? 's' : ''} trouvé{searchResults.length > 1 ? 's' : ''}
+            {searchResults.length} {t('filters.productsFound')}
           </Text>
         </View>
       )}

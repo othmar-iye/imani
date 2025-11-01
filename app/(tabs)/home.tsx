@@ -3,19 +3,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    Keyboard,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  Image,
+  Keyboard,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import React Query
@@ -38,7 +38,8 @@ const { width } = Dimensions.get('window');
 interface Category {
   id: string;
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
+  subCategories: string[];
 }
 
 interface SearchSuggestion {
@@ -145,19 +146,20 @@ const fetchFeaturedProducts = async (): Promise<Product[]> => {
   });
 };
 
+// CORRECTION : Fonction adaptée pour l'ancien format des catégories
 const fetchCategories = async (): Promise<Category[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Transformer les données depuis categories.ts vers le format attendu
-      const transformedCategories: Category[] = [
-        { id: '0', name: 'Tous', icon: 'apps' },
-        ...categoriesData.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          icon: cat.icon as keyof typeof Ionicons.glyphMap
-        }))
-      ];
-      resolve(transformedCategories);
+      // Créer la catégorie "Tous" et l'ajouter au début
+      const allCategory: Category = {
+        id: 'all',
+        name: 'Tous',
+        icon: 'apps-outline', // ou une autre icône appropriée
+        subCategories: []
+      };
+      
+      // Ajouter "Tous" au début des catégories existantes
+      resolve([allCategory, ...categoriesData]);
     }, 500);
   });
 };
@@ -273,35 +275,49 @@ export default function HomeScreen() {
     <ProductCard product={item} />
   );
 
-  // Rendu d'un élément catégorie
-    const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => {
-    
+  // CORRECTION : Rendu d'un élément catégorie adapté à l'ancien format
+  const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => {
+    // Mapper les icônes string vers les noms d'icônes Ionicons
+    const getIconName = (icon: string): keyof typeof Ionicons.glyphMap => {
+      const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
+        'apps-outline': 'apps-outline',
+        'shirt': 'shirt-outline',
+        'footsteps': 'footsteps-outline',
+        'glasses': 'glasses-outline',
+        'ribbon': 'ribbon-outline',
+        'sparkles': 'sparkles-outline',
+        'home': 'home-outline',
+        'ellipsis-horizontal': 'ellipsis-horizontal-outline'
+      };
+      return iconMap[icon] || icon;
+    };
+
     return (
-        <TouchableOpacity style={[
+      <TouchableOpacity style={[
         styles.categoryCard,
-        { backgroundColor: index === 0 ? theme.tint : theme.card },
-        ]}>
+        { backgroundColor: theme.card },
+      ]}>
         <View style={[
-            styles.categoryIcon,
-            { 
-            backgroundColor: index === 0 ? theme.card : colorScheme === 'dark' ? '#2A2A2A' : '#F7F7F7',
-            }
+          styles.categoryIcon,
+          { 
+            backgroundColor: colorScheme === 'dark' ? '#ffffff' : '#F7F7F7',
+          }
         ]}>
-            <Ionicons 
-            name={item.icon} 
+          <Ionicons 
+            name={getIconName(item.icon)} 
             size={20} 
-            color={index === 0 ? theme.tint : theme.tint} 
-            />
+            color={theme.tint} 
+          />
         </View>
         <Text style={[
-            styles.categoryName,
-            { color: index === 0 ? theme.card : theme.text }
+          styles.categoryName,
+          { color: theme.text }
         ]}>
-            {t(item.name)}  {/* ← ICI : Remplacer item.name par t(item.name) */}
+          {item.name}  {/* ← ICI : Utiliser directement item.name sans traduction */}
         </Text>
-        </TouchableOpacity>
+      </TouchableOpacity>
     );
-    };
+  };
 
   // État de chargement
   if (productsLoading || categoriesLoading) {

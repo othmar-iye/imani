@@ -13,6 +13,7 @@ export interface Product {
   condition: string;
   location: string;
   views: number;
+  createdAt: string;
   seller: {
     id: string;
     name: string;
@@ -40,6 +41,7 @@ export const featuredProducts: Product[] = [
     condition: 'Neuf',
     location: 'Lubumbashi',
     views: 156,
+    createdAt: '2025-01-15',
     seller: {
       id: 'SEL_0042',
       name: 'Sports Pro',
@@ -58,7 +60,7 @@ export const featuredProducts: Product[] = [
   {
     id: '2',
     name: 'iPhone 14 Pro',
-    category: 'Électronique',
+    category: 'Autres',
     subCategory: 'Téléphones & Smartphones',
     price: 999.99,
     originalPrice: 1199.99,
@@ -69,6 +71,7 @@ export const featuredProducts: Product[] = [
     condition: 'Comme neuf',
     location: 'Kinshasa',
     views: 289,
+    createdAt: '2025-01-10',
     seller: {
       id: 'SEL_0127',
       name: 'Tech Store',
@@ -87,7 +90,7 @@ export const featuredProducts: Product[] = [
   {
     id: '3',
     name: 'MacBook Air M2',
-    category: 'Électronique',
+    category: 'Autres',
     subCategory: 'Ordinateurs & Tablettes',
     price: 1199.99,
     originalPrice: 1299.99,
@@ -98,6 +101,7 @@ export const featuredProducts: Product[] = [
     condition: 'Très bon état',
     location: 'Lubumbashi',
     views: 203,
+    createdAt: '2024-12-20', 
     seller: {
       id: 'SEL_0089',
       name: 'Apple Certified',
@@ -127,6 +131,7 @@ export const featuredProducts: Product[] = [
     condition: 'Neuf',
     location: 'Likasi',
     views: 134,
+    createdAt: '2025-01-05', 
     seller: {
       id: 'SEL_0056',
       name: 'Gadget Pro',
@@ -145,7 +150,7 @@ export const featuredProducts: Product[] = [
   {
     id: '5',
     name: 'Casque Audio Sony WH-1000XM4',
-    category: 'Électronique',
+    category: 'Autres',
     subCategory: 'Audio & Casques',
     price: 199.99,
     originalPrice: 249.99,
@@ -156,6 +161,7 @@ export const featuredProducts: Product[] = [
     condition: 'Excellent état',
     location: 'Kipushi',
     views: 178,
+    createdAt: '2024-11-15',
     seller: {
       id: 'SEL_0073',
       name: 'Audio Expert',
@@ -185,6 +191,7 @@ export const featuredProducts: Product[] = [
     condition: 'Très bon état',
     location: 'Lubumbashi',
     views: 95,
+    createdAt: '2025-01-12',
     seller: {
       id: 'SEL_0034',
       name: 'Outdoor Gear',
@@ -203,7 +210,7 @@ export const featuredProducts: Product[] = [
   {
     id: '7',
     name: 'Appareil Photo Canon EOS R6',
-    category: 'Électronique',
+    category: 'Autres',
     subCategory: 'Photo & Vidéo',
     price: 1899.99,
     originalPrice: 2199.99,
@@ -214,6 +221,7 @@ export const featuredProducts: Product[] = [
     condition: 'Comme neuf',
     location: 'Kinshasa',
     views: 87,
+    createdAt: '2024-10-25',
     seller: {
       id: 'SEL_0023',
       name: 'Photo Pro',
@@ -241,6 +249,7 @@ export const featuredProducts: Product[] = [
     condition: 'Neuf',
     location: 'Lubumbashi',
     views: 112,
+    createdAt: '2025-01-08',
     seller: {
       id: 'SEL_0018',
       name: 'Gaming Setup',
@@ -252,6 +261,379 @@ export const featuredProducts: Product[] = [
     },
     images: [
       'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop',
+    ]
+  },
+  {
+    id: '9',
+    name: 'PlayStation 5 Edition Digital',
+    category: 'Autres',
+    subCategory: 'Jeux vidéo & Consoles',
+    price: 449.99,
+    originalPrice: 499.99,
+    discount: 10,
+    image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Console PlayStation 5 Edition Digital avec SSD ultra-rapide, manuelle DualSense et compatibilité 4K. Livrée avec 2 jeux.',
+    condition: 'Très bon état',
+    location: 'Kinshasa',
+    views: 267,
+    createdAt: '2025-01-18',
+    seller: {
+      id: 'SEL_0095',
+      name: 'Game Center',
+      rating: 4.7,
+      verified: true,
+      responseRate: '96%',
+      responseTime: '1h',
+      itemsSold: 95
+    },
+    images: [
+      'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '10',
+    name: 'Canapé d\'Angle en Cuir',
+    category: 'Meubles',
+    subCategory: 'Canapés & Salons',
+    price: 899.99,
+    originalPrice: 1199.99,
+    discount: 25,
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Magnifique canapé d\'angle en cuir véritable, couleur marron, état impeccable. Parfait pour salon spacieux.',
+    condition: 'Excellent état',
+    location: 'Lubumbashi',
+    views: 189,
+    createdAt: '2024-12-05',
+    seller: {
+      id: 'SEL_0067',
+      name: 'Maison & Design',
+      rating: 4.6,
+      verified: true,
+      responseRate: '93%',
+      responseTime: '2h',
+      itemsSold: 67
+    },
+    images: [
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '11',
+    name: 'Vélo de Route Professionnel',
+    category: 'Sports',
+    subCategory: 'Vélos',
+    price: 799.99,
+    originalPrice: 999.99,
+    discount: 20,
+    image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Vélo de route carbone professionnel, groupe Shimano 105, poids 8.5kg. Parfait pour compétition ou entraînement.',
+    condition: 'Bon état',
+    location: 'Kolwezi',
+    views: 145,
+    createdAt: '2025-01-14',
+    seller: {
+      id: 'SEL_0048',
+      name: 'Cycling Pro',
+      rating: 4.8,
+      verified: true,
+      responseRate: '95%',
+      responseTime: '1h',
+      itemsSold: 48
+    },
+    images: [
+      'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '12',
+    name: 'Machine à Café Automatique',
+    category: 'Électroménager',
+    subCategory: 'Cuisine',
+    price: 299.99,
+    originalPrice: 399.99,
+    discount: 25,
+    image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Machine à café automatique avec broyeur intégré, préparation de cappuccino, latte et expresso. Fonctionne parfaitement.',
+    condition: 'Comme neuf',
+    location: 'Likasi',
+    views: 98,
+    createdAt: '2025-01-20',
+    seller: {
+      id: 'SEL_0052',
+      name: 'Electro Home',
+      rating: 4.5,
+      verified: true,
+      responseRate: '91%',
+      responseTime: '3h',
+      itemsSold: 52
+    },
+    images: [
+      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1570194065650-2f016fdc1fd6?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '13',
+    name: 'Tapis Oriental Authentique',
+    category: 'Décoration',
+    subCategory: 'Tapis',
+    price: 459.99,
+    originalPrice: 599.99,
+    discount: 23,
+    image: 'https://images.unsplash.com/photo-1584231631973-db47d1b274e7?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Tapis oriental authentique en laine pure, dimensions 200x300cm, motifs traditionnels, excellent état de conservation.',
+    condition: 'Bon état',
+    location: 'Kinshasa',
+    views: 76,
+    createdAt: '2024-11-30',
+    seller: {
+      id: 'SEL_0039',
+      name: 'Déco Tradition',
+      rating: 4.4,
+      verified: true,
+      responseRate: '89%',
+      responseTime: '4h',
+      itemsSold: 39
+    },
+    images: [
+      'https://images.unsplash.com/photo-1584231631973-db47d1b274e7?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1578898887932-9d6c7f8e7c17?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1534889156217-d643df14f14a?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '14',
+    name: 'Drone DJI Mavic Air 2',
+    category: 'Autres',
+    subCategory: 'Drones & Accessoires',
+    price: 699.99,
+    originalPrice: 899.99,
+    discount: 22,
+    image: 'https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Drone DJI Mavic Air 2 avec caméra 4K, autonomie 34min, transmission OcuSync 2.0. Complet avec accessoires.',
+    condition: 'Très bon état',
+    location: 'Lubumbashi',
+    views: 223,
+    createdAt: '2025-01-16',
+    seller: {
+      id: 'SEL_0081',
+      name: 'Drone Expert',
+      rating: 4.9,
+      verified: true,
+      responseRate: '97%',
+      responseTime: '45min',
+      itemsSold: 81
+    },
+    images: [
+      'https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1524143986875-3b098d78b363?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '15',
+    name: 'Ensemble de Casseroles Inox',
+    category: 'Maison',
+    subCategory: 'Cuisine',
+    price: 129.99,
+    originalPrice: 199.99,
+    discount: 35,
+    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Ensemble complet de 7 casseroles et poêles en inox 18/10, qualité professionnelle. Presque jamais utilisées.',
+    condition: 'Comme neuf',
+    location: 'Kipushi',
+    views: 67,
+    createdAt: '2025-01-22',
+    seller: {
+      id: 'SEL_0027',
+      name: 'Cuisine Pro',
+      rating: 4.3,
+      verified: true,
+      responseRate: '87%',
+      responseTime: '5h',
+      itemsSold: 27
+    },
+    images: [
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1546940511-59a0c6d35f8c?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1584990347449-a5dbb07d06b3?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '16',
+    name: 'Guitare Acoustique Yamaha',
+    category: 'Loisirs',
+    subCategory: 'Instruments de musique',
+    price: 199.99,
+    originalPrice: 299.99,
+    discount: 33,
+    image: 'https://images.unsplash.com/photo-1525202012277-1e3ca5f5e7ac?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Guitare acoustique Yamaha FG800, table d\'harmonie en épicéa, manche en nato. Son riche et équilibre parfait.',
+    condition: 'Excellent état',
+    location: 'Kinshasa',
+    views: 134,
+    createdAt: '2025-01-19',
+    seller: {
+      id: 'SEL_0059',
+      name: 'Music Store',
+      rating: 4.7,
+      verified: true,
+      responseRate: '94%',
+      responseTime: '2h',
+      itemsSold: 59
+    },
+    images: [
+      'https://images.unsplash.com/photo-1525202012277-1e3ca5f5e7ac?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1564186763535-ebb9c0ee4c5c?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571974599782-87624638275f?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '17',
+    name: 'Télévision Samsung 55" 4K',
+    category: 'Électronique',
+    subCategory: 'TV & Home Cinema',
+    price: 599.99,
+    originalPrice: 799.99,
+    discount: 25,
+    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'TV Samsung 55 pouces QLED 4K, Smart TV, HDR, système de son intégré. Image cristalline et couleurs vibrantes.',
+    condition: 'Neuf',
+    location: 'Lubumbashi',
+    views: 178,
+    createdAt: '2025-01-17',
+    seller: {
+      id: 'SEL_0074',
+      name: 'Electro Vision',
+      rating: 4.6,
+      verified: true,
+      responseRate: '93%',
+      responseTime: '3h',
+      itemsSold: 74
+    },
+    images: [
+      'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571415060716-baff5f4c3045?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1567690187548-f07b1d7bf5a9?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '18',
+    name: 'Trottinette Électrique Xiaomi',
+    category: 'Transport',
+    subCategory: 'Trottinettes',
+    price: 349.99,
+    originalPrice: 449.99,
+    discount: 22,
+    image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Trottinette électrique Xiaomi Pro 2, autonomie 45km, vitesse max 25km/h, pliable. Parfaite pour trajets urbains.',
+    condition: 'Très bon état',
+    location: 'Kolwezi',
+    views: 156,
+    createdAt: '2025-01-21',
+    seller: {
+      id: 'SEL_0045',
+      name: 'Urban Mobility',
+      rating: 4.5,
+      verified: true,
+      responseRate: '92%',
+      responseTime: '2h',
+      itemsSold: 45
+    },
+    images: [
+      'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571327073757-71d13c24de30?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '19',
+    name: 'Montre Rolex Submariner',
+    category: 'Accessoires',
+    subCategory: 'Montres de Luxe',
+    price: 8999.99,
+    originalPrice: 11999.99,
+    discount: 25,
+    image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Montre Rolex Submariner Date, acier inoxydable, cadran noir, bracelet Oyster. Pièce authentique avec papiers.',
+    condition: 'Excellent état',
+    location: 'Kinshasa',
+    views: 89,
+    createdAt: '2024-10-15',
+    seller: {
+      id: 'SEL_0012',
+      name: 'Luxury Watches',
+      rating: 4.9,
+      verified: true,
+      responseRate: '98%',
+      responseTime: '30min',
+      itemsSold: 12
+    },
+    images: [
+      'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1547996160-81dfd9eb9001?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1622434641406-a158123450f9?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '20',
+    name: 'Réfrigérateur Samsung Side-by-Side',
+    category: 'Électroménager',
+    subCategory: 'Gros électroménager',
+    price: 1299.99,
+    originalPrice: 1699.99,
+    discount: 24,
+    image: 'https://images.unsplash.com/photo-1599623560574-39d485900c95?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Réfrigérateur Samsung Side-by-Side 615L, technologie Twin Cooling, distributeur d\'eau et de glace. Très bon état.',
+    condition: 'Très bon état',
+    location: 'Lubumbashi',
+    views: 112,
+    createdAt: '2024-12-12',
+    seller: {
+      id: 'SEL_0063',
+      name: 'Electro Plus',
+      rating: 4.4,
+      verified: true,
+      responseRate: '90%',
+      responseTime: '4h',
+      itemsSold: 63
+    },
+    images: [
+      'https://images.unsplash.com/photo-1599623560574-39d485900c95?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1584568696-66b043ce2c1c?w=400&h=400&fit=crop'
     ]
   }
 ];

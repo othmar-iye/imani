@@ -3,6 +3,7 @@ import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dimensions,
     FlatList,
@@ -20,6 +21,7 @@ import { featuredProducts, Product } from '@/src/data/products';
 const { width } = Dimensions.get('window');
 
 export default function FilterResultsScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const params = useLocalSearchParams();
 
@@ -33,19 +35,66 @@ export default function FilterResultsScreen() {
   };
 
   // Récupérer les paramètres de filtre
-  const categories = params.categories ? (params.categories as string).split(',') : [];
+  const categories = params.categoryNames ? (params.categoryNames as string).split(',') : [];
   const minPrice = params.minPrice ? parseInt(params.minPrice as string) : 0;
   const maxPrice = params.maxPrice ? parseInt(params.maxPrice as string) : 1000;
   const city = params.city as string || '';
   const condition = params.condition as string || '';
   const sort = params.sort as string || 'popular';
 
-  // Fonction pour filtrer les produits
+  // CORRECTION : Fonction pour mapper les noms de catégories reçus vers les catégories des produits
+  const mapCategoryToProductCategory = (receivedCategory: string): string => {
+    const categoryMap: { [key: string]: string } = {
+      // Français
+      'Vêtements': 'Vêtements',
+      'Chaussures': 'Chaussures',
+      'Accessoires': 'Accessoires',
+      'Marques & Créateurs': 'Marques & Créateurs',
+      'Beauté & Parfums': 'Beauté & Parfums',
+      'Maison & Déco': 'Maison & Déco',
+      'Autres': 'Autres',
+      'Électronique': 'Autres',
+      'Meubles': 'Meubles',
+      // English
+      'Clothing': 'Vêtements',
+      'Shoes': 'Chaussures',
+      'Accessories': 'Accessoires',
+      'Brands & Designers': 'Marques & Créateurs',
+      'Beauty & Fragrances': 'Beauté & Parfums',
+      'Home & Decor': 'Maison & Déco',
+      'Others': 'Autres',
+      'Electronics': 'Autres',
+      'Furniture': 'Meubles'
+    };
+    
+    return categoryMap[receivedCategory] || receivedCategory;
+  };
+
+  // CORRECTION : Fonction pour mapper les IDs de condition vers les conditions des produits
+  const mapConditionToProductCondition = (receivedCondition: string): string => {
+    const conditionMap: { [key: string]: string } = {
+      // IDs des filtres vers conditions des produits
+      'new': 'Neuf',
+      'like-new': 'Comme neuf', 
+      'good': 'Très bon état',
+      'fair': 'Excellent état'
+    };
+    
+    return conditionMap[receivedCondition] || receivedCondition;
+  };
+
+  // CORRECTION : Fonction pour filtrer les produits
   const getFilteredProducts = (): Product[] => {
     let filtered = featuredProducts.filter(product => {
-      // Filtre par catégorie
-      if (categories.length > 0 && !categories.includes(product.category)) {
-        return false;
+      // CORRECTION : Filtre par catégorie avec mapping pour catégories multiples
+      if (categories.length > 0) {
+        // Convertir chaque catégorie reçue en catégorie de produit
+        const mappedCategories = categories.map(mapCategoryToProductCategory);
+        
+        // Vérifier si la catégorie du produit est dans la liste des catégories sélectionnées
+        if (!mappedCategories.includes(product.category)) {
+          return false;
+        }
       }
 
       // Filtre par prix
@@ -58,19 +107,22 @@ export default function FilterResultsScreen() {
         return false;
       }
 
-      // Filtre par condition
-      if (condition && product.condition !== condition) {
-        return false;
+      // CORRECTION : Filtre par condition avec mapping
+      if (condition) {
+        const mappedCondition = mapConditionToProductCondition(condition);
+        if (product.condition !== mappedCondition) {
+          return false;
+        }
       }
 
       return true;
     });
 
-    // Trier les résultats
+    // CORRECTION : Trier les résultats avec gestion de la date
     switch (sort) {
       case 'newest':
-        // Trier par ID (supposant que les IDs plus récents sont plus grands)
-        filtered.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        // Trier par date de création (plus récent en premier)
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
       case 'price-low':
         filtered.sort((a, b) => a.price - b.price);
@@ -90,11 +142,12 @@ export default function FilterResultsScreen() {
 
   const filteredProducts = getFilteredProducts();
 
-  // Fonction pour générer le titre basé sur les filtres
+  // CORRECTION : Fonction pour générer le titre basé sur les filtres
   const getFilterTitle = (): string => {
     const parts = [];
     
     if (categories.length > 0) {
+      // Afficher les noms des catégories tels quels (déjà traduits)
       parts.push(categories.join(', '));
     }
     
@@ -108,15 +161,15 @@ export default function FilterResultsScreen() {
     
     if (condition) {
       const conditionLabels: { [key: string]: string } = {
-        'new': 'Neuf',
-        'like-new': 'Comme neuf',
-        'good': 'Bon état',
-        'fair': 'État correct'
+        'new': t('filters.condition.new'),
+        'like-new': t('filters.condition.likeNew'),
+        'good': t('filters.condition.good'),
+        'fair': t('filters.condition.fair')
       };
       parts.push(conditionLabels[condition] || condition);
     }
 
-    return parts.length > 0 ? parts.join(' • ') : 'Tous les produits';
+    return parts.length > 0 ? parts.join(' • ') : t('filters.allProducts', 'Tous les produits');
   };
 
   const renderProductItem = ({ item }: { item: Product }) => (
@@ -208,10 +261,15 @@ export default function FilterResultsScreen() {
         {item.discount > 0 && (
           <View style={styles.savingsContainer}>
             <Text style={[styles.savingsText, { color: colors.tint }]}>
-              Économie: ${(item.originalPrice - item.price).toFixed(2)}
+              {t('filters.savings', 'Économie')}: ${(item.originalPrice - item.price).toFixed(2)}
             </Text>
           </View>
         )}
+
+        {/* Date de publication */}
+        <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+          Publié le {new Date(item.createdAt).toLocaleDateString('fr-FR')}
+        </Text>
 
         {/* Localisation */}
         <Text style={[styles.locationText, { color: colors.textSecondary }]}>
@@ -230,16 +288,18 @@ export default function FilterResultsScreen() {
         color={colors.textSecondary} 
       />
       <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-        Aucun produit trouvé
+        {t('filters.noProductsFound', 'Aucun produit trouvé')}
       </Text>
       <Text style={[styles.emptyStateSubtitle, { color: colors.textSecondary }]}>
-        Aucun produit ne correspond à vos critères de filtrage
+        {t('filters.noProductsMatch', 'Aucun produit ne correspond à vos critères de filtrage')}
       </Text>
       <TouchableOpacity 
         style={[styles.emptyStateButton, { backgroundColor: colors.tint }]}
         onPress={() => router.push('/screens/homeOption/FiltersScreen')}
       >
-        <Text style={styles.emptyStateButtonText}>Modifier les filtres</Text>
+        <Text style={styles.emptyStateButtonText}>
+          {t('filters.modifyFilters', 'Modifier les filtres')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -260,7 +320,7 @@ export default function FilterResultsScreen() {
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Résultats des filtres
+            {t('filters.results', 'Résultats des filtres')}
           </Text>
         </View>
 
@@ -271,7 +331,7 @@ export default function FilterResultsScreen() {
         >
           <Ionicons name="options-outline" size={20} color={colors.tint} />
           <Text style={[styles.editFiltersText, { color: colors.tint }]}>
-            Modifier
+            {t('filters.modify', 'Modifier')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -283,8 +343,8 @@ export default function FilterResultsScreen() {
         </Text>
         <Text style={[styles.infoSubtitle, { color: colors.textSecondary }]}>
           {filteredProducts.length > 0 
-            ? `Produits correspondant à vos critères`
-            : `Aucun produit ne correspond à vos filtres`
+            ? t('filters.productsMatch', 'Produits correspondant à vos critères')
+            : t('filters.noProductsMatchFilters', 'Aucun produit ne correspond à vos filtres')
           }
         </Text>
       </View>
@@ -293,7 +353,7 @@ export default function FilterResultsScreen() {
       {filteredProducts.length > 0 && (
         <View style={styles.counterContainer}>
           <Text style={[styles.counterText, { color: colors.textSecondary }]}>
-            {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+            {filteredProducts.length} {t('filters.productsFound', 'produit(s) trouvé(s)')}
           </Text>
         </View>
       )}
@@ -318,6 +378,7 @@ export default function FilterResultsScreen() {
   );
 }
 
+// Ajout du style pour la date
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
@@ -490,6 +551,12 @@ const styles = StyleSheet.create({
   savingsText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  dateText: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
   locationText: {
     fontSize: 11,

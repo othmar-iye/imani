@@ -1,98 +1,97 @@
 // data/categories.ts
 export interface Category {
   id: string;
-  name: string; // Devient une clé de traduction
+  name: string;
   icon: string;
-  subCategories: string[]; // Deviennent des clés de traduction
+  subCategories: string[];
 }
 
-// Utiliser des clés de traduction au lieu de texte brut
 export const categories: Category[] = [
   {
     id: '1',
-    name: 'categories.clothing',
+    name: 'Vêtements',
     icon: 'shirt',
     subCategories: [
-      'categories.sub.women',
-      'categories.sub.men',
-      'categories.sub.children',
-      'categories.sub.maternity',
-      'categories.sub.plusSize'
+      'Femmes',
+      'Hommes',
+      'Enfants & Bébés',
+      'Maternité',
+      'Grandes Tailles'
     ]
   },
   {
     id: '2',
-    name: 'categories.shoes',
+    name: 'Chaussures',
     icon: 'footsteps',
     subCategories: [
-      'categories.sub.women',
-      'categories.sub.men',
-      'categories.sub.children',
-      'categories.sub.sneakers',
-      'categories.sub.sandals',
-      'categories.sub.boots',
-      'categories.sub.heels',
-      'categories.sub.flats'
+      'Femmes',
+      'Hommes',
+      'Enfants & Bébés',
+      'Baskets & Sneakers',
+      'Sandales & Tongs',
+      'Bottes & Bottines',
+      'Escarpins',
+      'Chaussures plates'
     ]
   },
   {
     id: '3',
-    name: 'categories.accessories',
+    name: 'Accessoires',
     icon: 'glasses',
     subCategories: [
-      'categories.sub.bags',
-      'categories.sub.jewelry',
-      'categories.sub.watches',
-      'categories.sub.glasses',
-      'categories.sub.scarves',
-      'categories.sub.hats',
-      'categories.sub.belts'
+      'Sacs',
+      'Bijoux',
+      'Montres',
+      'Lunettes',
+      'Écharpes & Foulards',
+      'Chapeaux & Casquettes',
+      'Ceintures'
     ]
   },
   {
     id: '4',
-    name: 'categories.brands',
+    name: 'Marques & Créateurs',
     icon: 'ribbon',
     subCategories: [
-      'categories.sub.trendingBrands',
-      'categories.sub.luxuryBrands',
-      'categories.sub.vintageBrands',
-      'categories.sub.smallBrands'
+      'Marques Tendances',
+      'Luxe & Créateurs',
+      'Marques Vintage',
+      'Petites Marques'
     ]
   },
   {
     id: '5',
-    name: 'categories.beauty',
+    name: 'Beauté & Parfums',
     icon: 'sparkles',
     subCategories: [
-      'categories.sub.fragrances',
-      'categories.sub.makeup',
-      'categories.sub.skincare',
-      'categories.sub.haircare',
-      'categories.sub.hygiene'
+      'Parfums',
+      'Maquillage',
+      'Soins de la peau',
+      'Soins des cheveux',
+      'Hygiène & Bien-être'
     ]
   },
   {
     id: '6',
-    name: 'categories.home',
+    name: 'Maison & Déco',
     icon: 'home',
     subCategories: [
-      'categories.sub.decoration',
-      'categories.sub.homeLinens',
-      'categories.sub.art',
-      'categories.sub.lighting'
+      'Décoration',
+      'Linge de maison',
+      'Art & Posters',
+      'Luminaires'
     ]
   },
   {
     id: '7',
-    name: 'categories.others',
+    name: 'Autres',
     icon: 'ellipsis-horizontal',
     subCategories: [
-      'categories.sub.sports',
-      'categories.sub.tech',
-      'categories.sub.books',
-      'categories.sub.toys',
-      'categories.sub.creative'
+      'Sports & Loisirs',
+      'High-Tech',
+      'Livres & Médias',
+      'Jouets & Jeux',
+      'Matériel Créatif'
     ]
   }
 ];
