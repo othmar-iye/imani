@@ -14,6 +14,8 @@ const resources = {
         profileUpdated: "Profil mis à jour avec succès",
         imageNotLoaded: "Image non chargée",
         saving: "Enregistrement...",
+        noChanges: "Aucun changement",
+        noChangesMessage: "Vous n'avez modifié aucune information. Aucune sauvegarde nécessaire.",
 
         // NOUVELLES TRADUCTIONS POUR CONDITIONS D'UTILISATION
         termsTitle: "Conditions d'utilisation",
@@ -265,6 +267,8 @@ const resources = {
         profileUpdated: "Profile updated successfully",
         imageNotLoaded: "Image not loaded",
         saving: "Saving...",
+        noChanges: "No changes",
+        noChangesMessage: "You haven't made any changes. No save needed.",
 
         // NEW TRANSLATIONS FOR TERMS OF SERVICE
         termsTitle: "Terms of Service",

@@ -689,14 +689,42 @@ export default function ProfileSettingsScreen() {
 
   // Validation et sauvegarde
   const handleSave = async () => {
+    // Vérifier si au moins une information a été modifiée
+    const hasChanges = 
+      localProfileData.phoneNumber !== (userProfile?.phone_number || '') ||
+      localProfileData.address !== (userProfile?.address || '') ||
+      localProfileData.city !== (userProfile?.city || 'Lubumbashi') ||
+      localProfileData.birthDate !== (userProfile?.birth_date 
+        ? (() => {
+            const date = new Date(userProfile.birth_date);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          })()
+        : '') ||
+      localProfileData.identityType !== (userProfile?.identity_type || null) ||
+      localProfileData.identityNumber !== (userProfile?.identity_number || '') ||
+      localProfileData.identityDocument !== (userProfile?.identity_document_url || null) ||
+      localProfileData.profilePicture !== (userProfile?.profile_picture_url || null);
+
+    if (!hasChanges) {
+      Alert.alert(
+        t('noChanges'),
+        t('noChangesMessage'),
+        [{ text: t('okText') }]
+      );
+      return;
+    }
+
     // Validation de la photo de profil
     if (!localProfileData.profilePicture) {
-        Alert.alert(
+      Alert.alert(
         t('photoRequired'),
         t('photoRequiredMessage'),
         [{ text: t('okText') }]
-        );
-        return;
+      );
+      return;
     }
 
     // Validation du numéro de téléphone
