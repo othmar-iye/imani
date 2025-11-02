@@ -7,6 +7,40 @@ const resources = {
   fr: {
     translation: {
 
+        // ===== NOUVELLES TRADUCTIONS POUR L'ÉCRAN DE VENTE =====
+        becomeSeller: "Devenir vendeur",
+        sell: {
+            newSale: "Nouvelle vente",
+            photos: "Photos",
+            addPhotos: "Ajouter des photos",
+            maxPhotos: "Maximum 5 photos",
+            add: "Ajouter",
+            addPhoto: "Ajouter une photo",
+            takePhoto: "Prendre une photo",
+            chooseFromGallery: "Choisir depuis la galerie",
+            verificationRequired: "Vérification requise",
+            mustBeVerifiedSeller: "Vous devez être un vendeur vérifié pour publier des annonces.",
+            
+            becomeSellerAction: "Devenir vendeur",
+            becomeSellerMessage: "Pour vendre des posters, vous devez d'abord devenir vendeur vérifié.",
+            loginRequired: "Connexion requise",
+            loginToSell: "Veuillez vous connecter pour vendre des articles.",
+            verificationInProgress: "Vérification en cours",
+            verificationPendingMessage: "Votre profil vendeur est en cours de vérification. Cette opération peut prendre 24 à 48 heures.",
+            checkStatus: "Vérifier le statut",
+            profileRejected: "Profil rejeté",
+            profileRejectedMessage: "Votre demande de vendeur a été rejetée. Veuillez vérifier vos documents et soumettre à nouveau votre profil.",
+            resubmit: "Soumettre à nouveau",
+            verificationRequiredMessage: "Vous devez vérifier votre profil pour vendre des articles sur l'application.",
+            verifyProfile: "Vérifier mon profil",
+            checkingStatus: "Vérification du statut...",
+            statusCheckError: "Impossible de vérifier votre statut vendeur. Veuillez réessayer.",
+            photoPermissionMessage: "Nous avons besoin de votre permission pour accéder à vos photos.",
+            cameraPermissionMessage: "Nous avons besoin de votre permission pour utiliser la caméra.",
+            galleryAccessError: "Impossible d'accéder à la galerie photos.",
+            cameraAccessError: "Impossible d'accéder à la caméra."
+        },
+
         // CATEGORY SCREEN - NOUVELLES TRADUCTIONS
         category: {
             description: "Découvrez nos produits {{category}} - {{count}} articles disponibles",
@@ -451,6 +485,40 @@ const resources = {
 
   en: {
     translation: {
+
+        // ===== NEW TRANSLATIONS FOR SELL SCREEN =====
+        becomeSeller: "Become seller",
+        sell: {
+            newSale: "New sale",
+            photos: "Photos",
+            addPhotos: "Add photos",
+            maxPhotos: "Maximum 5 photos",
+            add: "Add",
+            addPhoto: "Add photo",
+            takePhoto: "Take photo",
+            chooseFromGallery: "Choose from gallery",
+            verificationRequired: "Verification required",
+            mustBeVerifiedSeller: "You must be a verified seller to post listings.",
+            
+            becomeSellerAction: "Become seller",
+            becomeSellerMessage: "To sell posters, you must first become a verified seller.",
+            loginRequired: "Login required",
+            loginToSell: "Please log in to sell items.",
+            verificationInProgress: "Verification in progress",
+            verificationPendingMessage: "Your seller profile is being verified. This process may take 24 to 48 hours.",
+            checkStatus: "Check status",
+            profileRejected: "Profile rejected",
+            profileRejectedMessage: "Your seller request has been rejected. Please check your documents and resubmit your profile.",
+            resubmit: "Resubmit",
+            verificationRequiredMessage: "You need to verify your profile to sell items on the app.",
+            verifyProfile: "Verify my profile",
+            checkingStatus: "Checking status...",
+            statusCheckError: "Unable to verify your seller status. Please try again.",
+            photoPermissionMessage: "We need your permission to access your photos.",
+            cameraPermissionMessage: "We need your permission to use the camera.",
+            galleryAccessError: "Unable to access photo gallery.",
+            cameraAccessError: "Unable to access camera."
+        },
 
         // CATEGORY SCREEN - NEW TRANSLATIONS
         category: {
