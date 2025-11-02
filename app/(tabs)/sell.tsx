@@ -9,6 +9,7 @@ import { router, useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
     Alert,
     FlatList,
     Image,
@@ -96,6 +97,7 @@ export default function SellScreen() {
 
     const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
     const [showImagePicker, setShowImagePicker] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false); // ← NOUVEL ÉTAT
 
     useEffect(() => {
         navigation.setOptions({
@@ -236,6 +238,31 @@ export default function SellScreen() {
 
     const openImagePickerDirect = async () => {
         await pickImages();
+    };
+
+    // Fonction pour gérer la navigation vers SellDetailsScreen
+    const handleContinue = async () => {
+        setIsNavigating(true); // Activer le loader
+        
+        try {
+            // Simuler un petit délai pour une meilleure UX
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Navigation vers l'écran de détails de l'annonce
+            router.push({
+                pathname: '/screens/SellDetailsScreen',
+                params: { images: JSON.stringify(selectedImages) }
+            });
+        } catch (error) {
+            console.error('Erreur navigation:', error);
+            Alert.alert(
+                t('error', 'Erreur'),
+                t('navigationError', 'Erreur lors de la navigation. Veuillez réessayer.')
+            );
+        } finally {
+            // Désactiver le loader après un court délai même en cas d'erreur
+            setTimeout(() => setIsNavigating(false), 1000);
+        }
     };
 
     // Fonction pour obtenir le message selon le statut
@@ -426,6 +453,7 @@ export default function SellScreen() {
                 <TouchableOpacity 
                     style={styles.closeButton}
                     onPress={handleBack}
+                    disabled={isNavigating} // Désactiver pendant la navigation
                 >
                     <Ionicons name="close" size={26} color={colors.tint} />
                 </TouchableOpacity>
@@ -445,6 +473,7 @@ export default function SellScreen() {
                         <TouchableOpacity 
                             style={[styles.addPhotoButton, { borderColor: colors.border }]}
                             onPress={openImagePickerDirect}
+                            disabled={isNavigating} // Désactiver pendant la navigation
                         >
                             <Ionicons name="camera" size={48} color={colors.textSecondary} />
                             <Text style={[styles.addPhotoText, { color: colors.textSecondary }]}>
@@ -470,6 +499,7 @@ export default function SellScreen() {
                                 <TouchableOpacity 
                                     style={[styles.addMoreButton, { borderColor: colors.border }]}
                                     onPress={openImagePickerDirect}
+                                    disabled={isNavigating} // Désactiver pendant la navigation
                                 >
                                     <Ionicons name="add" size={24} color={colors.textSecondary} />
                                     <Text style={[styles.addMoreText, { color: colors.textSecondary }]}>
@@ -483,17 +513,26 @@ export default function SellScreen() {
 
                 {selectedImages.length > 0 && (
                     <TouchableOpacity 
-                        style={[styles.continueButton, { backgroundColor: colors.tint }]}
-                        onPress={() => {
-                            console.log('Continuer avec les photos:', selectedImages);
-                            // Navigation vers l'écran de détails de l'annonce
-                            // router.push('/screens/PostDetailsScreen', { images: selectedImages });
-                        }}
+                        style={[
+                            styles.continueButton, 
+                            { 
+                                backgroundColor: colors.tint,
+                                opacity: isNavigating ? 0.7 : 1
+                            }
+                        ]}
+                        onPress={handleContinue}
+                        disabled={isNavigating} // Désactiver pendant la navigation
                     >
-                        <Text style={styles.continueButtonText}>
-                            {t('continue', 'Continuer')}
-                        </Text>
-                        <Ionicons name="arrow-forward" size={20} color="#FFF" />
+                        {isNavigating ? (
+                            <ActivityIndicator color="#FFF" size="small" />
+                        ) : (
+                            <>
+                                <Text style={styles.continueButtonText}>
+                                    {t('continue', 'Continuer')}
+                                </Text>
+                                <Ionicons name="arrow-forward" size={20} color="#FFF" />
+                            </>
+                        )}
                     </TouchableOpacity>
                 )}
             </View>
@@ -514,6 +553,7 @@ export default function SellScreen() {
                         <TouchableOpacity 
                             style={[styles.modalOption, { borderBottomColor: colors.border }]}
                             onPress={takePhoto}
+                            disabled={isNavigating} // Désactiver pendant la navigation
                         >
                             <Ionicons name="camera" size={24} color={colors.tint} />
                             <Text style={[styles.modalOptionText, { color: colors.text }]}>
@@ -524,6 +564,7 @@ export default function SellScreen() {
                         <TouchableOpacity 
                             style={[styles.modalOption, { borderBottomColor: colors.border }]}
                             onPress={openGallery}
+                            disabled={isNavigating} // Désactiver pendant la navigation
                         >
                             <Ionicons name="images" size={24} color={colors.tint} />
                             <Text style={[styles.modalOptionText, { color: colors.text }]}>
@@ -534,6 +575,7 @@ export default function SellScreen() {
                         <TouchableOpacity 
                             style={styles.modalCancel}
                             onPress={() => setShowImagePicker(false)}
+                            disabled={isNavigating} // Désactiver pendant la navigation
                         >
                             <Text style={[styles.modalCancelText, { color: colors.textSecondary }]}>
                                 {t('cancel', 'Annuler')}
