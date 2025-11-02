@@ -3,29 +3,37 @@ import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Animated,
+    Dimensions,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Import React Query
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 
-// Import des données
-import { featuredProducts, Product } from '@/src/data/products';
+// Import des données - CHANGE MANUELLEMENT POUR TESTER :
+import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
+// import { featuredProducts, Product } from '@/src/data/productEmpty'; // ❌ BASE VIDE
 
 // Import du composant ProductCard
 import ProductCard from '@/components/ProductCard';
 
 // Import i18n
+import CustomButton from '@/components/CustomButton';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
+
+// SIMULATION : Statut utilisateur
+const userStatus = {
+  isVerified: false, // Change à true pour tester les deux cas
+};
 
 // Fonction API simulée pour les favoris
 const fetchFavoriteProducts = async (): Promise<Product[]> => {
@@ -76,6 +84,10 @@ export default function FavoritesScreen() {
     }).start();
   }, []);
 
+  // ✅ CONDITION PRINCIPALE : Base de données vide ou pas de favoris
+  const isEmptyDatabase = !favoritesLoading && featuredProducts.length === 0;
+  const hasNoFavorites = !favoritesLoading && favoriteProducts.length === 0 && featuredProducts.length > 0;
+
   const toggleFavorite = (productId: string) => {
     // Ici tu pourrais implémenter la logique pour retirer des favoris
     // Pour l'instant, on simule en refetchant les données
@@ -93,7 +105,7 @@ export default function FavoritesScreen() {
     <ProductCardWithLocation product={item} />
   );
 
-  // États de chargement - AVEC SKELETON
+  // États de chargement - AVEC SKELETON ADAPTATIF
   if (favoritesLoading) {
     return <FavoritesSkeleton colors={{
       background: theme.background,
@@ -102,7 +114,7 @@ export default function FavoritesScreen() {
       textSecondary: colors.textSecondary,
       border: theme.border,
       tint: theme.tint
-    }} />;
+    }} isEmptyDatabase={isEmptyDatabase} />;
   }
 
   // Gestion d'erreur
@@ -123,17 +135,75 @@ export default function FavoritesScreen() {
     );
   }
 
-  const EmptyFavorites = () => (
+  // Composant Empty State unifié
+  const EmptyState = () => (
     <View style={styles.emptyContainer}>
-      <View style={[styles.emptyIcon, { backgroundColor: theme.card }]}>
-        <Ionicons name="heart-outline" size={48} color={theme.tabIconDefault} />
-      </View>
-      <Text style={[styles.emptyTitle, { color: theme.text }]}>
-        {t('favorites.emptyTitle')}
-      </Text>
-      <Text style={[styles.emptySubtitle, { color: theme.tabIconDefault }]}>
-        {t('favorites.emptySubtitle')}
-      </Text>
+      {isEmptyDatabase ? (
+        // ✅ MODE BASE VIDE - Pas de produits du tout dans l'app
+        <View style={styles.emptyDatabaseContent}>
+          <View style={[styles.emptyIcon, { backgroundColor: theme.card }]}>
+            <Ionicons name="storefront-outline" size={48} color={theme.tabIconDefault} />
+          </View>
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>
+            {t('favorites.emptyDatabase.title')}
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: theme.tabIconDefault }]}>
+            {t('favorites.emptyDatabase.subtitle')}
+          </Text>
+          
+          {/* CTA selon statut utilisateur */}
+          <View style={styles.ctaContainer}>
+            {userStatus.isVerified ? (
+              // ✅ Utilisateur vérifié - Peut vendre directement
+              <TouchableOpacity 
+                style={[styles.primaryButton, { backgroundColor: theme.tint }]}
+                onPress={() => router.push('/(tabs)/sell')}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#fff" />
+                <Text style={styles.primaryButtonText}>
+                  {t('favorites.emptyDatabase.sellFirstItem')}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              // ❌ Utilisateur non vérifié - Doit devenir vendeur
+              <CustomButton
+                  title={t('home.emptyDatabase.becomeSeller')}
+                  onPress={() => router.push('/screens/ProfileSettingsScreen')}
+                  variant="primary"
+                  size="large"
+                  backgroundColor={theme.tint}
+                />
+            )}
+          </View>
+        </View>
+      ) : (
+        // ✅ MODE NORMAL - Base avec produits mais pas de favoris
+        <View style={styles.noFavoritesContent}>
+          <View style={[styles.emptyIcon, { backgroundColor: theme.card }]}>
+            <Ionicons name="heart-outline" size={48} color={theme.tabIconDefault} />
+          </View>
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>
+            {t('favorites.emptyTitle')}
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: theme.tabIconDefault }]}>
+            {t('favorites.emptySubtitle')}
+          </Text>
+          
+          {/* CTA pour découvrir des produits */}
+          <TouchableOpacity 
+            style={[styles.secondaryButton, { 
+              borderColor: theme.tint,
+              backgroundColor: theme.card 
+            }]}
+            onPress={() => router.push('/(tabs)/home')}
+          >
+            <Ionicons name="compass-outline" size={20} color={theme.tint} />
+            <Text style={[styles.secondaryButtonText, { color: theme.tint }]}>
+              {t('favorites.exploreProducts')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -147,32 +217,36 @@ export default function FavoritesScreen() {
               {t('tabs.favorites')}
             </Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              {t('favorites.count', { count: favoriteProducts.length })}
+              {isEmptyDatabase ? 
+                t('favorites.emptyDatabase.title') : 
+                t('favorites.count', { count: favoriteProducts.length })
+              }
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Grid des produits - Même design que SalesScreen */}
-      <FlatList
-        data={favoriteProducts}
-        renderItem={renderProductItem}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        scrollEnabled={true}
-        contentContainerStyle={styles.productsGrid}
-        columnWrapperStyle={styles.productsRow}
-        showsVerticalScrollIndicator={false}
-        style={styles.flatList}
-        ListEmptyComponent={
-          favoriteProducts.length === 0 ? <EmptyFavorites /> : null
-        }
-      />
+      {/* CONTENU ADAPTATIF - Condition base vide ou pas de favoris */}
+      {isEmptyDatabase || hasNoFavorites ? (
+        <EmptyState />
+      ) : (
+        // ✅ MODE NORMAL - Avec des favoris
+        <FlatList
+          data={favoriteProducts}
+          renderItem={renderProductItem}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          scrollEnabled={true}
+          contentContainerStyle={styles.productsGrid}
+          columnWrapperStyle={styles.productsRow}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+        />
+      )}
     </Animated.View>
   );
 }
 
-// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -216,11 +290,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
   },
+  // Empty States
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+  },
+  emptyDatabaseContent: {
+    alignItems: 'center',
+  },
+  noFavoritesContent: {
+    alignItems: 'center',
   },
   emptyIcon: {
     width: 100,
@@ -245,6 +326,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 22,
+    marginBottom: 32,
+  },
+  ctaContainer: {
+    width: '100%',
+    gap: 16,
+  },
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    gap: 12,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    width: '100%',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 2,
+    gap: 12,
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

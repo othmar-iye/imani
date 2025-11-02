@@ -82,7 +82,14 @@ const resources = {
             emptyTitle: "Aucun favori",
             emptySubtitle: "Les produits que vous ajoutez à vos favoris apparaîtront ici",
             count: "{{count}} produit sauvegardé",
-            count_plural: "{{count}} produits sauvegardés"
+            count_plural: "{{count}} produits sauvegardés",
+            "emptyDatabase": {
+                "title": "Boutique vide",
+                "subtitle": "Il n'y a encore aucun produit dans l'application. Soyez le premier à vendre !",
+                "sellFirstItem": "Vendre mon premier article",
+                "becomeSeller": "Devenir vendeur"
+            },
+            "exploreProducts": "Découvrir des produits",
         },
 
         // CATEGORIES
@@ -520,7 +527,14 @@ const resources = {
             emptyTitle: "No favorites",
             emptySubtitle: "Products you add to your favorites will appear here",
             count: "{{count}} saved product",
-            count_plural: "{{count}} saved products"
+            count_plural: "{{count}} saved products",
+            "emptyDatabase": {
+                "title": "Empty store",
+                "subtitle": "There are no products in the app yet. Be the first to sell!",
+                "sellFirstItem": "Sell my first item",
+                "becomeSeller": "Become a seller",
+            },
+            "exploreProducts": "Explore products",
         },
 
         // CATEGORIE

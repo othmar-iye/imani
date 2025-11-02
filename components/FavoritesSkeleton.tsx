@@ -1,4 +1,4 @@
-// components/FavoritesSkeleton.tsx - VERSION AMÉLIORÉE
+// components/FavoritesSkeleton.tsx - VERSION AVEC SUPPORT BASE VIDE
 import React, { useEffect } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import Animated, {
@@ -20,9 +20,13 @@ interface FavoritesSkeletonProps {
     border: string;
     tint: string;
   };
+  isEmptyDatabase?: boolean; // ✅ NOUVELLE PROP
 }
 
-export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) => {
+export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ 
+  colors, 
+  isEmptyDatabase = false // ✅ VALEUR PAR DÉFAUT
+}) => {
   const isDark = useColorScheme() === 'dark';
   
   // Animation renforcée
@@ -51,7 +55,7 @@ export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) 
     height, 
     borderRadius = 6,
     style,
-    variant = 'default' // 'default' | 'strong'
+    variant = 'default'
   }: { 
     width: number | string; 
     height: number; 
@@ -65,8 +69,8 @@ export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) 
         strong: '#333333'
       },
       light: {
-        default: '#D1D9E0',   // BEAUCOUP plus foncé - bien visible
-        strong: '#B8C4CE'     // Encore plus contrasté
+        default: '#D1D9E0',
+        strong: '#B8C4CE'
       }
     };
 
@@ -89,9 +93,54 @@ export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) 
     );
   };
 
+  // ✅ SKELETON POUR MODE BASE VIDE
+  const renderEmptyDatabaseSkeleton = () => (
+    <View style={styles.emptyContainer}>
+      {/* Illustration vide */}
+      <AnimatedSkeletonBox 
+        width={120} 
+        height={120} 
+        borderRadius={60} 
+        variant="strong"
+      />
+      
+      {/* Titre */}
+      <AnimatedSkeletonBox 
+        width={200} 
+        height={28} 
+        borderRadius={8} 
+        style={{ marginTop: 24, marginBottom: 16 }}
+        variant="strong"
+      />
+      
+      {/* Sous-titre */}
+      <AnimatedSkeletonBox 
+        width={280} 
+        height={16} 
+        borderRadius={6} 
+        style={{ marginBottom: 8 }}
+      />
+      <AnimatedSkeletonBox 
+        width={250} 
+        height={16} 
+        borderRadius={6} 
+        style={{ marginBottom: 32 }}
+      />
+      
+      {/* Bouton CTA */}
+      <AnimatedSkeletonBox 
+        width="100%" 
+        height={56} 
+        borderRadius={16} 
+        variant="strong"
+      />
+    </View>
+  );
+
+  // ✅ SKELETON POUR MODE NORMAL (produits favoris)
   const renderProductSkeleton = () => (
     <View style={styles.productCard}>
-      {/* Image produit - Élément principal avec forte visibilité */}
+      {/* Image produit */}
       <AnimatedSkeletonBox 
         width="100%" 
         height={200} 
@@ -138,24 +187,33 @@ export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) 
               Favoris
             </Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              Chargement des produits...
+              {isEmptyDatabase ? 
+                "Chargement de la boutique..." : 
+                "Chargement des favoris..."
+              }
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Grid des produits SKELETON */}
-      <FlatList
-        data={[1, 2, 3, 4, 5, 6]} // Plus d'éléments pour mieux voir
-        renderItem={renderProductSkeleton}
-        keyExtractor={item => item.toString()}
-        numColumns={2}
-        scrollEnabled={true}
-        contentContainerStyle={styles.productsGrid}
-        columnWrapperStyle={styles.productsRow}
-        showsVerticalScrollIndicator={false}
-        style={styles.flatList}
-      />
+      {/* CONTENU ADAPTATIF SELON L'ÉTAT */}
+      {isEmptyDatabase ? (
+        // ✅ SKELETON MODE BASE VIDE
+        renderEmptyDatabaseSkeleton()
+      ) : (
+        // ✅ SKELETON MODE NORMAL - Grid des produits
+        <FlatList
+          data={[1, 2, 3, 4, 5, 6]}
+          renderItem={renderProductSkeleton}
+          keyExtractor={item => item.toString()}
+          numColumns={2}
+          scrollEnabled={true}
+          contentContainerStyle={styles.productsGrid}
+          columnWrapperStyle={styles.productsRow}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+        />
+      )}
     </View>
   );
 };
@@ -216,6 +274,14 @@ const styles = StyleSheet.create({
   productContent: {
     padding: 16,
     paddingTop: 12,
+  },
+  // Styles pour le mode base vide
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingTop: 40,
   },
   skeletonBox: {
     borderRadius: 6,
