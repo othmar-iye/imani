@@ -7,6 +7,19 @@ const resources = {
   fr: {
     translation: {
 
+        // CATEGORY SCREEN - NOUVELLES TRADUCTIONS
+        category: {
+            description: "Découvrez nos produits {{category}} - {{count}} articles disponibles",
+            products: "produits",
+            noProducts: "Aucun produit trouvé dans cette catégorie",
+            allProducts: "Tous les produits",
+            exploreCategory: "Explorer {{category}}",
+            productCount: "{{count}} produit disponible",
+            productCount_plural: "{{count}} produits disponibles",
+            loadingProducts: "Chargement des produits...",
+            errorLoading: "Erreur lors du chargement des produits"
+        },
+
         // PRODUCT DETAIL
         productDetail: {
             productNotFound: "Produit non trouvé",
@@ -419,6 +432,19 @@ const resources = {
 
   en: {
     translation: {
+
+        // CATEGORY SCREEN - NEW TRANSLATIONS
+        category: {
+            description: "Discover our {{category}} products - {{count}} items available", 
+            products: "products",
+            noProducts: "No products found in this category",
+            allProducts: "All products",
+            exploreCategory: "Explore {{category}}",
+            productCount: "{{count}} product available",
+            productCount_plural: "{{count}} products available",
+            loadingProducts: "Loading products...",
+            errorLoading: "Error loading products"
+        },
 
         // PRODUCT DETAIL
         productDetail: {

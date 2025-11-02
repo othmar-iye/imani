@@ -276,49 +276,61 @@ export default function HomeScreen() {
     <ProductCard product={item} />
   );
 
-  // CORRECTION : Rendu d'un élément catégorie adapté à l'ancien format
-  const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => {
-    // Mapper les icônes string vers les noms d'icônes Ionicons
-    const getIconName = (icon: string): keyof typeof Ionicons.glyphMap => {
-      const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-        'apps-outline': 'apps-outline',
-        'shirt': 'shirt-outline',
-        'footsteps': 'footsteps-outline',
-        'glasses': 'glasses-outline',
-        'ribbon': 'ribbon-outline',
-        'sparkles': 'sparkles-outline',
-        'home': 'home-outline',
-        'ellipsis-horizontal': 'ellipsis-horizontal-outline'
-      };
-      return iconMap[icon] || icon;
-    };
+  // Dans HomeScreen.tsx - MODIFICATION DE LA FONCTION renderCategoryItem
+    const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => {
+        // Mapper les icônes string vers les noms d'icônes Ionicons
+        const getIconName = (icon: string): keyof typeof Ionicons.glyphMap => {
+            const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
+            'apps-outline': 'apps-outline',
+            'shirt': 'shirt-outline',
+            'footsteps': 'footsteps-outline',
+            'glasses': 'glasses-outline',
+            'ribbon': 'ribbon-outline',
+            'sparkles': 'sparkles-outline',
+            'home': 'home-outline',
+            'ellipsis-horizontal': 'ellipsis-horizontal-outline'
+            };
+            return iconMap[icon] || icon;
+        };
 
-    return (
-      <TouchableOpacity style={[
-        styles.categoryCard,
-        { backgroundColor: theme.card },
-      ]}>
-        <View style={[
-          styles.categoryIcon,
-          { 
-            backgroundColor: colorScheme === 'dark' ? '#ffffff' : '#F7F7F7',
-          }
-        ]}>
-          <Ionicons 
-            name={getIconName(item.icon)} 
-            size={20} 
-            color={theme.tint} 
-          />
-        </View>
-        <Text style={[
-          styles.categoryName,
-          { color: theme.text }
-        ]}>
-          {t(`categories.${item.name}`)}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+        return (
+            <TouchableOpacity 
+            style={[
+                styles.categoryCard,
+                { backgroundColor: theme.card },
+            ]}
+            onPress={() => {
+                // Navigation vers CategoryScreen avec le nom de la catégorie
+                router.push({
+                pathname: '/screens/homeOption/CategoryScreen',
+                params: { 
+                    categoryName: item.name,
+                    categoryId: item.id
+                }
+                });
+            }}
+            >
+            <View style={[
+                styles.categoryIcon,
+                { 
+                backgroundColor: colorScheme === 'dark' ? '#ffffff' : '#F7F7F7',
+                }
+            ]}>
+                <Ionicons 
+                name={getIconName(item.icon)} 
+                size={20} 
+                color={theme.tint} 
+                />
+            </View>
+            <Text style={[
+                styles.categoryName,
+                { color: theme.text }
+            ]}>
+                {t(`categories.${item.name}`)}
+            </Text>
+            </TouchableOpacity>
+        );
+    };
 
   // État de chargement - AVEC SKELETON PARTIEL
   if (productsLoading || categoriesLoading) {
