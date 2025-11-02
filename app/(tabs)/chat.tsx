@@ -118,7 +118,7 @@ export default function ChatScreen() {
     };
     return configs[status as keyof typeof configs] || configs.available;
   };
-
+ 
   const getSellerInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };

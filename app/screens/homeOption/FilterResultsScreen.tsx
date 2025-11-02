@@ -5,14 +5,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import des données réelles
@@ -46,25 +46,20 @@ export default function FilterResultsScreen() {
   const mapCategoryToProductCategory = (receivedCategory: string): string => {
     const categoryMap: { [key: string]: string } = {
       // Français
-      'Vêtements': 'Vêtements',
-      'Chaussures': 'Chaussures',
-      'Accessoires': 'Accessoires',
-      'Marques & Créateurs': 'Marques & Créateurs',
-      'Beauté & Parfums': 'Beauté & Parfums',
+      'Électronique': 'Électronique',
+      'Habillement': 'Habillement',
       'Maison & Déco': 'Maison & Déco',
+      'Sports & Loisirs': 'Sports & Loisirs',
+      'Livres & Médias': 'Livres & Médias',
       'Autres': 'Autres',
-      'Électronique': 'Autres',
-      'Meubles': 'Meubles',
+
       // English
-      'Clothing': 'Vêtements',
-      'Shoes': 'Chaussures',
-      'Accessories': 'Accessoires',
-      'Brands & Designers': 'Marques & Créateurs',
-      'Beauty & Fragrances': 'Beauté & Parfums',
+      'Electronics': 'Électronique',
+      'Clothing': 'Habillement',
       'Home & Decor': 'Maison & Déco',
+      'Sports & Leisure': 'Sports & Loisirs',
+      'Books & Media': 'Livres & Médias',
       'Others': 'Autres',
-      'Electronics': 'Autres',
-      'Furniture': 'Meubles'
     };
     
     return categoryMap[receivedCategory] || receivedCategory;

@@ -74,12 +74,12 @@ const resources = {
 
         // CATEGORIES
         categories: {
-            'Vêtements': 'Vêtements',
-            'Chaussures': 'Chaussures',
-            'Accessoires': 'Accessoires',
-            'Marques & Créateurs': 'Marques & Créateurs',
-            'Beauté & Parfums': 'Beauté & Parfums', 
+            'Électronique': 'Électronique',
+            'Habillement': 'Habillement', 
+            'Auto': 'Auto',
             'Maison & Déco': 'Maison & Déco',
+            'Sports & Loisirs': 'Sports & Loisirs',
+            'Livres & Médias': 'Livres & Médias',
             'Autres': 'Autres',
             'Tous': 'Tous'
         },
@@ -487,12 +487,12 @@ const resources = {
 
         // CATEGORIE
         categories: {
-            'Vêtements': 'Clothing',
-            'Chaussures': 'Shoes',
-            'Accessoires': 'Accessories',
-            'Marques & Créateurs': 'Brands & Designers',
-            'Beauté & Parfums': 'Beauty & Fragrances',
+            'Électronique': 'Electronics',
+            'Habillement': 'Clothing',
+            'Auto': 'Auto',
             'Maison & Déco': 'Home & Decor',
+            'Sports & Loisirs': 'Sports & Leisure',
+            'Livres & Médias': 'Books & Media',
             'Autres': 'Other',
             'Tous': 'All'
         },

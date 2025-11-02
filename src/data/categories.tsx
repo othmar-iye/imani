@@ -9,89 +9,101 @@ export interface Category {
 export const categories: Category[] = [
   {
     id: '1',
-    name: 'Vêtements',
-    icon: 'shirt',
+    name: 'Électronique',
+    icon: 'laptop',
     subCategories: [
-      'Femmes',
-      'Hommes',
-      'Enfants & Bébés',
-      'Maternité',
-      'Grandes Tailles'
+      'Smartphones & Accessoires',
+      'Ordinateurs & Tablettes',
+      'Audio & Casques',
+      'Photo & Vidéo',
+      'Gaming & Consoles',
+      'Télévisions & Home Cinema',
+      'Électroménager Connecté',
+      'Drones & Robotique',
+      'Montres Connectées',
+      'Accessoires Électronique'
     ]
   },
   {
     id: '2',
-    name: 'Chaussures',
-    icon: 'footsteps',
+    name: 'Habillement',
+    icon: 'shirt',
     subCategories: [
-      'Femmes',
-      'Hommes',
-      'Enfants & Bébés',
-      'Baskets & Sneakers',
-      'Sandales & Tongs',
-      'Bottes & Bottines',
-      'Escarpins',
-      'Chaussures plates'
+      'Vêtements Femmes',
+      'Vêtements Hommes',
+      'Vêtements Enfants',
+      'Vêtements Bébé',
+      'Chaussures Femmes',
+      'Chaussures Hommes',
+      'Chaussures Enfants',
+      'Sacs & Maroquinerie',
+      'Bijoux & Montres',
+      'Accessoires Mode',
+      'Lunettes & Optique',
+      'Sous-vêtements',
+      'Maillots de bain'
     ]
   },
   {
     id: '3',
-    name: 'Accessoires',
-    icon: 'glasses',
+    name: 'Maison & Déco',
+    icon: 'home',
     subCategories: [
-      'Sacs',
-      'Bijoux',
-      'Montres',
-      'Lunettes',
-      'Écharpes & Foulards',
-      'Chapeaux & Casquettes',
-      'Ceintures'
+      'Décoration Intérieure',
+      'Luminaires & Éclairage',
+      'Linge de Maison',
+      'Art & Tableaux',
+      'Meubles & Rangement',
+      'Cuisine & Arts de la table',
+      'Jardin & Extérieur',
+      'Bricolage & Outillage',
+      'Électroménager'
     ]
   },
   {
     id: '4',
-    name: 'Marques & Créateurs',
-    icon: 'ribbon',
+    name: 'Sports & Loisirs',
+    icon: 'basketball',
     subCategories: [
-      'Marques Tendances',
-      'Luxe & Créateurs',
-      'Marques Vintage',
-      'Petites Marques'
+      'Équipement Sportif',
+      'Vêtements Sport',
+      'Chaussures Sport',
+      'Fitness & Musculation',
+      'Vélos & Mobilité',
+      'Camping & Plein Air',
+      'Pêche & Chasse',
+      'Instruments de Musique',
+      'Jeux & Jouets'
     ]
   },
   {
     id: '5',
-    name: 'Beauté & Parfums',
-    icon: 'sparkles',
+    name: 'Livres & Médias',
+    icon: 'book',
     subCategories: [
-      'Parfums',
-      'Maquillage',
-      'Soins de la peau',
-      'Soins des cheveux',
-      'Hygiène & Bien-être'
+      'Livres & Romans',
+      'BD & Mangas',
+      'Livres Scolaires',
+      'DVD & Blu-ray',
+      'CD & Vinyles',
+      'Jeux Vidéo',
+      'Matériel Créatif',
+      'Journaux & Magazines'
     ]
   },
   {
     id: '6',
-    name: 'Maison & Déco',
-    icon: 'home',
-    subCategories: [
-      'Décoration',
-      'Linge de maison',
-      'Art & Posters',
-      'Luminaires'
-    ]
-  },
-  {
-    id: '7',
     name: 'Autres',
     icon: 'ellipsis-horizontal',
     subCategories: [
-      'Sports & Loisirs',
-      'High-Tech',
-      'Livres & Médias',
-      'Jouets & Jeux',
-      'Matériel Créatif'
+      'Services & Prestations',
+      'Billeterie & Événements',
+      'Collection & Vintage',
+      'Matériel Professionnel',
+      'Agriculture & Jardinage',
+      'Produits de Beauté',
+      'Santé & Bien-être',
+      'Autres catégories'
     ]
   }
 ];
