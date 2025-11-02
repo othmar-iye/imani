@@ -1,6 +1,7 @@
 import ConversationItem from '@/components/ConversationItem';
 import SearchBar from '@/components/SearchBar';
 import { Theme } from '@/constants/theme';
+import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
@@ -124,10 +125,10 @@ export default function ChatScreen() {
 
   const handleConversationPress = (conversationId: string) => {
     console.log('Ouvrir discussion:', conversationId);
-    // router.push({
-    //   pathname: '/screens/ChatDetailScreen',
-    //   params: { conversationId }
-    // });
+    router.push({
+      pathname: '/screens/ChatDetailScreen',
+      params: { conversationId }
+    });
   };
 
   return (

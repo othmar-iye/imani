@@ -4,29 +4,48 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    Modal,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View,
+  Animated,
+  Dimensions,
+  FlatList,
+  Modal,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from 'react-native';
+
+// Import React Query
+import { useQuery } from '@tanstack/react-query';
 
 // Import des données
 import CustomButton from '@/components/CustomButton';
-import { featuredProducts } from '@/src/data/products';
+import { featuredProducts, Product } from '@/src/data/products';
 // Import pour la traduction
 import { useTranslation } from 'react-i18next';
+// Import du Skeleton
+import { ProductDetailSkeleton } from '@/components/ProductDetailSkeleton';
 
 const { width, height } = Dimensions.get('window');
 
 // Placeholder de chargement pour les images
 const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
+
+// Fonction API simulée pour les détails du produit
+const fetchProductDetail = async (productId: string): Promise<Product> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const product = featuredProducts.find(p => p.id === productId);
+      if (product) {
+        resolve(product);
+      } else {
+        reject(new Error('Product not found'));
+      }
+    }, 1200);
+  });
+};
 
 export default function ProductDetailScreen() {
   const { productId } = useLocalSearchParams();
@@ -45,6 +64,18 @@ export default function ProductDetailScreen() {
   // For traduction  
   const { t } = useTranslation();
 
+  // React Query pour les détails du produit
+  const { 
+    data: product, 
+    isLoading, 
+    error,
+    refetch 
+  } = useQuery<Product, Error>({
+    queryKey: ['product-detail', productId],
+    queryFn: () => fetchProductDetail(productId as string),
+    enabled: !!productId,
+  });
+
   const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
     card: isDark ? Theme.dark.card : Theme.light.card,
@@ -54,11 +85,13 @@ export default function ProductDetailScreen() {
     tint: isDark ? Theme.dark.tint : Theme.light.tint,
   };
 
-  // Récupérer le produit correspondant à l'ID
-  const product = featuredProducts.find(p => p.id === productId);
+  // États de chargement - AVEC SKELETON
+  if (isLoading) {
+    return <ProductDetailSkeleton colors={colors} />;
+  }
 
-  // Gérer le cas où le produit n'est pas trouvé
-  if (!product) {
+  // Gestion d'erreur
+  if (error || !product) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
@@ -71,6 +104,14 @@ export default function ProductDetailScreen() {
             onPress={() => router.back()}
           >
             <Text style={styles.backButtonText}>{t('productDetail.back')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.retryButton, { borderColor: colors.tint }]}
+            onPress={() => refetch()}
+          >
+            <Text style={[styles.retryButtonText, { color: colors.tint }]}>
+              {t('retry')}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -147,9 +188,7 @@ export default function ProductDetailScreen() {
 
 //   Au clique d'acheter
     const handleSell = () => {
-      
       console.log('Acheter');
-      
     };
 
   return (
@@ -303,7 +342,7 @@ export default function ProductDetailScreen() {
               {product.name}
             </Text>
             <Text style={[styles.productCategory, { color: colors.tint }]}>
-              {product.category} • {product.views} vues
+              {product.category} • {product.views} {t('productDetail.views')}
             </Text>
           </View>
           
@@ -321,7 +360,6 @@ export default function ProductDetailScreen() {
             </Text>
           </View>
         </View>
-
 
         {/* Description */}
         <View style={styles.section}>
@@ -364,7 +402,6 @@ export default function ProductDetailScreen() {
           </View>
         </View>
 
-
         {/* Vendeur */}
         <View style={[styles.sellerCard, { backgroundColor: colors.card }]}>
           <View style={styles.sellerHeader}>
@@ -386,7 +423,7 @@ export default function ProductDetailScreen() {
                 <View style={styles.sellerStats}>
                   <Ionicons name="star" size={14} color="#FFD700" />
                   <Text style={[styles.sellerRating, { color: colors.textSecondary }]}>
-                    {product.seller.rating} • {product.seller.itemsSold} ventes
+                    {product.seller.rating} • {product.seller.itemsSold} {t('productDetail.sales')}
                   </Text>
                 </View>
               </View>
@@ -420,7 +457,6 @@ export default function ProductDetailScreen() {
 
       {/* Boutons d'action */}
       <View style={[styles.actionBar, { backgroundColor: colors.background }]}>
-        
         <CustomButton
             title={t('productDetail.chatWithSeller')}
             onPress={handleSell}
@@ -544,6 +580,17 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 12,
+  },
+  retryButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },
