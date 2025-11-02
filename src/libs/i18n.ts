@@ -166,18 +166,30 @@ const resources = {
 
         // Home Screen
         home: {
-        welcome: "Bienvenue",
-        searchPlaceholder: "Rechercher des produits...",
-        cancel: "Annuler",
-        summerSales: "Soldes d'Été",
-        upToDiscount: "Jusqu'à 50% de réduction",
-        discover: "Découvrir",
-        categories: "Catégories",
-        popularProducts: "Produits populaires",
-        seeAll: "Tout voir",
-        loading: "Chargement...",
-        errorLoading: "Erreur de chargement",
-        retry: "Réessayer",
+            welcome: "Bienvenue",
+            searchPlaceholder: "Rechercher des produits...",
+            cancel: "Annuler",
+            summerSales: "Soldes d'Été",
+            upToDiscount: "Jusqu'à 50% de réduction",
+            discover: "Découvrir",
+            categories: "Catégories",
+            popularProducts: "Produits populaires",
+            seeAll: "Tout voir",
+            loading: "Chargement...",
+            errorLoading: "Erreur de chargement",
+            retry: "Réessayer",
+            noResults: "Aucun résultat trouvé",
+            
+            // MODE BASE VIDE
+            emptyDatabase: {
+                title: "Bienvenue sur notre marché ! 🎉",
+                subtitle: "Soyez parmi les premiers à découvrir et vendre sur notre plateforme. Le marché est tout neuf, à vous de le construire !",
+                sellFirstItem: "Vendre mon premier article",
+                becomeSeller: "Devenir vendeur",
+                howItWorks: "Comment ça marche ?",
+                searchEmptyTitle: "Le marché est encore vide",
+                searchEmptySubtitle: "Soyez le premier à vendre quelque chose !"
+            }
         },
 
         // Profile Settings
@@ -591,18 +603,30 @@ const resources = {
 
         // Home Screen
         home: {
-        welcome: "Welcome",
-        searchPlaceholder: "Search products...",
-        cancel: "Cancel",
-        summerSales: "Summer Sales",
-        upToDiscount: "Up to 50% off",
-        discover: "Discover",
-        categories: "Categories",
-        popularProducts: "Popular Products",
-        seeAll: "See All",
-        loading: "Loading...",
-        errorLoading: "Error loading",
-        retry: "Retry",
+            welcome: "Welcome",
+            searchPlaceholder: "Search products...",
+            cancel: "Cancel",
+            summerSales: "Summer Sales",
+            upToDiscount: "Up to 50% off",
+            discover: "Discover",
+            categories: "Categories",
+            popularProducts: "Popular Products",
+            seeAll: "See All",
+            loading: "Loading...",
+            errorLoading: "Error loading",
+            retry: "Retry",
+            noResults: "No results found",
+            
+            // EMPTY DATABASE MODE
+            emptyDatabase: {
+                title: "Welcome to our marketplace! 🎉",
+                subtitle: "Be among the first to discover and sell on our platform. The market is brand new, it's up to you to build it!",
+                sellFirstItem: "Sell my first item",
+                becomeSeller: "Become a seller",
+                howItWorks: "How it works?",
+                searchEmptyTitle: "The market is still empty",
+                searchEmptySubtitle: "Be the first to sell something!"
+            }
         },
 
         // Profile Settings

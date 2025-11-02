@@ -22,14 +22,18 @@ import {
 // Import React Query
 import { useQuery } from '@tanstack/react-query';
 
-// Import des données
-import { featuredProducts, Product } from '@/src/data/products';
+// Import des données - CHANGE MANUELLEMENT POUR TESTER :
+import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
+// import { featuredProducts, Product } from '@/src/data/productEmpty'; // ❌ BASE VIDE
 
 // Import du composant SuggestionItem
 import SuggestionItem from '@/components/SuggestionItem';
 
 // Import du composant CategorySection
 import CategorySection from '@/components/CategorySection';
+
+// Import du composant CustomButton
+import CustomButton from '@/components/CustomButton';
 
 // Import des categories
 import { categories as categoriesData } from '@/src/data/categories';
@@ -130,18 +134,16 @@ const ProductCard = ({ product }: { product: Product }) => {
   );
 };
 
-// SOLUTION 1 : Fonction pour générer des suggestions limitées et aléatoires
+// Fonction pour générer des suggestions
 const generateSearchSuggestions = (products: Product[], limit: number = 10): SearchSuggestion[] => {
-  // Si pas de produits, retourner tableau vide
   if (!products || products.length === 0) return [];
   
-  // Mélanger le tableau et prendre les premiers 'limit' éléments
   const shuffled = [...products].sort(() => 0.5 - Math.random());
   const randomProducts = shuffled.slice(0, limit);
   
   return randomProducts.map(product => ({
     id: product.id,
-    type: 'trending', // Type unique pour toutes les suggestions
+    type: 'trending',
     title: product.name,
     subtitle: product.category,
     icon: 'trending-up-outline'
@@ -152,27 +154,28 @@ const generateSearchSuggestions = (products: Product[], limit: number = 10): Sea
 const fetchFeaturedProducts = async (): Promise<Product[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(featuredProducts);
+      resolve(featuredProducts); // Retourne selon l'import choisi
     }, 1000);
   });
 };
 
-// Fonction adaptée pour l'ancien format des catégories
 const fetchCategories = async (): Promise<Category[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Créer la catégorie "Tous" et l'ajouter au début
       const allCategory: Category = {
         id: 'all',
         name: 'Tous',
         icon: 'apps-outline',
         subCategories: []
       };
-      
-      // Ajouter "Tous" au début des catégories existantes
       resolve([allCategory, ...categoriesData]);
     }, 500);
   });
+};
+
+// SIMULATION : Statut utilisateur
+const userStatus = {
+  isVerified: false, // Change à true pour tester les deux cas
 };
 
 export default function HomeScreen() {
@@ -186,7 +189,7 @@ export default function HomeScreen() {
 
   // Utilisation de React Query pour les produits
   const { 
-    data: products, 
+    data: products = [], 
     isLoading: productsLoading, 
     error: productsError 
   } = useQuery({
@@ -203,36 +206,27 @@ export default function HomeScreen() {
     queryFn: fetchCategories,
   });
 
-  // SOLUTION 1 : Génération des suggestions limitées à 10 produits aléatoires
+  // ✅ CONDITION PRINCIPALE : Base de données vide ou non
+  const isEmptyDatabase = !productsLoading && products.length === 0;
+
+  // Génération des suggestions (vide si base vide)
   const searchSuggestions = React.useMemo(() => {
-    if (!products) return [];
+    if (isEmptyDatabase) return [];
     return generateSearchSuggestions(products, 10);
-  }, [products]);
+  }, [products, isEmptyDatabase]);
 
-  // Gestion simple et fiable de la recherche
-  const handleSearchFocus = () => {
-    setIsSearchFocused(true);
-  };
+  // Gestion de la recherche
+  const handleSearchFocus = () => setIsSearchFocused(true);
 
-  // Fonction closeSearch améliorée
   const closeSearch = () => {
     setIsSearchFocused(false);
     setSearchQuery('');
-    // Fermer le keyboard après un petit délai pour la fluidité
-    setTimeout(() => {
-      Keyboard.dismiss();
-    }, 100);
+    setTimeout(() => Keyboard.dismiss(), 100);
   };
 
-  // Fonction handleSearchSubmit améliorée
   const handleSearchSubmit = () => {
     if (searchQuery.trim()) {
-      console.log('Recherche lancée:', searchQuery);
-      
-      // Fermer IMMÉDIATEMENT la modal
       setIsSearchFocused(false);
-      
-      // Redirection IMMÉDIATE sans attendre la fermeture complète
       setTimeout(() => {
         router.push({
           pathname: '/screens/homeOption/SearchResultsScreen',
@@ -245,12 +239,8 @@ export default function HomeScreen() {
     }
   };
 
-  // Fonction handleSuggestionPress améliorée
   const handleSuggestionPress = (suggestion: SearchSuggestion) => {
-    // Fermer IMMÉDIATEMENT la modal sans attendre
     setIsSearchFocused(false);
-    
-    // Redirection IMMÉDIATE sans délai
     setTimeout(() => {
       router.push({
         pathname: '/screens/ProductDetailScreen',
@@ -259,14 +249,13 @@ export default function HomeScreen() {
     }, 10);
   };
 
-  // Fonction pour le bouton Annuler
   const handleCancelPress = () => {
     setIsSearchFocused(false);
     setSearchQuery('');
     Keyboard.dismiss();
   };
 
-  // Filtrer les suggestions basées sur la requête de recherche
+  // Filtrer les suggestions
   const filteredSuggestions = searchQuery 
     ? searchSuggestions.filter(suggestion => 
         suggestion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -274,7 +263,7 @@ export default function HomeScreen() {
       )
     : searchSuggestions;
 
-  // Rendu d'un élément de suggestion utilisant le composant SuggestionItem
+  // Rendu des suggestions
   const renderSuggestionItem = ({ item }: { item: SearchSuggestion }) => (
     <SuggestionItem
       item={item}
@@ -284,21 +273,24 @@ export default function HomeScreen() {
     />
   );
 
-  // Rendu d'un élément produit
+  // Rendu des produits
   const renderProductItem = ({ item }: { item: Product }) => (
     <ProductCard product={item} />
   );
 
-  // État de chargement - AVEC SKELETON PARTIEL
+  // État de chargement - AVEC SKELETON ADAPTATIF
   if (productsLoading || categoriesLoading) {
-    return <HomeSkeleton colors={{
-      background: theme.background,
-      card: theme.card,
-      text: theme.text,
-      textSecondary: theme.tabIconDefault,
-      border: theme.border,
-      tint: theme.tint
-    }} />;
+    return <HomeSkeleton 
+      colors={{
+        background: theme.background,
+        card: theme.card,
+        text: theme.text,
+        textSecondary: theme.tabIconDefault,
+        border: theme.border,
+        tint: theme.tint
+      }} 
+      isEmptyDatabase={isEmptyDatabase}
+    />;
   }
 
   // État d'erreur
@@ -326,11 +318,11 @@ export default function HomeScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header avec localisation et notifications */}
+        {/* Header avec localisation et notifications - TOUJOURS VISIBLE */}
         <View style={[styles.header, { backgroundColor: theme.background }]}>
           <View style={styles.locationContainer}>
             <Text style={[styles.locationText, { color: theme.text }]}>
-              {t('home.welcome')}
+              {t('home.welcome')} 👋
             </Text>
           </View>
           <TouchableOpacity 
@@ -342,165 +334,275 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Barre de recherche */}
-        <View style={[styles.searchSection, { backgroundColor: theme.background }]}>
-          <TouchableOpacity 
-            style={[styles.searchContainer, { 
-              backgroundColor: colorScheme === 'dark' ? theme.card : '#eee',
-              borderColor: Theme.light.borderInput
-            }]}
-            onPress={handleSearchFocus}
-          >
-            <Ionicons name="search" size={18} color={Theme.light.border} style={styles.searchIcon} />
-            <Text style={[styles.searchPlaceholder, { color: Theme.light.border }]}>
-              {t('home.searchPlaceholder')}
-            </Text>
-            <TouchableOpacity 
-              style={styles.filterButton}
-              onPress={() => router.push('/screens/homeOption/FiltersScreen')}
-            >
-              <Ionicons name="options-outline" size={22} color={Theme.light.border} />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </View>
-
-        {/* Contenu principal */}
-        <View>
-          {/* Bannière promotionnelle */}
-          <View style={[styles.promoBanner, { backgroundColor: theme.tint }]}>
-            <View style={styles.promoContent}>
-              <Text style={styles.promoTitle}>{t('home.summerSales')}</Text>
-              <Text style={styles.promoSubtitle}>{t('home.upToDiscount')}</Text>
-              <TouchableOpacity 
-                style={[styles.promoButton, { backgroundColor: 'white' }]}
-                onPress={() => router.push('/screens/homeOption/SalesScreen')}
-              >
-                <Text style={[styles.promoButtonText, { color: theme.tint }]}>
-                  {t('home.discover')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.promoImageContainer}>
-              <Image 
-                source={{ uri: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?w=300&h=300&fit=crop' }}
-                style={styles.promoImage}
-                resizeMode="cover"
-              />
-            </View>
-          </View>
-
-          {/* Section Catégories - NOUVEAU COMPOSANT */}
-          <CategorySection categories={categories || []} />
-
-          {/* Section Produits populaires */}
-          <View style={[styles.section, { backgroundColor: theme.background }]}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>
-                {t('home.popularProducts')}
-              </Text>
-              <TouchableOpacity>
-                <Text style={[styles.seeAllText, { color: theme.tint }]}>
-                  {t('home.seeAll')}
-                </Text>
-              </TouchableOpacity>
-            </View>
+        {/* CONTENU ADAPTATIF - Condition base vide */}
+        {isEmptyDatabase ? (
+          // ✅ MODE BASE VIDE - Écran d'accueil spécial
+          <View style={styles.emptyDatabaseContainer}>
             
-            <FlatList
-              data={products}
-              renderItem={renderProductItem}
-              keyExtractor={item => item.id}
-              numColumns={2}
-              scrollEnabled={false}
-              contentContainerStyle={styles.productsGrid}
-              columnWrapperStyle={styles.productsRow}
-            />
-          </View>
-
-          {/* Espace en bas pour éviter que le contenu soit caché */}
-          <View style={{ height: 80, backgroundColor: theme.background }} />
-        </View>
-      </ScrollView>
-
-      {/* Modal Spotlight - Version améliorée */}
-      <Modal
-        visible={isSearchFocused}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={handleCancelPress}
-      >
-        <View style={styles.modalContainer}>
-          <TouchableWithoutFeedback onPress={handleCancelPress}>
-            <View style={[
-              styles.overlay,
-              { 
-                backgroundColor: colorScheme === 'dark' 
-                  ? 'rgba(0,0,0,0.85)' 
-                  : 'rgba(0,0,0,0.7)',
-              }
-            ]} />
-          </TouchableWithoutFeedback>
-          
-          <View style={styles.spotlightContainer}>
-            {/* Barre de recherche spotlight */}
-            <View style={styles.spotlightHeader}>
-              <View style={[
-                styles.spotlightSearchContainer,
-                { backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF' }
-              ]}>
-                <Ionicons name="search" size={20} color={theme.tint} style={styles.spotlightSearchIcon} />
-                
-                <TextInput
-                  style={[styles.spotlightSearchInput, { color: theme.text }]}
-                  placeholder={t('home.searchPlaceholder')}
-                  placeholderTextColor={theme.tabIconDefault}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoFocus
-                  onSubmitEditing={handleSearchSubmit}
-                  returnKeyType="search"
-                />
-                
-                {/* Bouton Annuler */}
-                <TouchableOpacity onPress={handleCancelPress} style={styles.cancelButton}>
-                  <Text style={[styles.cancelText, { color: theme.tint }]}>
-                    {t('home.cancel')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            {/* Illustration vide */}
+            <View style={styles.emptyIllustration}>
+              <Ionicons name="storefront-outline" size={120} color={theme.tabIconDefault} />
             </View>
 
-            {/* Suggestions de recherche limitées */}
-            <View style={[
-              styles.suggestionsContainer,
-              { backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF' }
-            ]}>
-              {filteredSuggestions.length > 0 ? (
-                <FlatList
-                  data={filteredSuggestions}
-                  renderItem={renderSuggestionItem}
-                  keyExtractor={item => item.id}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.suggestionsList}
-                  keyboardShouldPersistTaps="handled"
+            {/* Message principal */}
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>
+              {t('home.emptyDatabase.title')}
+            </Text>
+            
+            <Text style={[styles.emptySubtitle, { color: theme.tabIconDefault }]}>
+              {t('home.emptyDatabase.subtitle')}
+            </Text>
+
+            {/* CTA selon statut utilisateur */}
+            <View style={styles.ctaContainer}>
+              {userStatus.isVerified ? (
+                // ✅ Utilisateur vérifié - Peut vendre directement
+                <CustomButton
+                  title={t('home.emptyDatabase.sellFirstItem')}
+                  onPress={() => router.push('/(tabs)/sell')}
+                  variant="primary"
+                  size="large"
+                  backgroundColor={theme.tint}
                 />
               ) : (
-                <View style={styles.noResultsContainer}>
-                  <Ionicons name="search-outline" size={48} color={theme.tabIconDefault} />
-                  <Text style={[styles.noResultsText, { color: theme.tabIconDefault }]}>
-                    {t('home.noResults')}
-                  </Text>
-                </View>
+                // ❌ Utilisateur non vérifié - Doit devenir vendeur
+                <CustomButton
+                  title={t('home.emptyDatabase.becomeSeller')}
+                  onPress={() => router.push('/screens/ProfileSettingsScreen')}
+                  variant="primary"
+                  size="large"
+                  backgroundColor={theme.tint}
+                />
               )}
             </View>
           </View>
-        </View>
-      </Modal>
+        ) : (
+          // ✅ MODE NORMAL - Base avec produits
+          <View>
+            {/* Barre de recherche - SEULEMENT EN MODE NORMAL */}
+            <View style={[styles.searchSection, { backgroundColor: theme.background }]}>
+              <TouchableOpacity 
+                style={[styles.searchContainer, { 
+                  backgroundColor: colorScheme === 'dark' ? theme.card : '#eee',
+                  borderColor: Theme.light.borderInput
+                }]}
+                onPress={handleSearchFocus}
+              >
+                <Ionicons name="search" size={18} color={Theme.light.border} style={styles.searchIcon} />
+                <Text style={[styles.searchPlaceholder, { color: Theme.light.border }]}>
+                  {t('home.searchPlaceholder')}
+                </Text>
+                <TouchableOpacity 
+                  style={styles.filterButton}
+                  onPress={() => router.push('/screens/homeOption/FiltersScreen')}
+                >
+                  <Ionicons name="options-outline" size={22} color={Theme.light.border} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
+
+            {/* Bannière promotionnelle */}
+            <View style={[styles.promoBanner, { backgroundColor: theme.tint }]}>
+              <View style={styles.promoContent}>
+                <Text style={styles.promoTitle}>{t('home.summerSales')}</Text>
+                <Text style={styles.promoSubtitle}>{t('home.upToDiscount')}</Text>
+                <TouchableOpacity 
+                  style={[styles.promoButton, { backgroundColor: 'white' }]}
+                  onPress={() => router.push('/screens/homeOption/SalesScreen')}
+                >
+                  <Text style={[styles.promoButtonText, { color: theme.tint }]}>
+                    {t('home.discover')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.promoImageContainer}>
+                <Image 
+                  source={{ uri: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?w=300&h=300&fit=crop' }}
+                  style={styles.promoImage}
+                  resizeMode="cover"
+                />
+              </View>
+            </View>
+
+            {/* Section Catégories */}
+            <CategorySection categories={categories || []} />
+
+            {/* Section Produits populaires */}
+            <View style={[styles.section, { backgroundColor: theme.background }]}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>
+                  {t('home.popularProducts')}
+                </Text>
+                <TouchableOpacity>
+                  <Text style={[styles.seeAllText, { color: theme.tint }]}>
+                    {t('home.seeAll')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              <FlatList
+                data={products}
+                renderItem={renderProductItem}
+                keyExtractor={item => item.id}
+                numColumns={2}
+                scrollEnabled={false}
+                contentContainerStyle={styles.productsGrid}
+                columnWrapperStyle={styles.productsRow}
+              />
+            </View>
+
+            {/* Espace en bas */}
+            <View style={{ height: 80, backgroundColor: theme.background }} />
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Modal Spotlight - SEULEMENT EN MODE NORMAL */}
+      {!isEmptyDatabase && (
+        <Modal
+          visible={isSearchFocused}
+          transparent
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={handleCancelPress}
+        >
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback onPress={handleCancelPress}>
+              <View style={[
+                styles.overlay,
+                { 
+                  backgroundColor: colorScheme === 'dark' 
+                    ? 'rgba(0,0,0,0.85)' 
+                    : 'rgba(0,0,0,0.7)',
+                }
+              ]} />
+            </TouchableWithoutFeedback>
+            
+            <View style={styles.spotlightContainer}>
+              <View style={styles.spotlightHeader}>
+                <View style={[
+                  styles.spotlightSearchContainer,
+                  { backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF' }
+                ]}>
+                  <Ionicons name="search" size={20} color={theme.tint} style={styles.spotlightSearchIcon} />
+                  
+                  <TextInput
+                    style={[styles.spotlightSearchInput, { color: theme.text }]}
+                    placeholder={t('home.searchPlaceholder')}
+                    placeholderTextColor={theme.tabIconDefault}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoFocus
+                    onSubmitEditing={handleSearchSubmit}
+                    returnKeyType="search"
+                  />
+                  
+                  <TouchableOpacity onPress={handleCancelPress} style={styles.cancelButton}>
+                    <Text style={[styles.cancelText, { color: theme.tint }]}>
+                      {t('home.cancel')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={[
+                styles.suggestionsContainer,
+                { backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF' }
+              ]}>
+                {filteredSuggestions.length > 0 ? (
+                  <FlatList
+                    data={filteredSuggestions}
+                    renderItem={renderSuggestionItem}
+                    keyExtractor={item => item.id}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.suggestionsList}
+                    keyboardShouldPersistTaps="handled"
+                  />
+                ) : (
+                  <View style={styles.noResultsContainer}>
+                    <Ionicons name="search-outline" size={48} color={theme.tabIconDefault} />
+                    <Text style={[styles.noResultsText, { color: theme.tabIconDefault }]}>
+                      {t('home.noResults')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
 
+// ... (les styles restent identiques)
+
 const styles = StyleSheet.create({
+  // NOUVEAUX STYLES POUR MODE VIDE
+  emptyDatabaseContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 60,
+    alignItems: 'center',
+  },
+  emptyIllustration: {
+    marginBottom: 40,
+    opacity: 0.7,
+  },
+  emptyTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 34,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 40,
+    paddingHorizontal: 20,
+  },
+  ctaContainer: {
+    width: '100%',
+    gap: 16,
+    marginBottom: 40,
+  },
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    gap: 12,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 2,
+    gap: 12,
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
+  // Styles existants...
   scrollView: {
     flex: 1,
   },
