@@ -1,12 +1,12 @@
-// components/FavoritesSkeleton.tsx
+// components/FavoritesSkeleton.tsx - VERSION AMÉLIORÉE
 import React, { useEffect } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withTiming
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -25,12 +25,12 @@ interface FavoritesSkeletonProps {
 export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) => {
   const isDark = useColorScheme() === 'dark';
   
-  // Animation simple
-  const opacity = useSharedValue(0.3);
+  // Animation renforcée
+  const opacity = useSharedValue(0.4);
 
   useEffect(() => {
     opacity.value = withRepeat(
-      withTiming(0.7, { 
+      withTiming(0.8, { 
         duration: 1000, 
         easing: Easing.ease 
       }),
@@ -45,44 +45,85 @@ export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) 
     };
   });
 
+  // VERSION FORT CONTRASTE pour le mode clair
   const AnimatedSkeletonBox = ({ 
     width, 
     height, 
     borderRadius = 6,
-    style 
+    style,
+    variant = 'default' // 'default' | 'strong'
   }: { 
     width: number | string; 
     height: number; 
     borderRadius?: number;
     style?: any;
-  }) => (
-    <Animated.View 
-      style={[
-        styles.skeletonBox, 
-        { 
-          width, 
-          height, 
-          borderRadius,
-          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
-        },
-        animatedStyle,
-        style
-      ]}
-    />
-  );
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',   // BEAUCOUP plus foncé - bien visible
+        strong: '#B8C4CE'     // Encore plus contrasté
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonBox, 
+          { 
+            width, 
+            height, 
+            borderRadius,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle,
+          style
+        ]}
+      />
+    );
+  };
 
   const renderProductSkeleton = () => (
     <View style={styles.productCard}>
-      <AnimatedSkeletonBox width="100%" height={200} borderRadius={20} />
+      {/* Image produit - Élément principal avec forte visibilité */}
+      <AnimatedSkeletonBox 
+        width="100%" 
+        height={200} 
+        borderRadius={20} 
+        variant="strong"
+      />
+      
       <View style={styles.productContent}>
-        <AnimatedSkeletonBox width={60} height={12} borderRadius={4} />
+        {/* Catégorie */}
+        <AnimatedSkeletonBox 
+          width={60} 
+          height={12} 
+          borderRadius={4} 
+          variant="default"
+        />
+        
+        {/* Titre produit */}
         <AnimatedSkeletonBox 
           width="100%" 
           height={16} 
           borderRadius={4} 
           style={{ marginVertical: 8 }} 
+          variant="default"
         />
-        <AnimatedSkeletonBox width={80} height={18} borderRadius={4} />
+        
+        {/* Prix */}
+        <AnimatedSkeletonBox 
+          width={80} 
+          height={18} 
+          borderRadius={4} 
+          variant="strong"
+        />
       </View>
     </View>
   );
@@ -105,7 +146,7 @@ export const FavoritesSkeleton: React.FC<FavoritesSkeletonProps> = ({ colors }) 
 
       {/* Grid des produits SKELETON */}
       <FlatList
-        data={[1, 2, 3, 4]} // Données factices pour le skeleton
+        data={[1, 2, 3, 4, 5, 6]} // Plus d'éléments pour mieux voir
         renderItem={renderProductSkeleton}
         keyExtractor={item => item.toString()}
         numColumns={2}
@@ -170,9 +211,11 @@ const styles = StyleSheet.create({
   productCard: {
     width: (width - 60) / 2,
     marginBottom: 20,
+    backgroundColor: 'transparent',
   },
   productContent: {
     padding: 16,
+    paddingTop: 12,
   },
   skeletonBox: {
     borderRadius: 6,

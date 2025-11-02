@@ -1,13 +1,13 @@
-// components/HomeSkeleton.tsx - VERSION PRO
+// components/HomeSkeleton.tsx - VERSION AMÉLIORÉE
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withTiming
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -26,12 +26,12 @@ interface HomeSkeletonProps {
 export const HomeSkeleton: React.FC<HomeSkeletonProps> = ({ colors }) => {
   const isDark = useColorScheme() === 'dark';
   
-  // Animation simple
-  const opacity = useSharedValue(0.3);
+  // Animation renforcée
+  const opacity = useSharedValue(0.4);
 
   useEffect(() => {
     opacity.value = withRepeat(
-      withTiming(0.7, { 
+      withTiming(0.8, { 
         duration: 1000, 
         easing: Easing.ease 
       }),
@@ -46,49 +46,84 @@ export const HomeSkeleton: React.FC<HomeSkeletonProps> = ({ colors }) => {
     };
   });
 
+  // VERSION FORT CONTRASTE pour le mode clair
   const AnimatedSkeletonBox = ({ 
     width, 
     height, 
     borderRadius = 6,
-    style 
+    style,
+    variant = 'default' // 'default' | 'strong'
   }: { 
     width: number | string; 
     height: number; 
     borderRadius?: number;
     style?: any;
-  }) => (
-    <Animated.View 
-      style={[
-        styles.skeletonBox, 
-        { 
-          width, 
-          height, 
-          borderRadius,
-          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
-        },
-        animatedStyle,
-        style
-      ]}
-    />
-  );
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',   // BEAUCOUP plus foncé - bien visible
+        strong: '#B8C4CE'     // Encore plus contrasté
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonBox, 
+          { 
+            width, 
+            height, 
+            borderRadius,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle,
+          style
+        ]}
+      />
+    );
+  };
 
   const AnimatedSkeletonCircle = ({ 
-    size 
+    size,
+    variant = 'default'
   }: { 
     size: number;
-  }) => (
-    <Animated.View 
-      style={[
-        styles.skeletonCircle, 
-        { 
-          width: size, 
-          height: size,
-          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
-        },
-        animatedStyle
-      ]}
-    />
-  );
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',
+        strong: '#B8C4CE'
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonCircle, 
+          { 
+            width: size, 
+            height: size,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle
+        ]}
+      />
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -128,7 +163,7 @@ export const HomeSkeleton: React.FC<HomeSkeletonProps> = ({ colors }) => {
 
         {/* Bannière SKELETON (car image externe) */}
         <View style={styles.promoBanner}>
-          <AnimatedSkeletonBox width="100%" height={150} borderRadius={20} />
+          <AnimatedSkeletonBox width="100%" height={150} borderRadius={20} variant="strong" />
         </View>
 
         {/* Section Catégories - Titre instantané, contenu skeleton */}
@@ -145,12 +180,13 @@ export const HomeSkeleton: React.FC<HomeSkeletonProps> = ({ colors }) => {
           >
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <View key={item} style={styles.categoryCard}>
-                <AnimatedSkeletonCircle size={48} />
+                <AnimatedSkeletonCircle size={48} variant="strong" />
                 <AnimatedSkeletonBox 
                   width={60} 
                   height={12} 
                   borderRadius={4} 
                   style={{ marginTop: 8 }} 
+                  variant="default"
                 />
               </View>
             ))}
@@ -171,16 +207,21 @@ export const HomeSkeleton: React.FC<HomeSkeletonProps> = ({ colors }) => {
           <View style={styles.productsGrid}>
             {[1, 2, 3, 4].map((item) => (
               <View key={item} style={styles.productCard}>
-                <AnimatedSkeletonBox width="100%" height={200} borderRadius={20} />
+                {/* Image produit - Élément principal */}
+                <AnimatedSkeletonBox width="100%" height={200} borderRadius={20} variant="strong" />
                 <View style={styles.productContent}>
-                  <AnimatedSkeletonBox width={60} height={12} borderRadius={4} />
+                  {/* Catégorie */}
+                  <AnimatedSkeletonBox width={60} height={12} borderRadius={4} variant="default" />
+                  {/* Titre produit */}
                   <AnimatedSkeletonBox 
                     width="100%" 
                     height={16} 
                     borderRadius={4} 
                     style={{ marginVertical: 8 }} 
+                    variant="default"
                   />
-                  <AnimatedSkeletonBox width={80} height={18} borderRadius={4} />
+                  {/* Prix */}
+                  <AnimatedSkeletonBox width={80} height={18} borderRadius={4} variant="strong" />
                 </View>
               </View>
             ))}

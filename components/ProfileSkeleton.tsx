@@ -1,12 +1,22 @@
-// components/ProfileSkeleton.tsx
-import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+// components/ProfileSkeleton.tsx - VERSION AMÉLIORÉE
+import React, { useEffect } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming
+} from 'react-native-reanimated';
 
 interface ProfileSkeletonProps {
   colors: {
     background: string;
     card: string;
     border: string;
+    text: string;
+    textSecondary: string;
+    tint: string;
   };
   refreshing?: boolean;
   onRefresh?: () => void;
@@ -17,7 +27,107 @@ export const ProfileSkeleton: React.FC<ProfileSkeletonProps> = ({
   refreshing = false,
   onRefresh,
 }) => {
-  const skeletonColor = colors.background === '#000000' ? '#2A2A2A' : '#E1E9EE';
+  const isDark = useColorScheme() === 'dark';
+  
+  // Animation renforcée
+  const opacity = useSharedValue(0.4);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(0.8, { 
+        duration: 1000, 
+        easing: Easing.ease 
+      }),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
+  // VERSION FORT CONTRASTE pour le mode clair
+  const AnimatedSkeletonBox = ({ 
+    width, 
+    height, 
+    borderRadius = 6,
+    style,
+    variant = 'default' // 'default' | 'strong'
+  }: { 
+    width: number | string; 
+    height: number; 
+    borderRadius?: number;
+    style?: any;
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',   // BEAUCOUP plus foncé - bien visible
+        strong: '#B8C4CE'     // Encore plus contrasté
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonBox, 
+          { 
+            width, 
+            height, 
+            borderRadius,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle,
+          style
+        ]}
+      />
+    );
+  };
+
+  const AnimatedSkeletonCircle = ({ 
+    size,
+    variant = 'default'
+  }: { 
+    size: number;
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',
+        strong: '#B8C4CE'
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonCircle, 
+          { 
+            width: size, 
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle
+        ]}
+      />
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -37,78 +147,64 @@ export const ProfileSkeleton: React.FC<ProfileSkeletonProps> = ({
       >
         {/* Header Skeleton */}
         <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <View style={[
-            styles.skeletonCircle, 
-            { 
-              width: 100, 
-              height: 100, 
-              backgroundColor: skeletonColor,
-              marginBottom: 16,
-            }
-          ]} />
+          {/* Avatar - Élément principal */}
+          <AnimatedSkeletonCircle size={100} variant="strong" />
           
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 150, 
-              height: 24, 
-              backgroundColor: skeletonColor,
-              marginBottom: 8,
-            }
-          ]} />
+          {/* Nom */}
+          <AnimatedSkeletonBox 
+            width={150} 
+            height={24} 
+            borderRadius={6}
+            style={{ marginBottom: 8 }}
+            variant="strong"
+          />
           
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 100, 
-              height: 16, 
-              backgroundColor: skeletonColor,
-              marginBottom: 4,
-            }
-          ]} />
+          {/* Email */}
+          <AnimatedSkeletonBox 
+            width={100} 
+            height={16} 
+            borderRadius={4}
+            style={{ marginBottom: 4 }}
+            variant="default"
+          />
           
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 120, 
-              height: 14, 
-              backgroundColor: skeletonColor,
-              marginBottom: 16,
-            }
-          ]} />
+          {/* Localisation */}
+          <AnimatedSkeletonBox 
+            width={120} 
+            height={14} 
+            borderRadius={4}
+            style={{ marginBottom: 16 }}
+            variant="default"
+          />
           
-          <View style={[
-            styles.skeletonBox, 
-            { 
-              width: 120, 
-              height: 44, 
-              backgroundColor: skeletonColor,
-              borderRadius: 12,
-            }
-          ]} />
+          {/* Bouton modifier */}
+          <AnimatedSkeletonBox 
+            width={120} 
+            height={44} 
+            borderRadius={12}
+            variant="strong"
+          />
         </View>
 
         {/* Stats Skeleton */}
         <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
           {[1, 2, 3].map((_, index) => (
             <View key={index} style={styles.statItem}>
-              <View style={[
-                styles.skeletonBox, 
-                { 
-                  width: 40, 
-                  height: 20, 
-                  backgroundColor: skeletonColor,
-                  marginBottom: 4,
-                }
-              ]} />
-              <View style={[
-                styles.skeletonBox, 
-                { 
-                  width: 60, 
-                  height: 12, 
-                  backgroundColor: skeletonColor,
-                }
-              ]} />
+              {/* Chiffre stat */}
+              <AnimatedSkeletonBox 
+                width={40} 
+                height={20} 
+                borderRadius={4}
+                style={{ marginBottom: 4 }}
+                variant="strong"
+              />
+              {/* Label stat */}
+              <AnimatedSkeletonBox 
+                width={60} 
+                height={12} 
+                borderRadius={4}
+                variant="default"
+              />
               {index < 2 && (
                 <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
               )}
@@ -130,61 +226,53 @@ export const ProfileSkeleton: React.FC<ProfileSkeletonProps> = ({
               ]}
             >
               <View style={styles.menuItemLeft}>
-                <View style={[
-                  styles.skeletonBox, 
-                  { 
-                    width: 22, 
-                    height: 22, 
-                    backgroundColor: skeletonColor,
-                    borderRadius: 4,
-                  }
-                ]} />
-                <View style={[
-                  styles.skeletonBox, 
-                  { 
-                    width: 150, 
-                    height: 16, 
-                    backgroundColor: skeletonColor,
-                  }
-                ]} />
+                {/* Icône */}
+                <AnimatedSkeletonBox 
+                  width={22} 
+                  height={22} 
+                  borderRadius={4}
+                  variant="default"
+                />
+                {/* Texte menu */}
+                <AnimatedSkeletonBox 
+                  width={150} 
+                  height={16} 
+                  borderRadius={4}
+                  variant="default"
+                />
               </View>
               
               <View style={styles.menuItemRight}>
+                {/* Badge (pour les premières items) */}
                 {index < 3 && (
-                  <View style={[
-                    styles.skeletonBox, 
-                    { 
-                      width: 20, 
-                      height: 20, 
-                      backgroundColor: skeletonColor,
-                      borderRadius: 10,
-                    }
-                  ]} />
+                  <AnimatedSkeletonCircle 
+                    size={20} 
+                    variant="strong"
+                  />
                 )}
-                <View style={[
-                  styles.skeletonBox, 
-                  { 
-                    width: 16, 
-                    height: 16, 
-                    backgroundColor: skeletonColor,
-                  }
-                ]} />
+                {/* Flèche */}
+                <AnimatedSkeletonBox 
+                  width={16} 
+                  height={16} 
+                  borderRadius={2}
+                  variant="default"
+                />
               </View>
             </View>
           ))}
         </View>
 
         {/* Version Skeleton */}
-        <View style={[
-          styles.skeletonBox, 
-          { 
-            width: 80, 
-            height: 14, 
-            backgroundColor: skeletonColor,
+        <AnimatedSkeletonBox 
+          width={80} 
+          height={14} 
+          borderRadius={4}
+          style={{ 
             alignSelf: 'center',
             marginTop: 10,
-          }
-        ]} />
+          }}
+          variant="default"
+        />
       </ScrollView>
     </View>
   );

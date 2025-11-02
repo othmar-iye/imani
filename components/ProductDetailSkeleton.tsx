@@ -1,4 +1,4 @@
-// components/ProductDetailSkeleton.tsx - VERSION PRO CORRIGÉE
+// components/ProductDetailSkeleton.tsx - VERSION HAUT CONTRASTE
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import {
@@ -34,12 +34,12 @@ interface ProductDetailSkeletonProps {
 export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ colors }) => {
   const isDark = useColorScheme() === 'dark';
   
-  // Animation simple - MÊME QUE HOME SKELETON
-  const opacity = useSharedValue(0.3);
+  // Animation avec un peu plus d'amplitude pour mieux voir
+  const opacity = useSharedValue(0.4);
 
   useEffect(() => {
     opacity.value = withRepeat(
-      withTiming(0.7, { 
+      withTiming(0.8, { 
         duration: 1000, 
         easing: Easing.ease 
       }),
@@ -54,32 +54,49 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
     };
   });
 
-  // CORRECTION : Même signature que HomeSkeleton
+  // VERSION FORT CONTRASTE pour le mode clair
   const AnimatedSkeletonBox = ({ 
     width, 
     height, 
     borderRadius = 6,
-    style 
+    style,
+    variant = 'default' // 'default' | 'strong'
   }: { 
     width: number | string; 
     height: number; 
     borderRadius?: number;
     style?: any;
-  }) => (
-    <Animated.View 
-      style={[
-        styles.skeletonBox, 
-        { 
-          width, 
-          height, 
-          borderRadius,
-          backgroundColor: isDark ? '#2A2A2A' : '#E1E9EE',
-        },
-        animatedStyle,
-        style
-      ]}
-    />
-  );
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',   // BEAUCOUP plus foncé - bien visible
+        strong: '#B8C4CE'     // Encore plus contrasté
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonBox, 
+          { 
+            width, 
+            height, 
+            borderRadius,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle,
+          style
+        ]}
+      />
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -101,9 +118,14 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
         </View>
       </View>
 
-      {/* Carousel SKELETON (car images externes) */}
+      {/* Carousel SKELETON - Éléments grands avec forte visibilité */}
       <View style={styles.carouselContainer}>
-        <AnimatedSkeletonBox width={width} height={height * 0.5} borderRadius={0} />
+        <AnimatedSkeletonBox 
+          width={width} 
+          height={height * 0.5} 
+          borderRadius={0} 
+          variant="strong"
+        />
         <View style={styles.indicatorsContainer}>
           <View style={styles.indicators}>
             {[1, 2, 3].map((_, index) => (
@@ -112,6 +134,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
                 width={24} 
                 height={3} 
                 borderRadius={2} 
+                variant="strong"
               />
             ))}
           </View>
@@ -133,6 +156,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
                 height={70} 
                 borderRadius={8}
                 style={{ marginRight: 10 }}
+                variant="strong"
               />
             ))}
           </View>
@@ -144,7 +168,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
         style={[styles.content, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* En-tête produit - Titres instantanés, données skeleton */}
+        {/* En-tête produit */}
         <View style={[
           styles.productHeader, 
           { 
@@ -160,26 +184,27 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
               height={14} 
               borderRadius={4} 
               style={{ marginTop: 8 }} 
+              variant="default"
             />
           </View>
           
           <View style={styles.priceSection}>
-            <AnimatedSkeletonBox width={100} height={26} borderRadius={4} />
-            <AnimatedSkeletonBox width={60} height={14} borderRadius={4} style={{ marginTop: 4 }} />
+            <AnimatedSkeletonBox width={100} height={26} borderRadius={4} variant="strong" />
+            <AnimatedSkeletonBox width={60} height={14} borderRadius={4} style={{ marginTop: 4 }} variant="default" />
           </View>
         </View>
 
-        {/* Description - Titre instantané, contenu skeleton */}
+        {/* Description */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Description
           </Text>
-          <AnimatedSkeletonBox width={width - 40} height={16} borderRadius={4} style={{ marginTop: 12 }} />
-          <AnimatedSkeletonBox width={(width - 40) * 0.9} height={16} borderRadius={4} style={{ marginTop: 8 }} />
-          <AnimatedSkeletonBox width={(width - 40) * 0.7} height={16} borderRadius={4} style={{ marginTop: 8 }} />
+          <AnimatedSkeletonBox width={width - 40} height={16} borderRadius={4} style={{ marginTop: 12 }} variant="default" />
+          <AnimatedSkeletonBox width={(width - 40) * 0.9} height={16} borderRadius={4} style={{ marginTop: 8 }} variant="default" />
+          <AnimatedSkeletonBox width={(width - 40) * 0.7} height={16} borderRadius={4} style={{ marginTop: 8 }} variant="default" />
         </View>
 
-        {/* Tags d'information - Titres instantanés, contenu skeleton */}
+        {/* Tags d'information */}
         <View style={styles.tagsContainer}>
           {[1, 2, 3, 4].map((_, index) => (
             <View 
@@ -187,33 +212,33 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
               style={[styles.tag, { backgroundColor: colors.card }]}
             >
               <Ionicons name="information-circle-outline" size={16} color={colors.tint} />
-              <AnimatedSkeletonBox width={120} height={14} borderRadius={4} />
+              <AnimatedSkeletonBox width={120} height={14} borderRadius={4} variant="default" />
             </View>
           ))}
         </View>
 
-        {/* Vendeur - Titre instantané, données skeleton */}
+        {/* Vendeur */}
         <View style={[styles.sellerCard, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Informations vendeur
           </Text>
           <View style={styles.sellerInfo}>
-            <AnimatedSkeletonBox width={50} height={50} borderRadius={25} />
+            <AnimatedSkeletonBox width={50} height={50} borderRadius={25} variant="strong" />
             <View style={styles.sellerDetails}>
-              <AnimatedSkeletonBox width={120} height={16} borderRadius={4} />
-              <AnimatedSkeletonBox width={80} height={14} borderRadius={4} style={{ marginTop: 4 }} />
+              <AnimatedSkeletonBox width={120} height={16} borderRadius={4} variant="default" />
+              <AnimatedSkeletonBox width={80} height={14} borderRadius={4} style={{ marginTop: 4 }} variant="default" />
             </View>
           </View>
           <View style={styles.sellerMetrics}>
             <View style={styles.metric}>
-              <AnimatedSkeletonBox width={40} height={16} borderRadius={4} />
+              <AnimatedSkeletonBox width={40} height={16} borderRadius={4} variant="default" />
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
                 Taux de réponse
               </Text>
             </View>
             <View style={[styles.metricDivider, { backgroundColor: colors.border }]} />
             <View style={styles.metric}>
-              <AnimatedSkeletonBox width={40} height={16} borderRadius={4} />
+              <AnimatedSkeletonBox width={40} height={16} borderRadius={4} variant="default" />
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
                 Temps de réponse
               </Text>
