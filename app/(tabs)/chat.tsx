@@ -233,9 +233,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     marginBottom: 8,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8,
-    overflow: 'hidden',
+    
   },
   headerTop: {
     flexDirection: 'row',

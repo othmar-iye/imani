@@ -17,6 +17,7 @@ export interface Product {
   seller: {
     id: string;
     name: string;
+    photo: string;
     rating: number;
     verified: boolean;
     responseRate: string;
@@ -44,7 +45,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-15',
     seller: {
       id: 'SEL_0042',
-      name: 'Sports Pro',
+      name: 'Dave P.',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       rating: 4.8,
       verified: true,
       responseRate: '95%',
@@ -74,7 +76,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-10',
     seller: {
       id: 'SEL_0127',
-      name: 'Tech Store',
+      name: 'Ben',
+      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
       rating: 4.9,
       verified: true,
       responseRate: '98%',
@@ -103,13 +106,14 @@ export const featuredProducts: Product[] = [
     views: 203,
     createdAt: '2024-12-20', 
     seller: {
-      id: 'SEL_0089',
-      name: 'Apple Certified',
-      rating: 4.7,
+      id: 'Bem', // Même vendeur que iPhone 14 Pro
+      name: 'Tech Store',
+      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      rating: 4.9,
       verified: true,
-      responseRate: '96%',
-      responseTime: '2h',
-      itemsSold: 89
+      responseRate: '98%',
+      responseTime: '30min',
+      itemsSold: 127
     },
     images: [
       'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&h=400&fit=crop',
@@ -134,7 +138,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-05', 
     seller: {
       id: 'SEL_0056',
-      name: 'Gadget Pro',
+      name: 'Mariam I',
+      photo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
       rating: 4.6,
       verified: true,
       responseRate: '92%',
@@ -164,7 +169,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2024-11-15',
     seller: {
       id: 'SEL_0073',
-      name: 'Audio Expert',
+      name: 'Lyly Kal',
+      photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
       rating: 4.8,
       verified: true,
       responseRate: '94%',
@@ -193,13 +199,14 @@ export const featuredProducts: Product[] = [
     views: 95,
     createdAt: '2025-01-12',
     seller: {
-      id: 'SEL_0034',
-      name: 'Outdoor Gear',
-      rating: 4.5,
+      id: 'SEL_0042', // Même vendeur que Nike Air Max
+      name: 'Dave P.',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      rating: 4.8,
       verified: true,
-      responseRate: '90%',
-      responseTime: '4h',
-      itemsSold: 34
+      responseRate: '95%',
+      responseTime: '1h',
+      itemsSold: 42
     },
     images: [
       'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
@@ -224,7 +231,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2024-10-25',
     seller: {
       id: 'SEL_0023',
-      name: 'Photo Pro',
+      name: 'Jules Beco',
+      photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
       rating: 4.9,
       verified: true,
       responseRate: '97%',
@@ -254,7 +262,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-08',
     seller: {
       id: 'SEL_0018',
-      name: 'Gaming Setup',
+      name: 'Luc le bon',
+      photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
       rating: 4.4,
       verified: true,
       responseRate: '88%',
@@ -283,13 +292,14 @@ export const featuredProducts: Product[] = [
     views: 267,
     createdAt: '2025-01-18',
     seller: {
-      id: 'SEL_0095',
-      name: 'Game Center',
-      rating: 4.7,
+      id: 'SEL_0018', // Même vendeur que Bureau Gaming
+      name: 'Luc le bon',
+      photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
+      rating: 4.4,
       verified: true,
-      responseRate: '96%',
-      responseTime: '1h',
-      itemsSold: 95
+      responseRate: '88%',
+      responseTime: '5h',
+      itemsSold: 18
     },
     images: [
       'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400&h=400&fit=crop',
@@ -315,7 +325,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2024-12-05',
     seller: {
       id: 'SEL_0067',
-      name: 'Maison & Design',
+      name: 'Robert M',
+      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
       rating: 4.6,
       verified: true,
       responseRate: '93%',
@@ -347,7 +358,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-14',
     seller: {
       id: 'SEL_0048',
-      name: 'Cycling Pro',
+      name: 'Othmar IYE',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       rating: 4.8,
       verified: true,
       responseRate: '95%',
@@ -378,7 +390,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-20',
     seller: {
       id: 'SEL_0052',
-      name: 'Electro Home',
+      name: 'Deborah KAT',
+      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
       rating: 4.5,
       verified: true,
       responseRate: '91%',
@@ -408,13 +421,14 @@ export const featuredProducts: Product[] = [
     views: 76,
     createdAt: '2024-11-30',
     seller: {
-      id: 'SEL_0039',
-      name: 'Déco Tradition',
-      rating: 4.4,
+      id: 'SEL_0067', // Même vendeur que Canapé
+      name: 'Robert M',
+      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+      rating: 4.6,
       verified: true,
-      responseRate: '89%',
-      responseTime: '4h',
-      itemsSold: 39
+      responseRate: '93%',
+      responseTime: '2h',
+      itemsSold: 67
     },
     images: [
       'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&h=400&fit=crop',
@@ -437,13 +451,14 @@ export const featuredProducts: Product[] = [
     views: 223,
     createdAt: '2025-01-16',
     seller: {
-      id: 'SEL_0081',
-      name: 'Drone Expert',
+      id: 'SEL_0023', // Même vendeur que Appareil Photo
+      name: 'Jules Beco',
+      photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
       rating: 4.9,
       verified: true,
       responseRate: '97%',
       responseTime: '45min',
-      itemsSold: 81
+      itemsSold: 23
     },
     images: [
       'https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=400&h=400&fit=crop',
@@ -469,7 +484,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2025-01-19',
     seller: {
       id: 'SEL_0059',
-      name: 'Music Store',
+      name: 'Oprah K',
+      photo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
       rating: 4.7,
       verified: true,
       responseRate: '94%',
@@ -496,13 +512,14 @@ export const featuredProducts: Product[] = [
     views: 178,
     createdAt: '2025-01-17',
     seller: {
-      id: 'SEL_0074',
-      name: 'Electro Vision',
-      rating: 4.6,
+      id: 'SEL_0052', // Même vendeur que Machine à Café
+      name: 'Deborah KAT',
+      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      rating: 4.5,
       verified: true,
-      responseRate: '93%',
+      responseRate: '91%',
       responseTime: '3h',
-      itemsSold: 74
+      itemsSold: 52
     },
     images: [
       'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop',
@@ -527,13 +544,14 @@ export const featuredProducts: Product[] = [
     views: 156,
     createdAt: '2025-01-21',
     seller: {
-      id: 'SEL_0045',
-      name: 'Urban Mobility',
-      rating: 4.5,
+      id: 'SEL_0048', // Même vendeur que Vélo de Route
+      name: 'Othmar IYE',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      rating: 4.8,
       verified: true,
-      responseRate: '92%',
-      responseTime: '2h',
-      itemsSold: 45
+      responseRate: '95%',
+      responseTime: '1h',
+      itemsSold: 48
     },
     images: [
       'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&h=400&fit=crop',
@@ -559,7 +577,8 @@ export const featuredProducts: Product[] = [
     createdAt: '2024-10-15',
     seller: {
       id: 'SEL_0012',
-      name: 'Luxury Watches',
+      name: 'Diane Maya',
+      photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
       rating: 4.9,
       verified: true,
       responseRate: '98%',
