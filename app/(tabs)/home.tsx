@@ -28,6 +28,9 @@ import { featuredProducts, Product } from '@/src/data/products';
 // Import du composant SuggestionItem
 import SuggestionItem from '@/components/SuggestionItem';
 
+// Import du composant CategorySection
+import CategorySection from '@/components/CategorySection';
+
 // Import des categories
 import { categories as categoriesData } from '@/src/data/categories';
 
@@ -127,14 +130,21 @@ const ProductCard = ({ product }: { product: Product }) => {
   );
 };
 
-// Fonction pour générer les suggestions de recherche à partir des produits
-const generateSearchSuggestions = (products: Product[]): SearchSuggestion[] => {
-  return products.map(product => ({
+// SOLUTION 1 : Fonction pour générer des suggestions limitées et aléatoires
+const generateSearchSuggestions = (products: Product[], limit: number = 10): SearchSuggestion[] => {
+  // Si pas de produits, retourner tableau vide
+  if (!products || products.length === 0) return [];
+  
+  // Mélanger le tableau et prendre les premiers 'limit' éléments
+  const shuffled = [...products].sort(() => 0.5 - Math.random());
+  const randomProducts = shuffled.slice(0, limit);
+  
+  return randomProducts.map(product => ({
     id: product.id,
-    type: 'recent',
+    type: 'trending', // Type unique pour toutes les suggestions
     title: product.name,
     subtitle: product.category,
-    icon: 'time-outline'
+    icon: 'trending-up-outline'
   }));
 };
 
@@ -147,7 +157,7 @@ const fetchFeaturedProducts = async (): Promise<Product[]> => {
   });
 };
 
-// CORRECTION : Fonction adaptée pour l'ancien format des catégories
+// Fonction adaptée pour l'ancien format des catégories
 const fetchCategories = async (): Promise<Category[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -155,7 +165,7 @@ const fetchCategories = async (): Promise<Category[]> => {
       const allCategory: Category = {
         id: 'all',
         name: 'Tous',
-        icon: 'apps-outline', // ou une autre icône appropriée
+        icon: 'apps-outline',
         subCategories: []
       };
       
@@ -193,15 +203,18 @@ export default function HomeScreen() {
     queryFn: fetchCategories,
   });
 
-  // Génération des suggestions de recherche à partir des produits
-  const searchSuggestions = products ? generateSearchSuggestions(products) : [];
+  // SOLUTION 1 : Génération des suggestions limitées à 10 produits aléatoires
+  const searchSuggestions = React.useMemo(() => {
+    if (!products) return [];
+    return generateSearchSuggestions(products, 10);
+  }, [products]);
 
   // Gestion simple et fiable de la recherche
   const handleSearchFocus = () => {
     setIsSearchFocused(true);
   };
 
-  // CORRECTION : Fonction closeSearch améliorée
+  // Fonction closeSearch améliorée
   const closeSearch = () => {
     setIsSearchFocused(false);
     setSearchQuery('');
@@ -211,7 +224,7 @@ export default function HomeScreen() {
     }, 100);
   };
 
-  // CORRECTION : Fonction handleSearchSubmit améliorée
+  // Fonction handleSearchSubmit améliorée
   const handleSearchSubmit = () => {
     if (searchQuery.trim()) {
       console.log('Recherche lancée:', searchQuery);
@@ -232,7 +245,7 @@ export default function HomeScreen() {
     }
   };
 
-  // CORRECTION : Fonction handleSuggestionPress améliorée
+  // Fonction handleSuggestionPress améliorée
   const handleSuggestionPress = (suggestion: SearchSuggestion) => {
     // Fermer IMMÉDIATEMENT la modal sans attendre
     setIsSearchFocused(false);
@@ -246,7 +259,7 @@ export default function HomeScreen() {
     }, 10);
   };
 
-  // CORRECTION : Fonction pour le bouton Annuler
+  // Fonction pour le bouton Annuler
   const handleCancelPress = () => {
     setIsSearchFocused(false);
     setSearchQuery('');
@@ -275,62 +288,6 @@ export default function HomeScreen() {
   const renderProductItem = ({ item }: { item: Product }) => (
     <ProductCard product={item} />
   );
-
-  // Dans HomeScreen.tsx - MODIFICATION DE LA FONCTION renderCategoryItem
-    const renderCategoryItem = ({ item, index }: { item: Category; index: number }) => {
-        // Mapper les icônes string vers les noms d'icônes Ionicons
-        const getIconName = (icon: string): keyof typeof Ionicons.glyphMap => {
-            const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-            'apps-outline': 'apps-outline',
-            'shirt': 'shirt-outline',
-            'footsteps': 'footsteps-outline',
-            'glasses': 'glasses-outline',
-            'ribbon': 'ribbon-outline',
-            'sparkles': 'sparkles-outline',
-            'home': 'home-outline',
-            'ellipsis-horizontal': 'ellipsis-horizontal-outline'
-            };
-            return iconMap[icon] || icon;
-        };
-
-        return (
-            <TouchableOpacity 
-            style={[
-                styles.categoryCard,
-                { backgroundColor: theme.card },
-            ]}
-            onPress={() => {
-                // Navigation vers CategoryScreen avec le nom de la catégorie
-                router.push({
-                pathname: '/screens/homeOption/CategoryScreen',
-                params: { 
-                    categoryName: item.name,
-                    categoryId: item.id
-                }
-                });
-            }}
-            >
-            <View style={[
-                styles.categoryIcon,
-                { 
-                backgroundColor: colorScheme === 'dark' ? '#ffffff' : '#F7F7F7',
-                }
-            ]}>
-                <Ionicons 
-                name={getIconName(item.icon)} 
-                size={20} 
-                color={theme.tint} 
-                />
-            </View>
-            <Text style={[
-                styles.categoryName,
-                { color: theme.text }
-            ]}>
-                {t(`categories.${item.name}`)}
-            </Text>
-            </TouchableOpacity>
-        );
-    };
 
   // État de chargement - AVEC SKELETON PARTIEL
   if (productsLoading || categoriesLoading) {
@@ -432,22 +389,8 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Section Catégories */}
-          <View style={[styles.section, { backgroundColor: theme.background }]}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>
-                {t('home.categories')}
-              </Text>
-            </View>
-            <FlatList
-              data={categories}
-              renderItem={renderCategoryItem}
-              keyExtractor={item => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesList}
-            />
-          </View>
+          {/* Section Catégories - NOUVEAU COMPOSANT */}
+          <CategorySection categories={categories || []} />
 
           {/* Section Produits populaires */}
           <View style={[styles.section, { backgroundColor: theme.background }]}>
@@ -518,7 +461,7 @@ export default function HomeScreen() {
                   returnKeyType="search"
                 />
                 
-                {/* CORRECTION : Utiliser handleCancelPress pour le bouton Annuler */}
+                {/* Bouton Annuler */}
                 <TouchableOpacity onPress={handleCancelPress} style={styles.cancelButton}>
                   <Text style={[styles.cancelText, { color: theme.tint }]}>
                     {t('home.cancel')}
@@ -527,19 +470,28 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Suggestions de recherche */}
+            {/* Suggestions de recherche limitées */}
             <View style={[
               styles.suggestionsContainer,
               { backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF' }
             ]}>
-              <FlatList
-                data={filteredSuggestions}
-                renderItem={renderSuggestionItem}
-                keyExtractor={item => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.suggestionsList}
-                keyboardShouldPersistTaps="handled"
-              />
+              {filteredSuggestions.length > 0 ? (
+                <FlatList
+                  data={filteredSuggestions}
+                  renderItem={renderSuggestionItem}
+                  keyExtractor={item => item.id}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.suggestionsList}
+                  keyboardShouldPersistTaps="handled"
+                />
+              ) : (
+                <View style={styles.noResultsContainer}>
+                  <Ionicons name="search-outline" size={48} color={theme.tabIconDefault} />
+                  <Text style={[styles.noResultsText, { color: theme.tabIconDefault }]}>
+                    {t('home.noResults')}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -658,6 +610,18 @@ const styles = StyleSheet.create({
   suggestionsList: {
     paddingVertical: 8,
   },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  noResultsText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 16,
+    textAlign: 'center',
+  },
   promoBanner: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -723,36 +687,6 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 15,
     fontWeight: '600',
-  },
-  categoriesList: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  categoryCard: {
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    minWidth: 80,
-    elevation: 8,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
-  categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  categoryName: {
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   productsGrid: {
     paddingHorizontal: 10,
