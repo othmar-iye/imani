@@ -1,13 +1,14 @@
 // components/ImageGalleryPreview.tsx
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface SelectedImage {
@@ -32,10 +33,12 @@ export const ImageGalleryPreview: React.FC<ImageGalleryPreviewProps> = ({
   onPrevImage,
   colors
 }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={[styles.section, { backgroundColor: colors.card }]}>
       <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Aperçu des photos ({images.length}/5)
+        {t('sell.photosPreview', 'Aperçu des photos')} ({images.length}/5)
       </Text>
       
       {/* Image principale avec navigation */}
@@ -115,7 +118,7 @@ export const ImageGalleryPreview: React.FC<ImageGalleryPreviewProps> = ({
       <View style={[styles.infoBox, { backgroundColor: colors.background }]}>
         <Ionicons name="information-circle-outline" size={20} color={colors.tint} />
         <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-          Ces photos seront affichées dans votre annonce. La première image sera la photo principale.
+          {t('sell.photosInfo', 'Ces photos seront affichées dans votre annonce. La première image sera la photo principale.')}
         </Text>
       </View>
     </View>

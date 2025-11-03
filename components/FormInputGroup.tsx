@@ -1,11 +1,13 @@
 // components/FormInputGroup.tsx
 import React from 'react';
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
+
+import { useTranslation } from 'react-i18next';
 
 interface FormInputGroupProps {
   label: string;
@@ -20,6 +22,7 @@ interface FormInputGroupProps {
 }
 
 export const FormInputGroup: React.FC<FormInputGroupProps> = ({
+  
   label,
   value,
   onChangeText,
@@ -30,6 +33,8 @@ export const FormInputGroup: React.FC<FormInputGroupProps> = ({
   colors,
   characterCount = false
 }) => {
+
+  const { t } = useTranslation();
   return (
     <View style={styles.inputGroup}>
       <View style={styles.labelContainer}>
@@ -58,7 +63,7 @@ export const FormInputGroup: React.FC<FormInputGroupProps> = ({
       />
       {characterCount && maxLength && (
         <Text style={[styles.charCount, { color: colors.textSecondary }]}>
-          {value.length}/{maxLength} caractères
+          {value.length}/{maxLength} {t('sell.characters', 'caractères')}
         </Text>
       )}
     </View>

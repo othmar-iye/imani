@@ -2,13 +2,14 @@
 import { Category } from '@/src/data/categories';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-    FlatList,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface CategorySelectorModalProps {
@@ -26,6 +27,8 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
   onSelectCategory,
   colors
 }) => {
+  const { t } = useTranslation();
+
   const renderCategoryItem = ({ item }: { item: Category }) => (
     <TouchableOpacity
       style={[styles.modalItem, { borderBottomColor: colors.border }]}
@@ -46,7 +49,7 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
       <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
         <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
-            Choisir une catégorie
+            {t('sell.chooseCategory', 'Choisir une catégorie')}
           </Text>
           <TouchableOpacity onPress={onClose}>
             <Ionicons name="close" size={24} color={colors.text} />
