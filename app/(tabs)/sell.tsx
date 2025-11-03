@@ -11,9 +11,7 @@ import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
-    FlatList,
-    Image,
-    Modal,
+    Animated,
     StatusBar,
     StyleSheet,
     Text,
@@ -21,6 +19,13 @@ import {
     useColorScheme,
     View
 } from 'react-native';
+
+// Import des composants
+import { EmptyPhotoState } from '@/components/EmptyPhotoState';
+import { ExitConfirmationModal } from '@/components/ExitConfirmationModal';
+import { ImageGridComponent } from '@/components/ImageGridComponent';
+import { ImagePickerModal } from '@/components/ImagePickerModal';
+import { SellerStatusCard } from '@/components/SellerStatusCard';
 
 interface SelectedImage {
     uri: string;
@@ -97,7 +102,12 @@ export default function SellScreen() {
 
     const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
     const [showImagePicker, setShowImagePicker] = useState(false);
-    const [isNavigating, setIsNavigating] = useState(false); // ← NOUVEL ÉTAT
+    const [isNavigating, setIsNavigating] = useState(false);
+    const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+    
+    // Animation pour la modal de confirmation
+    const slideAnim = useState(new Animated.Value(300))[0];
+    const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
         navigation.setOptions({
@@ -111,12 +121,79 @@ export default function SellScreen() {
         };
     }, [navigation]);
 
-    // Fonction de retour améliorée
-    const handleBack = () => {
-        if (navigation.canGoBack()) {
-            router.back();
+    // Animation pour l'affichage de la modal
+    useEffect(() => {
+        if (showExitConfirmation) {
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
         } else {
-            router.replace('/(tabs)/home');
+            // Reset les animations quand la modal se ferme
+            slideAnim.setValue(300);
+            fadeAnim.setValue(0);
+        }
+    }, [showExitConfirmation]);
+
+    // Fonction de retour avec confirmation
+    const handleBack = () => {
+        if (selectedImages.length > 0) {
+            // Afficher la boîte de dialogue de confirmation
+            setShowExitConfirmation(true);
+        } else {
+            // Pas d'images, retour direct
+            if (navigation.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/(tabs)/home');
+            }
+        }
+    };
+
+    // Fonction pour fermer la modal avec animation
+    const closeExitModal = () => {
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: 300,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            setShowExitConfirmation(false);
+        });
+    };
+
+    // Fonction pour gérer les actions de la boîte de dialogue
+    const handleExitAction = (action: 'discard' | 'cancel') => {
+        closeExitModal();
+        
+        switch (action) {
+            case 'discard':
+                // Supprimer les photos et quitter
+                setSelectedImages([]);
+                if (navigation.canGoBack()) {
+                    router.back();
+                } else {
+                    router.replace('/(tabs)/home');
+                }
+                break;
+                
+            case 'cancel':
+                // Ne rien faire, juste fermer la boîte de dialogue
+                break;
         }
     };
 
@@ -272,7 +349,8 @@ export default function SellScreen() {
                 title: t('loginRequired', 'Connexion requise'),
                 message: t('loginToSell', 'Veuillez vous connecter pour vendre des articles.'),
                 action: t('login', 'Se connecter'),
-                onPress: () => router.push('/(auth)/login')
+                onPress: () => router.push('/(auth)/login'),
+                iconName: 'person-circle-outline' as const
             };
         }
 
@@ -282,7 +360,8 @@ export default function SellScreen() {
                 title: t('becomeSeller', 'Devenir vendeur'),
                 message: t('verificationInfo', 'La vérification de votre identité est nécessaire pour devenir vendeur sur {{appName}}.', { appName: 'Imani' }),
                 action: t('becomeSeller', 'Devenir vendeur'),
-                onPress: () => router.push('/screens/ProfileSettingsScreen')
+                onPress: () => router.push('/screens/ProfileSettingsScreen'),
+                iconName: 'person-add-outline' as const
             };
         }
 
@@ -293,39 +372,27 @@ export default function SellScreen() {
                     title: t('verificationInProgress', 'Vérification en cours'),
                     message: t('verificationTimeMessage', 'Votre demande de vérification est en cours de traitement. Cela peut prendre 24 à 48 heures. Vous serez notifié dès que votre profil sera vérifié.'),
                     action: t('checkStatus', 'Vérifier le statut'),
-                    onPress: () => router.push('/screens/ProfileSettingsScreen')
+                    onPress: () => router.push('/screens/ProfileSettingsScreen'),
+                    iconName: 'time-outline' as const
                 };
             case 'rejected':
                 return {
                     title: t('verificationRejected', 'Profil rejeté'),
                     message: t('verificationRejectedMessage', 'Votre demande de vérification a été rejetée. Veuillez vérifier vos documents et soumettre à nouveau votre profil.'),
                     action: t('resubmitProfile', 'Soumettre à nouveau'),
-                    onPress: () => router.push('/screens/ProfileSettingsScreen')
+                    onPress: () => router.push('/screens/ProfileSettingsScreen'),
+                    iconName: 'close-circle-outline' as const
                 };
             default:
                 return {
                     title: t('becomeSeller', 'Devenir vendeur'),
                     message: t('verificationInfo', 'La vérification de votre identité est nécessaire pour devenir vendeur sur {{appName}}.', { appName: 'Imani' }),
                     action: t('becomeSeller', 'Devenir vendeur'),
-                    onPress: () => router.push('/screens/ProfileSettingsScreen')
+                    onPress: () => router.push('/screens/ProfileSettingsScreen'),
+                    iconName: 'alert-circle-outline' as const
                 };
         }
     };
-
-    const renderImageItem = ({ item, index }: { item: SelectedImage; index: number }) => (
-        <View style={styles.imageContainer}>
-            <Image source={{ uri: item.uri }} style={styles.selectedImage} />
-            <TouchableOpacity 
-                style={[styles.removeButton, { backgroundColor: colors.tint }]}
-                onPress={() => removeImage(item.id)}
-            >
-                <Ionicons name="close" size={16} color="#FFF" />
-            </TouchableOpacity>
-            <View style={[styles.imageNumber, { backgroundColor: colors.tint }]}>
-                <Text style={styles.imageNumberText}>{index + 1}</Text>
-            </View>
-        </View>
-    );
 
     // État de chargement
     if (isLoadingStatus) {
@@ -345,12 +412,11 @@ export default function SellScreen() {
 
                 <View style={styles.content}>
                     <View style={[styles.photoSection, { backgroundColor: colors.card }]}>
-                        <View style={[styles.addPhotoButton, { borderColor: colors.border }]}>
-                            <Ionicons name="camera" size={48} color={colors.textSecondary} />
-                            <Text style={[styles.addPhotoText, { color: colors.textSecondary }]}>
-                                {t('loading', 'Chargement...')}
-                            </Text>
-                        </View>
+                        <EmptyPhotoState 
+                            onAddPhoto={() => {}}
+                            colors={colors}
+                            disabled={true}
+                        />
                     </View>
                 </View>
             </View>
@@ -374,23 +440,14 @@ export default function SellScreen() {
                 </View>
 
                 <View style={styles.content}>
-                    <View style={[styles.statusCard, { backgroundColor: colors.card }]}>
-                        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
-                        <Text style={[styles.statusTitle, { color: colors.text }]}>
-                            {t('error', 'Erreur')}
-                        </Text>
-                        <Text style={[styles.statusMessage, { color: colors.textSecondary }]}>
-                            {t('errorLoadingProfile', 'Erreur lors du chargement du profil')}
-                        </Text>
-                        <TouchableOpacity 
-                            style={[styles.actionButton, { backgroundColor: colors.tint }]}
-                            onPress={() => refetch()}
-                        >
-                            <Text style={styles.actionButtonText}>
-                                {t('retry', 'Réessayer')}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    <SellerStatusCard
+                        title={t('error', 'Erreur')}
+                        message={t('errorLoadingProfile', 'Erreur lors du chargement du profil')}
+                        action={t('retry', 'Réessayer')}
+                        onPress={() => refetch()}
+                        iconName="alert-circle-outline"
+                        colors={colors}
+                    />
                 </View>
             </View>
         );
@@ -415,30 +472,14 @@ export default function SellScreen() {
                 </View>
 
                 <View style={styles.content}>
-                    <View style={[styles.statusCard, { backgroundColor: colors.card }]}>
-                        <Ionicons 
-                            name={
-                                sellerStatus?.status === 'not_seller' ? 'person-add-outline' :
-                                sellerStatus?.status === 'pending_review' ? 'time-outline' :
-                                sellerStatus?.status === 'rejected' ? 'close-circle-outline' :
-                                'alert-circle-outline'
-                            } 
-                            size={48} 
-                            color={colors.textSecondary} 
-                        />
-                        <Text style={[styles.statusTitle, { color: colors.text }]}>
-                            {statusMessage.title}
-                        </Text>
-                        <Text style={[styles.statusMessage, { color: colors.textSecondary }]}>
-                            {statusMessage.message}
-                        </Text>
-                        <TouchableOpacity 
-                            style={[styles.actionButton, { backgroundColor: colors.tint }]}
-                            onPress={statusMessage.onPress}
-                        >
-                            <Text style={styles.actionButtonText}>{statusMessage.action}</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <SellerStatusCard
+                        title={statusMessage.title}
+                        message={statusMessage.message}
+                        action={statusMessage.action}
+                        onPress={statusMessage.onPress}
+                        iconName={statusMessage.iconName}
+                        colors={colors}
+                    />
                 </View>
             </View>
         );
@@ -453,7 +494,7 @@ export default function SellScreen() {
                 <TouchableOpacity 
                     style={styles.closeButton}
                     onPress={handleBack}
-                    disabled={isNavigating} // Désactiver pendant la navigation
+                    disabled={isNavigating}
                 >
                     <Ionicons name="close" size={26} color={colors.tint} />
                 </TouchableOpacity>
@@ -470,44 +511,20 @@ export default function SellScreen() {
                     </Text>
                     
                     {selectedImages.length === 0 ? (
-                        <TouchableOpacity 
-                            style={[styles.addPhotoButton, { borderColor: colors.border }]}
-                            onPress={openImagePickerDirect}
-                            disabled={isNavigating} // Désactiver pendant la navigation
-                        >
-                            <Ionicons name="camera" size={48} color={colors.textSecondary} />
-                            <Text style={[styles.addPhotoText, { color: colors.textSecondary }]}>
-                                {t('addPhoto', 'Ajouter une photo')}
-                            </Text>
-                            <Text style={[styles.addPhotoSubtext, { color: colors.textSecondary }]}>
-                                {t('maxPhotos', 'Maximum 5 photos')}
-                            </Text>
-                        </TouchableOpacity>
+                        <EmptyPhotoState 
+                            onAddPhoto={openImagePickerDirect}
+                            colors={colors}
+                            disabled={isNavigating}
+                        />
                     ) : (
-                        <View style={styles.imagesGrid}>
-                            <FlatList
-                                data={selectedImages}
-                                renderItem={renderImageItem}
-                                keyExtractor={item => item.id}
-                                numColumns={3}
-                                scrollEnabled={false}
-                                contentContainerStyle={styles.imagesGridContent}
-                                columnWrapperStyle={styles.imagesRow}
-                            />
-                            
-                            {selectedImages.length < 5 && (
-                                <TouchableOpacity 
-                                    style={[styles.addMoreButton, { borderColor: colors.border }]}
-                                    onPress={openImagePickerDirect}
-                                    disabled={isNavigating} // Désactiver pendant la navigation
-                                >
-                                    <Ionicons name="add" size={24} color={colors.textSecondary} />
-                                    <Text style={[styles.addMoreText, { color: colors.textSecondary }]}>
-                                        {t('add', 'Ajouter')}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
+                        <ImageGridComponent
+                            images={selectedImages}
+                            onRemoveImage={removeImage}
+                            onAddMore={openImagePickerDirect}
+                            maxImages={5}
+                            colors={colors}
+                            disabled={isNavigating}
+                        />
                     )}
                 </View>
 
@@ -521,7 +538,7 @@ export default function SellScreen() {
                             }
                         ]}
                         onPress={handleContinue}
-                        disabled={isNavigating} // Désactiver pendant la navigation
+                        disabled={isNavigating}
                     >
                         {isNavigating ? (
                             <ActivityIndicator color="#FFF" size="small" />
@@ -537,58 +554,28 @@ export default function SellScreen() {
                 )}
             </View>
 
-            {/* Modal pour choisir entre caméra et galerie */}
-            <Modal
+            {/* Modals */}
+            <ImagePickerModal
                 visible={showImagePicker}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setShowImagePicker(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.modalTitle, { color: colors.text }]}>
-                            {t('addPhoto', 'Ajouter une photo')}
-                        </Text>
-                        
-                        <TouchableOpacity 
-                            style={[styles.modalOption, { borderBottomColor: colors.border }]}
-                            onPress={takePhoto}
-                            disabled={isNavigating} // Désactiver pendant la navigation
-                        >
-                            <Ionicons name="camera" size={24} color={colors.tint} />
-                            <Text style={[styles.modalOptionText, { color: colors.text }]}>
-                                {t('takePhoto', 'Prendre une photo')}
-                            </Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            style={[styles.modalOption, { borderBottomColor: colors.border }]}
-                            onPress={openGallery}
-                            disabled={isNavigating} // Désactiver pendant la navigation
-                        >
-                            <Ionicons name="images" size={24} color={colors.tint} />
-                            <Text style={[styles.modalOptionText, { color: colors.text }]}>
-                                {t('chooseFromGallery', 'Choisir depuis la galerie')}
-                            </Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            style={styles.modalCancel}
-                            onPress={() => setShowImagePicker(false)}
-                            disabled={isNavigating} // Désactiver pendant la navigation
-                        >
-                            <Text style={[styles.modalCancelText, { color: colors.textSecondary }]}>
-                                {t('cancel', 'Annuler')}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+                onClose={() => setShowImagePicker(false)}
+                onTakePhoto={takePhoto}
+                onChooseFromGallery={openGallery}
+                colors={colors}
+                disabled={isNavigating}
+            />
+
+            <ExitConfirmationModal
+                visible={showExitConfirmation}
+                onClose={closeExitModal}
+                onDiscard={() => handleExitAction('discard')}
+                colors={colors}
+                slideAnim={slideAnim}
+                fadeAnim={fadeAnim}
+            />
         </View>
     );
 }
 
-// Les styles restent identiques...
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -622,91 +609,19 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 12,
         marginBottom: 20,
-        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '700',
         marginBottom: 16,
-    },
-    addPhotoButton: {
-        borderWidth: 2,
-        borderStyle: 'dashed',
-        borderRadius: 12,
-        padding: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    addPhotoText: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginTop: 12,
-        marginBottom: 4,
-    },
-    addPhotoSubtext: {
-        fontSize: 14,
-    },
-    imagesGrid: {
-        marginTop: 8,
-    },
-    imagesGridContent: {
-        paddingBottom: 16,
-    },
-    imagesRow: {
-        justifyContent: 'space-between',
-        marginBottom: 12,
-    },
-    imageContainer: {
-        position: 'relative',
-        width: '32%',
-        aspectRatio: 1,
-    },
-    selectedImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 8,
-    },
-    removeButton: {
-        position: 'absolute',
-        top: -6,
-        right: -6,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-        elevation: 8,
-    },
-    imageNumber: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    imageNumberText: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: '700',
-    },
-    addMoreButton: {
-        width: '32%',
-        aspectRatio: 1,
-        borderWidth: 2,
-        borderStyle: 'dashed',
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    addMoreText: {
-        fontSize: 12,
-        fontWeight: '600',
-        marginTop: 4,
     },
     continueButton: {
         flexDirection: 'row',
@@ -720,73 +635,5 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 16,
         fontWeight: '700',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 20,
-        paddingBottom: 40,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    modalOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        gap: 12,
-    },
-    modalOptionText: {
-        fontSize: 16,
-        fontWeight: '500',
-        flex: 1,
-    },
-    modalCancel: {
-        paddingVertical: 16,
-        alignItems: 'center',
-        marginTop: 8,
-    },
-    modalCancelText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    statusCard: {
-        padding: 32,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 40,
-    },
-    statusTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        marginTop: 16,
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    statusMessage: {
-        fontSize: 16,
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 24,
-    },
-    actionButton: {
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 12,
-    },
-    actionButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
     },
 });

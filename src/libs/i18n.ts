@@ -8,6 +8,12 @@ const resources = {
     translation: {
 
         // ===== NOUVELLES TRADUCTIONS POUR L'ÉCRAN DE VENTE =====
+        exitConfirmation: "Quitter la publication ?",
+        discard: "Abandonner",
+        saveDraft: "Enregistrer en brouillon",
+        draftSaved: "Brouillon enregistré",
+        draftSavedMessage: "Vos photos ont été enregistrées en brouillon.",
+        exitConfirmationMessage: "Si vous quittez maintenant, vous perdrez les modifications apportées à cette publication.",
         becomeSeller: "Devenir vendeur",
         continue: "Continuer",
         add: "Ajouter",
@@ -521,6 +527,12 @@ const resources = {
     translation: {
 
         // ===== NEW TRANSLATIONS FOR SELL SCREEN =====
+        exitConfirmation: "Leave publication?",
+        discard: "Discard",
+        saveDraft: "Save draft",
+        draftSaved: "Draft saved",
+        draftSavedMessage: "Your photos have been saved as draft.",
+        exitConfirmationMessage: "If you leave now, you will lose the changes made to this publication.",
         becomeSeller: "Become seller",
         continue: "Continue",
         add: "Add",
