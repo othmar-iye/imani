@@ -445,7 +445,7 @@ export default function MyItemsScreen() {
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.push('/(tabs)/profile')}
+          onPress={() => router.replace('/(tabs)/profile')}
         >
           <Ionicons 
             name="chevron-back" 

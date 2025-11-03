@@ -11,19 +11,26 @@ import { useTranslation } from 'react-i18next';
 import {
     Alert,
     FlatList,
-    Image,
     KeyboardAvoidingView,
     Modal,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     useColorScheme,
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Import des nouveaux composants
+import { CategorySelectorModal } from '@/components/CategorySelectorModal';
+import { FormInputGroup } from '@/components/FormInputGroup';
+import { ImageGalleryPreview } from '@/components/ImageGalleryPreview';
+import { PriceInput } from '@/components/PriceInput';
+import { ProductFormSection } from '@/components/ProductFormSection';
+import { SelectField } from '@/components/SelectField';
+import { ValidationInfoCard } from '@/components/ValidationInfoCard';
 
 interface SelectedImage {
   uri: string;
@@ -105,9 +112,10 @@ export default function SellDetailsScreen() {
 
   const handleCategorySelect = (category: Category) => {
     handleInputChange('category', category.name);
-    handleInputChange('subCategory', '');
+    // Ne pas réinitialiser la sous-catégorie automatiquement
     setShowCategoryModal(false);
-    setTimeout(() => setShowSubCategoryModal(true), 300);
+    // Ouvrir directement la modal des sous-catégories
+    setShowSubCategoryModal(true);
   };
 
   const handleSubCategorySelect = (subCategory: string) => {
@@ -318,17 +326,6 @@ export default function SellDetailsScreen() {
     setSelectedImageIndex(index);
   };
 
-  const renderCategoryItem = ({ item }: { item: Category }) => (
-    <TouchableOpacity
-      style={[styles.modalItem, { borderBottomColor: colors.border }]}
-      onPress={() => handleCategorySelect(item)}
-    >
-      <Ionicons name={item.icon as any} size={24} color={colors.tint} />
-      <Text style={[styles.modalItemText, { color: colors.text }]}>{item.name}</Text>
-      <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-    </TouchableOpacity>
-  );
-
   const renderSubCategoryItem = ({ item }: { item: string }) => (
     <TouchableOpacity
       style={[styles.modalItem, { borderBottomColor: colors.border }]}
@@ -369,7 +366,7 @@ export default function SellDetailsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Header */}
-        <View style={[styles.header, { borderBottomColor: Theme.light.borderInput }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <View style={styles.headerLeft}>
             <TouchableOpacity 
               style={styles.backButton}
@@ -379,7 +376,7 @@ export default function SellDetailsScreen() {
               <Ionicons 
                 name="chevron-back" 
                 size={24} 
-                color={Theme.light.tint} 
+                color={colors.tint} 
               />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -391,120 +388,27 @@ export default function SellDetailsScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
             {/* Section Prévisualisation des Images */}
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {t('sell.photosPreview', 'Aperçu des photos')} ({images.length}/5)
-              </Text>
-              
-              {/* Image principale avec navigation */}
-              <View style={styles.mainImageContainer}>
-                <Image
-                  source={{ uri: images[selectedImageIndex].uri }}
-                  style={styles.mainImage}
-                  resizeMode="cover"
-                />
-                
-                {/* Indicateur de navigation si plusieurs images */}
-                {images.length > 1 && (
-                  <>
-                    {/* Bouton précédent */}
-                    <TouchableOpacity 
-                      style={[styles.navButton, styles.prevButton]}
-                      onPress={goToPrevImage}
-                    >
-                      <Ionicons name="chevron-back" size={24} color="#FFF" />
-                    </TouchableOpacity>
-                    
-                    {/* Bouton suivant */}
-                    <TouchableOpacity 
-                      style={[styles.navButton, styles.nextButton]}
-                      onPress={goToNextImage}
-                    >
-                      <Ionicons name="chevron-forward" size={24} color="#FFF" />
-                    </TouchableOpacity>
-                    
-                    {/* Indicateur de position */}
-                    <View style={styles.imageCounter}>
-                      <Text style={styles.imageCounterText}>
-                        {selectedImageIndex + 1}/{images.length}
-                      </Text>
-                    </View>
-                  </>
-                )}
-              </View>
-
-              {/* Miniatures des images */}
-              {images.length > 1 && (
-                <View style={styles.thumbnailsContainer}>
-                  <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.thumbnailsScroll}
-                  >
-                    {images.map((image, index) => (
-                      <TouchableOpacity
-                        key={image.id}
-                        style={[
-                          styles.thumbnail,
-                          { 
-                            borderColor: index === selectedImageIndex ? colors.tint : colors.border,
-                            borderWidth: index === selectedImageIndex ? 2 : 1
-                          }
-                        ]}
-                        onPress={() => selectImage(index)}
-                      >
-                        <Image
-                          source={{ uri: image.uri }}
-                          style={styles.thumbnailImage}
-                          resizeMode="cover"
-                        />
-                        {index === selectedImageIndex && (
-                          <View style={[styles.thumbnailOverlay, { backgroundColor: colors.tint }]}>
-                            <Ionicons name="checkmark" size={16} color="#FFF" />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-
-              {/* Message informatif */}
-              <View style={[styles.infoBox, { backgroundColor: colors.background }]}>
-                <Ionicons name="information-circle-outline" size={20} color={colors.tint} />
-                <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                  {t('sell.photosInfo', 'Ces photos seront affichées dans votre annonce. La première image sera la photo principale.')}
-                </Text>
-              </View>
-            </View>
+            <ImageGalleryPreview
+              images={images}
+              selectedImageIndex={selectedImageIndex}
+              onSelectImage={selectImage}
+              onNextImage={goToNextImage}
+              onPrevImage={goToPrevImage}
+              colors={colors}
+            />
 
             {/* Section Informations de base */}
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {t('sell.basicInfo', 'Informations de base')}
-              </Text>
-
+            <ProductFormSection title={t('sell.basicInfo', 'Informations de base')} colors={colors}>
               {/* Nom du produit */}
-              <View style={styles.inputGroup}>
-                <View style={styles.labelContainer}>
-                  <Text style={[styles.label, { color: colors.text }]}>
-                    {t('sell.productName', 'Nom du produit')}
-                  </Text>
-                  <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
-                </View>
-                <TextInput
-                  style={[styles.textInput, { 
-                    backgroundColor: colors.background,
-                    borderColor: Theme.light.borderInput,
-                    color: colors.text 
-                  }]}
-                  placeholder={t('sell.productNamePlaceholder', 'Ex: Montre Rolex Submariner')}
-                  placeholderTextColor={colors.textSecondary}
-                  value={formData.name}
-                  onChangeText={(value) => handleInputChange('name', value)}
-                  maxLength={100}
-                />
-              </View>
+              <FormInputGroup
+                label={t('sell.productName', 'Nom du produit')}
+                value={formData.name}
+                onChangeText={(value) => handleInputChange('name', value)}
+                placeholder={t('sell.productNamePlaceholder', 'Ex: Montre Rolex Submariner')}
+                required={true}
+                maxLength={100}
+                colors={colors}
+              />
 
               {/* Catégorie et Sous-catégorie */}
               <View style={styles.rowInputs}>
@@ -515,21 +419,14 @@ export default function SellDetailsScreen() {
                     </Text>
                     <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.selectButton, { 
-                      backgroundColor: colors.background,
-                      borderColor: Theme.light.borderInput,
-                    }]}
+                  <SelectField
+                    label="Catégorie"
+                    value={formData.category}
+                    placeholder={t('sell.chooseCategory', 'Choisir une catégorie')}
                     onPress={() => setShowCategoryModal(true)}
-                  >
-                    <Text style={[
-                      styles.selectButtonText, 
-                      { color: formData.category ? colors.text : colors.textSecondary }
-                    ]}>
-                      {formData.category || t('sell.chooseCategory', 'Choisir une catégorie')}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
+                    required={true}
+                    colors={colors}
+                  />
                 </View>
 
                 <View style={[styles.inputGroup, styles.halfInput]}>
@@ -539,23 +436,15 @@ export default function SellDetailsScreen() {
                     </Text>
                     <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.selectButton, { 
-                      backgroundColor: colors.background,
-                      borderColor: Theme.light.borderInput,
-                    }]}
+                  <SelectField
+                    label="Sous-catégorie"
+                    value={formData.subCategory}
+                    placeholder={t('sell.chooseSubCategory', 'Sous-catégorie')}
                     onPress={() => formData.category && setShowSubCategoryModal(true)}
                     disabled={!formData.category}
-                  >
-                    <Text style={[
-                      styles.selectButtonText, 
-                      { color: formData.subCategory ? colors.text : colors.textSecondary,
-                        opacity: formData.category ? 1 : 0.5 }
-                    ]}>
-                      {formData.subCategory || t('sell.chooseSubCategory', 'Sous-catégorie')}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
+                    required={true}
+                    colors={colors}
+                  />
                 </View>
               </View>
 
@@ -567,66 +456,32 @@ export default function SellDetailsScreen() {
                   </Text>
                   <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                 </View>
-                <View style={styles.priceContainer}>
-                  <TextInput
-                    style={[styles.priceInput, { 
-                      backgroundColor: colors.background,
-                      borderColor: Theme.light.borderInput,
-                      color: colors.text 
-                    }]}
-                    placeholder={t('sell.pricePlaceholder', '0.00')}
-                    placeholderTextColor={colors.textSecondary}
-                    value={formData.price}
-                    onChangeText={(value) => handleInputChange('price', value.replace(/[^0-9.]/g, ''))}
-                    keyboardType="decimal-pad"
-                  />
-                  <Text style={[styles.currency, { color: colors.textSecondary }]}>
-                    {t('sell.currency', 'USD')}
-                  </Text>
-                </View>
+                <PriceInput
+                  value={formData.price}
+                  onChangeText={(value) => handleInputChange('price', value)}
+                  placeholder={t('sell.pricePlaceholder', '0.00')}
+                  colors={colors}
+                />
               </View>
-            </View>
+            </ProductFormSection>
 
             {/* Section Description */}
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {t('sell.description', 'Description')}
-              </Text>
-              
-              <View style={styles.inputGroup}>
-                <View style={styles.labelContainer}>
-                  <Text style={[styles.label, { color: colors.text }]}>
-                    {t('sell.detailedDescription', 'Description détaillée')}
-                  </Text>
-                  <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
-                </View>
-                <TextInput
-                  style={[styles.textArea, { 
-                    backgroundColor: colors.background,
-                    borderColor: Theme.light.borderInput,
-                    color: colors.text 
-                  }]}
-                  placeholder={t('sell.descriptionPlaceholder', 'Décrivez votre produit en détail... (minimum 50 caractères)')}
-                  placeholderTextColor={colors.textSecondary}
-                  value={formData.description}
-                  onChangeText={(value) => handleInputChange('description', value)}
-                  multiline
-                  numberOfLines={6}
-                  textAlignVertical="top"
-                  maxLength={1000}
-                />
-                <Text style={[styles.charCount, { color: colors.textSecondary }]}>
-                  {formData.description.length}/1000 {t('sell.characters', 'caractères')}
-                </Text>
-              </View>
-            </View>
+            <ProductFormSection title={t('sell.description', 'Description')} colors={colors}>
+              <FormInputGroup
+                label={t('sell.detailedDescription', 'Description détaillée')}
+                value={formData.description}
+                onChangeText={(value) => handleInputChange('description', value)}
+                placeholder={t('sell.descriptionPlaceholder', 'Décrivez votre produit en détail... (minimum 50 caractères)')}
+                required={true}
+                multiline={true}
+                maxLength={1000}
+                colors={colors}
+                characterCount={true}
+              />
+            </ProductFormSection>
 
             {/* Section État et Localisation */}
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {t('sell.conditionAndLocation', 'État et localisation')}
-              </Text>
-
+            <ProductFormSection title={t('sell.conditionAndLocation', 'État et localisation')} colors={colors}>
               <View style={styles.rowInputs}>
                 <View style={[styles.inputGroup, styles.halfInput]}>
                   <View style={styles.labelContainer}>
@@ -635,21 +490,14 @@ export default function SellDetailsScreen() {
                     </Text>
                     <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.selectButton, { 
-                      backgroundColor: colors.background,
-                      borderColor: Theme.light.borderInput,
-                    }]}
+                  <SelectField
+                    label="État du produit"
+                    value={formData.condition ? getConditionLabel(formData.condition) : ''}
+                    placeholder={t('sell.chooseCondition', 'État du produit')}
                     onPress={() => setShowConditionModal(true)}
-                  >
-                    <Text style={[
-                      styles.selectButtonText, 
-                      { color: formData.condition ? colors.text : colors.textSecondary }
-                    ]}>
-                      {formData.condition ? getConditionLabel(formData.condition) : t('sell.chooseCondition', 'État du produit')}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
+                    required={true}
+                    colors={colors}
+                  />
                 </View>
 
                 <View style={[styles.inputGroup, styles.halfInput]}>
@@ -659,32 +507,20 @@ export default function SellDetailsScreen() {
                     </Text>
                     <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.selectButton, { 
-                      backgroundColor: colors.background,
-                      borderColor: Theme.light.borderInput,
-                    }]}
+                  <SelectField
+                    label="Localisation"
+                    value={formData.location}
+                    placeholder={t('sell.chooseLocation', 'Ville')}
                     onPress={() => setShowLocationModal(true)}
-                  >
-                    <Text style={[
-                      styles.selectButtonText, 
-                      { color: formData.location ? colors.text : colors.textSecondary }
-                    ]}>
-                      {formData.location || t('sell.chooseLocation', 'Ville')}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
+                    required={true}
+                    colors={colors}
+                  />
                 </View>
               </View>
-            </View>
+            </ProductFormSection>
 
             {/* Message d'information sur la validation admin */}
-            <View style={[styles.infoBox, { backgroundColor: colors.background }]}>
-              <Ionicons name="shield-checkmark-outline" size={20} color={colors.tint} />
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                {t('sell.adminValidationInfo', 'Votre annonce sera examinée par notre équipe avant d\'être publiée. Vous serez notifié une fois validée.')}
-              </Text>
-            </View>
+            <ValidationInfoCard colors={colors} />
 
             {/* Bouton de publication */}
             <CustomButton
@@ -704,28 +540,13 @@ export default function SellDetailsScreen() {
         </ScrollView>
 
         {/* Modals */}
-        <Modal
+        <CategorySelectorModal
           visible={showCategoryModal}
-          animationType="slide"
-          presentationStyle="pageSheet"
-        >
-          <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {t('sell.chooseCategory', 'Choisir une catégorie')}
-              </Text>
-              <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={categories}
-              renderItem={renderCategoryItem}
-              keyExtractor={item => item.id}
-              style={styles.modalList}
-            />
-          </View>
-        </Modal>
+          onClose={() => setShowCategoryModal(false)}
+          categories={categories}
+          onSelectCategory={handleCategorySelect}
+          colors={colors}
+        />
 
         <Modal
           visible={showSubCategoryModal}
@@ -832,16 +653,6 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 20,
   },
-  section: {
-    padding: 20,
-    borderRadius: 12,
-    gap: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
   inputGroup: {
     gap: 8,
   },
@@ -864,56 +675,6 @@ const styles = StyleSheet.create({
   },
   halfInput: {
     flex: 1,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontWeight: '500',
-    minHeight: 120,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  priceInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontWeight: '500',
-    marginRight: 8,
-  },
-  currency: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  selectButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-  },
-  selectButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    flex: 1,
-  },
-  charCount: {
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 4,
   },
   publishButton: {
     marginTop: 8,
@@ -953,89 +714,5 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
-  },
-  // Styles pour la prévisualisation des images
-  mainImageContainer: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-    aspectRatio: 1,
-    backgroundColor: '#f8f8f8',
-  },
-  mainImage: {
-    width: '100%',
-    height: '100%',
-  },
-  navButton: {
-    position: 'absolute',
-    top: '50%',
-    marginTop: -20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  prevButton: {
-    left: 12,
-  },
-  nextButton: {
-    right: 12,
-  },
-  imageCounter: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  imageCounterText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  thumbnailsContainer: {
-    marginTop: 12,
-  },
-  thumbnailsScroll: {
-    paddingVertical: 4,
-    gap: 8,
-  },
-  thumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-  },
-  thumbnailOverlay: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 8,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 18,
   },
 });
