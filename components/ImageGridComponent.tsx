@@ -3,6 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { useTranslation } from 'react-i18next';
+
 interface SelectedImage {
   uri: string;
   id: string;
@@ -17,6 +19,7 @@ interface ImageGridProps {
   disabled?: boolean;
 }
 
+
 export const ImageGridComponent: React.FC<ImageGridProps> = ({
   images,
   onRemoveImage,
@@ -25,6 +28,8 @@ export const ImageGridComponent: React.FC<ImageGridProps> = ({
   colors,
   disabled = false
 }) => {
+
+  const { t } = useTranslation();
   const renderImageItem = ({ item, index }: { item: SelectedImage; index: number }) => (
     <View style={styles.imageContainer}>
       <Image source={{ uri: item.uri }} style={styles.selectedImage} />
@@ -61,7 +66,7 @@ export const ImageGridComponent: React.FC<ImageGridProps> = ({
         >
           <Ionicons name="add" size={24} color={colors.textSecondary} />
           <Text style={[styles.addMoreText, { color: colors.textSecondary }]}>
-            Ajouter
+            {t('add', 'Ajouter')}
           </Text>
         </TouchableOpacity>
       )}

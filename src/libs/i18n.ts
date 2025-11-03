@@ -18,6 +18,8 @@ const resources = {
         continue: "Continuer",
         add: "Ajouter",
         sell: {
+            photosPreview: "Aperçu des photos",
+            photosInfo: "Ces photos seront affichées dans votre annonce. La première image sera la photo principale.",
 
             detailsTitle: "Détails de l'annonce",
             basicInfo: "Informations de base",
@@ -537,6 +539,8 @@ const resources = {
         continue: "Continue",
         add: "Add",
         sell: {
+            photosPreview: "Preview of photos",
+            photosInfo: "These photos will be displayed in your listing. The first image will be the main photo.",
 
             detailsTitle: "Ad Details",
             basicInfo: "Basic Information",

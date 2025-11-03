@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Alert,
     FlatList,
+    Image,
     KeyboardAvoidingView,
     Modal,
     Platform,
@@ -83,6 +84,7 @@ export default function SellDetailsScreen() {
   const [showConditionModal, setShowConditionModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const selectedCategory = categories.find(cat => cat.name === formData.category);
   const subCategories = selectedCategory?.subCategories || [];
@@ -107,7 +109,7 @@ export default function SellDetailsScreen() {
   };
 
   const handleConditionSelect = (condition: { id: string; label: string; value: string }) => {
-    handleInputChange('condition', condition.value); // Stocker la valeur (new, like-new, etc.)
+    handleInputChange('condition', condition.value);
     setShowConditionModal(false);
   };
 
@@ -182,7 +184,7 @@ export default function SellDetailsScreen() {
             sub_category: formData.subCategory,
             price: parseFloat(formData.price),
             description: formData.description.trim(),
-            condition: formData.condition, // Stocke new, like-new, good, fair
+            condition: formData.condition,
             location: formData.location,
             seller_id: user.id,
             views: 0,
@@ -238,6 +240,19 @@ export default function SellDetailsScreen() {
   const getConditionLabel = (conditionValue: string) => {
     const condition = CONDITIONS.find(c => c.value === conditionValue);
     return condition ? condition.label : '';
+  };
+
+  // Navigation entre les images
+  const goToNextImage = () => {
+    setSelectedImageIndex(prev => (prev + 1) % images.length);
+  };
+
+  const goToPrevImage = () => {
+    setSelectedImageIndex(prev => (prev - 1 + images.length) % images.length);
+  };
+
+  const selectImage = (index: number) => {
+    setSelectedImageIndex(index);
   };
 
   const renderCategoryItem = ({ item }: { item: Category }) => (
@@ -312,6 +327,94 @@ export default function SellDetailsScreen() {
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
+            {/* Section Prévisualisation des Images */}
+            <View style={[styles.section, { backgroundColor: colors.card }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {t('sell.photosPreview', 'Aperçu des photos')} ({images.length}/5)
+              </Text>
+              
+              {/* Image principale avec navigation */}
+              <View style={styles.mainImageContainer}>
+                <Image
+                  source={{ uri: images[selectedImageIndex].uri }}
+                  style={styles.mainImage}
+                  resizeMode="cover"
+                />
+                
+                {/* Indicateur de navigation si plusieurs images */}
+                {images.length > 1 && (
+                  <>
+                    {/* Bouton précédent */}
+                    <TouchableOpacity 
+                      style={[styles.navButton, styles.prevButton]}
+                      onPress={goToPrevImage}
+                    >
+                      <Ionicons name="chevron-back" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    
+                    {/* Bouton suivant */}
+                    <TouchableOpacity 
+                      style={[styles.navButton, styles.nextButton]}
+                      onPress={goToNextImage}
+                    >
+                      <Ionicons name="chevron-forward" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    
+                    {/* Indicateur de position */}
+                    <View style={styles.imageCounter}>
+                      <Text style={styles.imageCounterText}>
+                        {selectedImageIndex + 1}/{images.length}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
+
+              {/* Miniatures des images */}
+              {images.length > 1 && (
+                <View style={styles.thumbnailsContainer}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.thumbnailsScroll}
+                  >
+                    {images.map((image, index) => (
+                      <TouchableOpacity
+                        key={image.id}
+                        style={[
+                          styles.thumbnail,
+                          { 
+                            borderColor: index === selectedImageIndex ? colors.tint : colors.border,
+                            borderWidth: index === selectedImageIndex ? 2 : 1
+                          }
+                        ]}
+                        onPress={() => selectImage(index)}
+                      >
+                        <Image
+                          source={{ uri: image.uri }}
+                          style={styles.thumbnailImage}
+                          resizeMode="cover"
+                        />
+                        {index === selectedImageIndex && (
+                          <View style={[styles.thumbnailOverlay, { backgroundColor: colors.tint }]}>
+                            <Ionicons name="checkmark" size={16} color="#FFF" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Message informatif */}
+              <View style={[styles.infoBox, { backgroundColor: colors.background }]}>
+                <Ionicons name="information-circle-outline" size={20} color={colors.tint} />
+                <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                  {t('sell.photosInfo', 'Ces photos seront affichées dans votre annonce. La première image sera la photo principale.')}
+                </Text>
+              </View>
+            </View>
+
             {/* Section Informations de base */}
             <View style={[styles.section, { backgroundColor: colors.card }]}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -329,7 +432,7 @@ export default function SellDetailsScreen() {
                 <TextInput
                   style={[styles.textInput, { 
                     backgroundColor: colors.background,
-                    borderColor: colors.border,
+                    borderColor: Theme.light.borderInput,
                     color: colors.text 
                   }]}
                   placeholder={t('sell.productNamePlaceholder', 'Ex: Montre Rolex Submariner')}
@@ -352,7 +455,7 @@ export default function SellDetailsScreen() {
                   <TouchableOpacity
                     style={[styles.selectButton, { 
                       backgroundColor: colors.background,
-                      borderColor: colors.border,
+                      borderColor: Theme.light.borderInput,
                     }]}
                     onPress={() => setShowCategoryModal(true)}
                   >
@@ -376,7 +479,7 @@ export default function SellDetailsScreen() {
                   <TouchableOpacity
                     style={[styles.selectButton, { 
                       backgroundColor: colors.background,
-                      borderColor: colors.border,
+                      borderColor: Theme.light.borderInput,
                     }]}
                     onPress={() => formData.category && setShowSubCategoryModal(true)}
                     disabled={!formData.category}
@@ -405,7 +508,7 @@ export default function SellDetailsScreen() {
                   <TextInput
                     style={[styles.priceInput, { 
                       backgroundColor: colors.background,
-                      borderColor: colors.border,
+                      borderColor: Theme.light.borderInput,
                       color: colors.text 
                     }]}
                     placeholder={t('sell.pricePlaceholder', '0.00')}
@@ -437,7 +540,7 @@ export default function SellDetailsScreen() {
                 <TextInput
                   style={[styles.textArea, { 
                     backgroundColor: colors.background,
-                    borderColor: colors.border,
+                    borderColor: Theme.light.borderInput,
                     color: colors.text 
                   }]}
                   placeholder={t('sell.descriptionPlaceholder', 'Décrivez votre produit en détail... (minimum 50 caractères)')}
@@ -472,7 +575,7 @@ export default function SellDetailsScreen() {
                   <TouchableOpacity
                     style={[styles.selectButton, { 
                       backgroundColor: colors.background,
-                      borderColor: colors.border,
+                      borderColor: Theme.light.borderInput,
                     }]}
                     onPress={() => setShowConditionModal(true)}
                   >
@@ -496,7 +599,7 @@ export default function SellDetailsScreen() {
                   <TouchableOpacity
                     style={[styles.selectButton, { 
                       backgroundColor: colors.background,
-                      borderColor: colors.border,
+                      borderColor: Theme.light.borderInput,
                     }]}
                     onPress={() => setShowLocationModal(true)}
                   >
@@ -779,5 +882,89 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
+  },
+  // Styles pour la prévisualisation des images
+  mainImageContainer: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+    aspectRatio: 1,
+    backgroundColor: '#f8f8f8',
+  },
+  mainImage: {
+    width: '100%',
+    height: '100%',
+  },
+  navButton: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  prevButton: {
+    left: 12,
+  },
+  nextButton: {
+    right: 12,
+  },
+  imageCounter: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  imageCounterText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  thumbnailsContainer: {
+    marginTop: 12,
+  },
+  thumbnailsScroll: {
+    paddingVertical: 4,
+    gap: 8,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailOverlay: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 8,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 18,
   },
 });
