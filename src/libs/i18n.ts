@@ -18,6 +18,15 @@ const resources = {
         continue: "Continuer",
         add: "Ajouter",
         sell: {
+
+            publicationSuccess: "Annonce soumise !",
+            pendingAdminValidation: "Votre annonce a été soumise avec succès. Elle sera visible après validation par notre équipe.",
+            missingFields: "Champs manquants",
+            fillAllFields: "Veuillez remplir tous les champs obligatoires.",
+            submitting: "Soumission...",
+            submitAd: "Soumettre l'annonce",
+
+            adminValidationInfo: "Votre annonce a été soumise avec succès. Elle sera visible après validation par notre équipe.",
             photosPreview: "Aperçu des photos",
             photosInfo: "Ces photos seront affichées dans votre annonce. La première image sera la photo principale.",
 
@@ -45,10 +54,7 @@ const resources = {
             publishing: "Publication...",
             requiredFields: "Champs obligatoires",
             characters: "caractères",
-            missingFields: "Champs manquants",
-            fillAllFields: "Veuillez remplir tous les champs obligatoires.",
             userNotConnected: "Utilisateur non connecté.",
-            publicationSuccess: "Annonce publiée !",
             productPublished: "Votre produit a été publié avec succès.",
             publicationError: "Impossible de publier l'annonce. Veuillez réessayer.",
 
@@ -539,6 +545,15 @@ const resources = {
         continue: "Continue",
         add: "Add",
         sell: {
+
+            publicationSuccess: "Ad submitted!",
+            pendingAdminValidation: "Your ad has been successfully submitted. It will be visible after validation by our team.",
+            missingFields: "Missing fields", 
+            fillAllFields: "Please fill in all required fields.",
+            submitting: "Submitting...",
+            submitAd: "Submit ad",
+
+            adminValidationInfo: "Your listing has been submitted successfully. It will be visible after approval by our team.",
             photosPreview: "Preview of photos",
             photosInfo: "These photos will be displayed in your listing. The first image will be the main photo.",
 
@@ -566,10 +581,7 @@ const resources = {
             publishing: "Publishing...",
             requiredFields: "Required fields",
             characters: "characters",
-            missingFields: "Missing fields",
-            fillAllFields: "Please fill all required fields.",
             userNotConnected: "User not connected.",
-            publicationSuccess: "Ad published!",
             productPublished: "Your product has been successfully published.",
             publicationError: "Unable to publish the ad. Please try again.",
 

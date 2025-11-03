@@ -48,7 +48,12 @@ const CONDITIONS = [
   { id: 'fair', label: 'État correct', value: 'fair' }
 ];
 
-const LOCATIONS = ['Kinshasa', 'Lubumbashi', 'Mbuji-Mayi', 'Kananga', 'Kisangani', 'Bukavu', 'Goma', 'Matadi', 'Autre'];
+const LOCATIONS = [
+    'Lubumbashi', 'Likasi', 'Kipushi', 'Kambove', 'Kakanda', 'Kinshasa',
+    'Kasumbalesa', 'Mutoshi', 'Panda', 'Ruwe', 'Shinkolobwe', 'Goma',
+    'Sakania', 'Ankoro', 'Bukama', 'Kamina', 'Malemba Nkulu', 'Matadi',
+    'Nyunzu', 'Kabondo Dianda', 'Kazembe', 'Moba', 'Mwana Muyombo', 'Pweto'
+  ];
 
 export default function SellDetailsScreen() {
   const { t } = useTranslation();
@@ -56,6 +61,8 @@ export default function SellDetailsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const params = useLocalSearchParams();
+  
+  // Récupérer les images depuis les paramètres de navigation
   const images = JSON.parse(params.images as string) as SelectedImage[];
 
   const colors = {
@@ -122,31 +129,52 @@ export default function SellDetailsScreen() {
     const uploadedUrls: string[] = [];
     
     try {
-      for (const image of images) {
+      for (const [index, image] of images.entries()) {
+        if (!image.uri) {
+          throw new Error(`Image ${index + 1} n'a pas d'URI valide`);
+        }
+
         const response = await fetch(image.uri);
-        const blob = await response.blob();
         
-        const fileName = `${productId}/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        if (!response.ok) {
+          throw new Error(`Erreur fetch image ${index + 1}: ${response.status}`);
+        }
         
+        // Convertir la réponse en arrayBuffer puis en Uint8Array pour Supabase
+        const arrayBuffer = await response.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        if (uint8Array.length === 0) {
+          throw new Error(`Données image ${index + 1} sont vides`);
+        }
+
+        // Créer un nom de fichier unique
+        const fileName = `${user?.id}/${productId}/${Date.now()}-${index}.jpg`;
+        
+        // Upload vers Supabase Storage avec Uint8Array
         const { data, error } = await supabase.storage
           .from('product-images')
-          .upload(fileName, blob, {
+          .upload(fileName, uint8Array, {
             contentType: 'image/jpeg',
             upsert: false
           });
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
 
+        // Récupérer l'URL publique
         const { data: urlData } = supabase.storage
           .from('product-images')
           .getPublicUrl(fileName);
 
         if (urlData?.publicUrl) {
           uploadedUrls.push(urlData.publicUrl);
+        } else {
+          throw new Error(`Impossible d'obtenir l'URL publique pour l'image ${index + 1}`);
         }
       }
     } catch (error) {
-      console.error('Erreur upload images:', error);
       throw new Error('Erreur lors de l\'upload des images');
     }
     
@@ -171,62 +199,97 @@ export default function SellDetailsScreen() {
       return;
     }
 
+    if (images.length === 0) {
+      Alert.alert(
+        t('common.error', 'Erreur'),
+        t('sell.noImages', 'Veuillez sélectionner au moins une image.')
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // 1. Créer le produit dans la base de données
+      // Préparer les données pour l'insertion
+      const productData = {
+        name: formData.name.trim(),
+        category: formData.category,
+        sub_category: formData.subCategory,
+        price: parseFloat(formData.price),
+        price_discount: null,
+        discount: null,
+        description: formData.description.trim(),
+        condition: formData.condition,
+        location: formData.location,
+        seller_id: user.id,
+        views: 0,
+        is_available: true,
+        is_valid: false,
+        created_at: new Date().toISOString(),
+      };
+
+      // Procéder directement à l'insertion
+      await proceedWithInsertion(productData);
+
+    } catch (error) {
+      setIsSubmitting(false);
+    }
+  };
+
+  const proceedWithInsertion = async (productData: any) => {
+    try {
+      // Uploader toutes les images d'abord
+      const imageUrls = await uploadImages('temp-product');
+      
+      if (imageUrls.length === 0) {
+        throw new Error('Aucune image uploadée');
+      }
+
+      // Créer le produit avec les URLs des images
+      const productDataWithImages = {
+        ...productData,
+        images: imageUrls
+      };
+
       const { data: product, error: productError } = await supabase
         .from('products')
-        .insert([
-          {
-            name: formData.name.trim(),
-            category: formData.category,
-            sub_category: formData.subCategory,
-            price: parseFloat(formData.price),
-            description: formData.description.trim(),
-            condition: formData.condition,
-            location: formData.location,
-            seller_id: user.id,
-            views: 0,
-            is_available: true,
-            created_at: new Date().toISOString(),
-          }
-        ])
+        .insert([productDataWithImages])
         .select()
         .single();
 
-      if (productError) throw productError;
-
-      // 2. Uploader les images
-      const imageUrls = await uploadImages(product.id);
-
-      // 3. Mettre à jour le produit avec les URLs des images
-      const { error: updateError } = await supabase
-        .from('products')
-        .update({ images: imageUrls })
-        .eq('id', product.id);
-
-      if (updateError) throw updateError;
+      if (productError) {
+        throw productError;
+      }
 
       // Succès
       Alert.alert(
-        t('sell.publicationSuccess', 'Annonce publiée !'),
-        t('sell.productPublished', 'Votre produit a été publié avec succès.'),
+        t('sell.publicationSuccess', 'Annonce soumise !'),
+        t('sell.pendingAdminValidation', 'Votre annonce a été soumise avec succès. Elle sera visible après validation par notre équipe.'),
         [
           {
             text: t('common.ok', 'OK'),
             onPress: () => {
-              router.replace('/(tabs)/home');
+              router.push('/screens/profileOption/MyItemsScreen');
             }
           }
         ]
       );
 
-    } catch (error) {
-      console.error('Erreur publication:', error);
+    } catch (error: any) {
+      let errorMessage = t('sell.publicationError', 'Impossible de soumettre l\'annonce. Veuillez réessayer.');
+      
+      // Messages d'erreur plus spécifiques
+      if (error.message?.includes('upload') || error.message?.includes('image')) {
+        errorMessage = t('sell.uploadError', 'Erreur lors de l\'upload des images. Vérifiez votre connexion internet.');
+      } else if (error.message?.includes('storage')) {
+        errorMessage = 'Erreur de stockage. Vérifiez les permissions du bucket.';
+      } else if (error.message?.includes('Aucune image')) {
+        errorMessage = t('sell.noImagesUploaded', 'Aucune image n\'a pu être uploadée.');
+      }
+      
       Alert.alert(
         t('common.error', 'Erreur'),
-        t('sell.publicationError', 'Impossible de publier l\'annonce. Veuillez réessayer.')
+        errorMessage
       );
     } finally {
       setIsSubmitting(false);
@@ -615,9 +678,17 @@ export default function SellDetailsScreen() {
               </View>
             </View>
 
+            {/* Message d'information sur la validation admin */}
+            <View style={[styles.infoBox, { backgroundColor: colors.background }]}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={colors.tint} />
+              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                {t('sell.adminValidationInfo', 'Votre annonce sera examinée par notre équipe avant d\'être publiée. Vous serez notifié une fois validée.')}
+              </Text>
+            </View>
+
             {/* Bouton de publication */}
             <CustomButton
-              title={isSubmitting ? t('sell.publishing', 'Publication...') : t('sell.publishAd', 'Publier l\'annonce')}
+              title={isSubmitting ? t('sell.submitting', 'Soumission...') : t('sell.submitAd', 'Soumettre l\'annonce')}
               onPress={handleSubmit}
               variant="primary"
               size="large"
