@@ -7,6 +7,69 @@ const resources = {
   fr: {
     translation: {
 
+        // NOUVELLES TRADUCTIONS POUR SETTINGS
+        appearance: "Apparence",
+        languageRegion: "Langue et région",
+        security: "Sécurité",
+        privacy: "Confidentialité",
+        support: "Support",
+        
+        // Thème
+        chooseTheme: "Choisir un thème",
+        selectTheme: "Sélectionnez votre thème préféré",
+        system: "Système",
+        light: "Clair", 
+        dark: "Sombre",
+        
+        // Langue
+        chooseLanguage: "Choisir la langue",
+        selectLanguage: "Sélectionnez votre langue",
+        french: "Français",
+        english: "Anglais",
+        
+        // Notifications
+        notifications: "Notifications",
+        pushNotifications: "Notifications push",
+        
+        // Sécurité
+        changePassword: "Changer le mot de passe",
+        
+        // Confidentialité
+        deleteHistory: "Supprimer l'historique",
+        downloadData: "Télécharger mes données",
+        
+        // Support
+        helpCenter: "Centre d'aide",
+        reportIssue: "Signaler un problème",
+        rateApp: "Évaluer l'application",
+        
+        // Messages de confirmation
+        deleteHistoryTitle: "Supprimer l'historique",
+        deleteHistoryMessage: "Êtes-vous sûr de vouloir supprimer tout votre historique ? Cette action est irréversible.",
+        
+        // Changement de mot de passe
+        currentPassword: "Ancien mot de passe",
+        newPassword: "Nouveau mot de passe",
+        confirmPassword: "Confirmer le mot de passe",
+        changing: "Changement en cours...",
+        change: "Changer",
+        passwordChanged: "Mot de passe changé avec succès",
+        passwordChangeError: "Erreur lors du changement de mot de passe",
+        passwordsDontMatch: "Les mots de passe ne correspondent pas",
+        passwordTooShort: "Le mot de passe doit contenir au moins 6 caractères",
+        fillAllFields: "Veuillez remplir tous les champs",
+        
+        // Téléchargement données
+        downloadDataMessage: "Cette fonctionnalité vous permettra de télécharger toutes vos données personnelles.",
+        
+        // Évaluation app
+        rateAppMessage: "Merci de soutenir notre application en la notant sur le store.",
+        
+        // Messages généraux
+        updateError: "Erreur lors de la mise à jour",
+        historyDeleted: "Historique supprimé avec succès",
+        
+
         // MY ITEMS
         myItems: {
         title: "Mes articles",
@@ -566,6 +629,68 @@ const resources = {
 
   en: {
     translation: {
+
+        // NEW TRANSLATIONS FOR SETTINGS
+        appearance: "Appearance",
+        languageRegion: "Language & Region", 
+        security: "Security",
+        privacy: "Privacy",
+        support: "Support",
+        
+        // Theme
+        chooseTheme: "Choose theme",
+        selectTheme: "Select your preferred theme",
+        system: "System",
+        light: "Light",
+        dark: "Dark",
+        
+        // Language
+        chooseLanguage: "Choose language",
+        selectLanguage: "Select your language",
+        french: "French",
+        english: "English",
+        
+        // Notifications
+        notifications: "Notifications",
+        pushNotifications: "Push notifications",
+        
+        // Security
+        changePassword: "Change password",
+        
+        // Privacy
+        deleteHistory: "Delete history", 
+        downloadData: "Download my data",
+        
+        // Support
+        helpCenter: "Help center",
+        reportIssue: "Report issue",
+        rateApp: "Rate app",
+        
+        // Confirmation messages
+        deleteHistoryTitle: "Delete history",
+        deleteHistoryMessage: "Are you sure you want to delete all your history? This action is irreversible.",
+        
+        // Password change
+        currentPassword: "Current password",
+        newPassword: "New password",
+        confirmPassword: "Confirm password", 
+        changing: "Changing...",
+        change: "Change",
+        passwordChanged: "Password changed successfully",
+        passwordChangeError: "Error changing password",
+        passwordsDontMatch: "Passwords don't match",
+        passwordTooShort: "Password must be at least 6 characters",
+        fillAllFields: "Please fill all fields",
+        
+        // Data download
+        downloadDataMessage: "This feature will allow you to download all your personal data.",
+        
+        // App rating
+        rateAppMessage: "Thank you for supporting our app by rating it on the store.",
+        
+        // General messages
+        updateError: "Error updating",
+        historyDeleted: "History deleted successfully",
 
         // MES ARTICLES
         myItems: {
