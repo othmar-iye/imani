@@ -12,20 +12,20 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Animated,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  useColorScheme,
-  View
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Image,
+    Modal,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Import React Query
@@ -545,19 +545,26 @@ export default function MyItemsScreen() {
 
         {/* Liste des articles */}
         {filteredProducts.length > 0 ? (
-          <FlatList
-            data={filteredProducts}
-            renderItem={renderProductItem}
-            keyExtractor={item => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.productsGrid}
-            columnWrapperStyle={styles.productsRow}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <EmptyProducts />
-        )}
+  <FlatList
+    data={filteredProducts}
+    renderItem={renderProductItem}
+    keyExtractor={item => item.id}
+    numColumns={2}
+    scrollEnabled={false} // On garde false car c'est dans un ScrollView parent
+    contentContainerStyle={[
+      styles.productsGrid,
+      { minHeight: Math.ceil(filteredProducts.length / 2) * 280 } // ✅ Hauteur dynamique
+    ]}
+    columnWrapperStyle={styles.productsRow}
+    showsVerticalScrollIndicator={false}
+    removeClippedSubviews={false} // ✅ Important pour l'affichage complet
+    initialNumToRender={10} // ✅ Optimisation performance
+    maxToRenderPerBatch={10} // ✅ Optimisation performance
+    windowSize={5} // ✅ Optimisation performance
+  />
+) : (
+  <EmptyProducts />
+)}
       </ScrollView>
 
       {renderActionModal()}
