@@ -10,17 +10,18 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -71,8 +72,6 @@ const compressImage = async (
   maxHeight: number = 1200
 ): Promise<string> => {
   try {
-    console.log('🔧 Compression de l\'image:', imageUri);
-    
     const result = await manipulateAsync(
       imageUri,
       [
@@ -90,18 +89,106 @@ const compressImage = async (
       }
     );
     
-    console.log('✅ Image compressée:', {
-      original: imageUri,
-      compressed: result.uri,
-      width: result.width,
-      height: result.height
-    });
+    return result.uri;
+  } catch (error) {
+    return imageUri;
+  }
+};
+
+// FONCTION POUR CRÉER LA MINIATURE AVEC RATIO RESPECTÉ
+// FONCTION POUR CRÉER LA MINIATURE AVEC RATIO RESPECTÉ
+const createThumbnail = async (
+  imageUri: string, 
+  quality: number = 0.6,
+  maxWidth: number = 300,
+  maxHeight: number = 300
+): Promise<string> => {
+  try {
+    // D'abord, on récupère les dimensions originales
+    const getImageSize = (uri: string): Promise<{width: number, height: number}> => {
+      return new Promise((resolve, reject) => {
+        Image.getSize(uri, (width, height) => {
+          resolve({width, height});
+        }, reject);
+      });
+    };
+
+    const originalSize = await getImageSize(imageUri);
+    
+    // Calculer les nouvelles dimensions en conservant le ratio
+    let newWidth = originalSize.width;
+    let newHeight = originalSize.height;
+
+    if (originalSize.width > maxWidth || originalSize.height > maxHeight) {
+      const ratio = Math.min(maxWidth / originalSize.width, maxHeight / originalSize.height);
+      newWidth = originalSize.width * ratio;
+      newHeight = originalSize.height * ratio;
+    }
+
+    const result = await manipulateAsync(
+      imageUri,
+      [
+        {
+          resize: {
+            width: newWidth,
+            height: newHeight,
+          },
+        },
+      ],
+      {
+        compress: quality,
+        format: SaveFormat.JPEG,
+        base64: false,
+      }
+    );
     
     return result.uri;
   } catch (error) {
-    console.error('❌ Erreur compression image:', error);
-    // En cas d'erreur, retourner l'image originale
     return imageUri;
+  }
+};
+
+// FONCTION POUR UPLOADER UNE IMAGE VERS SUPABASE
+const uploadImageToSupabase = async (
+  imageUri: string, 
+  fileName: string
+): Promise<string> => {
+  try {
+    const response = await fetch(imageUri);
+    
+    if (!response.ok) {
+      throw new Error('Erreur fetch image');
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    if (uint8Array.length === 0) {
+      throw new Error('Données image sont vides');
+    }
+
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, uint8Array, {
+        contentType: 'image/jpeg',
+        upsert: false
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName);
+
+    if (urlData?.publicUrl) {
+      return urlData.publicUrl;
+    } else {
+      throw new Error('Impossible d\'obtenir l\'URL publique');
+    }
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -155,9 +242,7 @@ export default function SellDetailsScreen() {
 
   const handleCategorySelect = (category: Category) => {
     handleInputChange('category', category.name);
-    // Ne pas réinitialiser la sous-catégorie automatiquement
     setShowCategoryModal(false);
-    // Ouvrir directement la modal des sous-catégories
     setShowSubCategoryModal(true);
   };
 
@@ -176,70 +261,34 @@ export default function SellDetailsScreen() {
     setShowLocationModal(false);
   };
 
-  const uploadImages = async (productId: string): Promise<string[]> => {
+  const uploadImages = async (productId: string): Promise<{imageUrls: string[], thumbnailUrl: string}> => {
     const uploadedUrls: string[] = [];
+    let thumbnailUrl = '';
     
     try {
+      // ÉTAPE 1: Créer et uploader la miniature (première image)
+      if (images.length > 0 && images[0].uri) {
+        const thumbnailUri = await createThumbnail(images[0].uri);
+        const thumbnailFileName = `${user?.id}/${productId}/thumbnail-${Date.now()}.jpg`;
+        thumbnailUrl = await uploadImageToSupabase(thumbnailUri, thumbnailFileName);
+      }
+
+      // ÉTAPE 2: Uploader toutes les images normales
       for (const [index, image] of images.entries()) {
         if (!image.uri) {
           throw new Error(`Image ${index + 1} n'a pas d'URI valide`);
         }
 
-        console.log(`📤 Upload image ${index + 1}/${images.length}`);
-        
-        // Étape 1: Compression de l'image
-        const compressedImageUri = await compressImage(image.uri, 0.8, 1200, 1200);
-        
-        // Étape 2: Récupération de l'image compressée
-        const response = await fetch(compressedImageUri);
-        
-        if (!response.ok) {
-          throw new Error(`Erreur fetch image compressée ${index + 1}: ${response.status}`);
-        }
-        
-        // Convertir la réponse en arrayBuffer puis en Uint8Array pour Supabase
-        const arrayBuffer = await response.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        
-        if (uint8Array.length === 0) {
-          throw new Error(`Données image compressée ${index + 1} sont vides`);
-        }
-
-        console.log(`📊 Taille image compressée: ${(uint8Array.length / 1024 / 1024).toFixed(2)} MB`);
-
-        // Créer un nom de fichier unique
+        const compressedImageUri = await compressImage(image.uri);
         const fileName = `${user?.id}/${productId}/${Date.now()}-${index}.jpg`;
-        
-        // Upload vers Supabase Storage avec Uint8Array
-        const { data, error } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, uint8Array, {
-            contentType: 'image/jpeg',
-            upsert: false
-          });
-
-        if (error) {
-          throw error;
-        }
-
-        // Récupérer l'URL publique
-        const { data: urlData } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
-
-        if (urlData?.publicUrl) {
-          uploadedUrls.push(urlData.publicUrl);
-          console.log(`✅ Image ${index + 1} uploadée: ${urlData.publicUrl}`);
-        } else {
-          throw new Error(`Impossible d'obtenir l'URL publique pour l'image ${index + 1}`);
-        }
+        const imageUrl = await uploadImageToSupabase(compressedImageUri, fileName);
+        uploadedUrls.push(imageUrl);
       }
     } catch (error) {
-      console.error('❌ Erreur upload images:', error);
       throw new Error('Erreur lors de l\'upload des images');
     }
     
-    return uploadedUrls;
+    return { imageUrls: uploadedUrls, thumbnailUrl };
   };
 
   const handleSubmit = async () => {
@@ -271,7 +320,6 @@ export default function SellDetailsScreen() {
     setIsSubmitting(true);
 
     try {
-      // Préparer les données pour l'insertion
       const productData = {
         name: formData.name.trim(),
         category: formData.category,
@@ -288,7 +336,6 @@ export default function SellDetailsScreen() {
         created_at: new Date().toISOString(),
       };
 
-      // Procéder directement à l'insertion
       await proceedWithInsertion(productData);
 
     } catch (error) {
@@ -298,17 +345,18 @@ export default function SellDetailsScreen() {
 
   const proceedWithInsertion = async (productData: any) => {
     try {
-      // Uploader toutes les images d'abord (avec compression)
-      const imageUrls = await uploadImages('temp-product');
+      const tempProductId = `product-${Date.now()}`;
+      
+      const { imageUrls, thumbnailUrl } = await uploadImages(tempProductId);
       
       if (imageUrls.length === 0) {
         throw new Error('Aucune image uploadée');
       }
 
-      // Créer le produit avec les URLs des images
       const productDataWithImages = {
         ...productData,
-        images: imageUrls
+        images: imageUrls,
+        thumbnail: thumbnailUrl
       };
 
       const { data: product, error: productError } = await supabase
@@ -321,24 +369,25 @@ export default function SellDetailsScreen() {
         throw productError;
       }
 
-      // Succès
-      Alert.alert(
-        t('sell.publicationSuccess', 'Annonce soumise !'),
-        t('sell.pendingAdminValidation', 'Votre annonce a été soumise avec succès. Elle sera visible après validation par notre équipe.'),
-        [
-          {
-            text: t('common.ok', 'OK'),
-            onPress: () => {
-              router.push('/(tabs)/home');
-            }
-          }
-        ]
-      );
+      // ✅ REDIRECTION RAPIDE SANS ALERTE BLOQUANTE
+      setIsSubmitting(false);
+      
+      // Navigation immédiate
+      router.push('/(tabs)/home');
+      
+      // Alert non-bloquant après la navigation
+      setTimeout(() => {
+        Alert.alert(
+          t('sell.publicationSuccess', 'Annonce soumise !'),
+          t('sell.pendingAdminValidation', 'Votre annonce a été soumise avec succès. Elle sera visible après validation par notre équipe.')
+        );
+      }, 500);
 
     } catch (error: any) {
+      setIsSubmitting(false);
+      
       let errorMessage = t('sell.publicationError', 'Impossible de soumettre l\'annonce. Veuillez réessayer.');
       
-      // Messages d'erreur plus spécifiques
       if (error.message?.includes('upload') || error.message?.includes('image')) {
         errorMessage = t('sell.uploadError', 'Erreur lors de l\'upload des images. Vérifiez votre connexion internet.');
       } else if (error.message?.includes('storage')) {
@@ -347,25 +396,18 @@ export default function SellDetailsScreen() {
         errorMessage = t('sell.noImagesUploaded', 'Aucune image n\'a pu être uploadée.');
       }
       
-      Alert.alert(
-        t('common.error', 'Erreur'),
-        errorMessage
-      );
-    } finally {
-      setIsSubmitting(false);
+      Alert.alert(t('common.error', 'Erreur'), errorMessage);
     }
   };
 
   const isFormValid = formData.name.trim() && formData.category && formData.subCategory && 
                      formData.price && formData.description.trim() && formData.condition && formData.location;
 
-  // Fonction pour obtenir le libellé de la condition
   const getConditionLabel = (conditionValue: string) => {
     const condition = CONDITIONS.find(c => c.value === conditionValue);
     return condition ? condition.label : '';
   };
 
-  // Navigation entre les images
   const goToNextImage = () => {
     setSelectedImageIndex(prev => (prev + 1) % images.length);
   };

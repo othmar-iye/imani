@@ -12,20 +12,20 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import React Query
@@ -51,6 +51,7 @@ interface Product {
   condition?: string;
   description?: string;
   product_state?: 'pending' | 'active' | 'rejected' | 'sold';
+  thumbnail?: string; // ✅ AJOUT DE LA MINIATURE
 }
 
 // Fonction pour récupérer les produits de l'utilisateur
@@ -83,16 +84,21 @@ const fetchMyProducts = async (userId: string): Promise<Product[]> => {
       imagesArray = product.images;
     }
     
-    console.log(`📸 ${product.name}:`, imagesArray);
+    console.log(`📸 ${product.name}:`, {
+      thumbnail: product.thumbnail ? '✅' : '❌',
+      images: imagesArray.length,
+      hasThumbnail: !!product.thumbnail
+    });
     
-    const mainImage = imagesArray[0] || 'https://via.placeholder.com/400?text=Image+Manquante';
+    // ✅ PRIORITÉ À LA MINIATURE, sinon première image, sinon placeholder
+    const displayImage = product.thumbnail || imagesArray[0] || 'https://via.placeholder.com/400?text=Image+Manquante';
     
     return {
       id: product.id,
       name: product.name,
       price: product.price,
       originalPrice: product.price_discount || product.price,
-      image: mainImage,
+      image: displayImage, // ✅ UTILISE LA MINIATURE OU PREMIÈRE IMAGE
       category: product.category,
       location: product.location,
       status: product.product_state || 'pending',
@@ -102,7 +108,8 @@ const fetchMyProducts = async (userId: string): Promise<Product[]> => {
       images: imagesArray,
       condition: product.condition,
       description: product.description,
-      product_state: product.product_state
+      product_state: product.product_state,
+      thumbnail: product.thumbnail // ✅ CONSERVE LA MINIATURE
     };
   });
 };
@@ -402,8 +409,9 @@ export default function MyItemsScreen() {
                   <Ionicons name="close" size={20} color={colors.text} />
                 </TouchableOpacity>
                 
+                {/* ✅ AFFICHE LA MINIATURE DANS LA MODAL */}
                 <Image 
-                  source={{ uri: selectedProduct.image }} 
+                  source={{ uri: selectedProduct.thumbnail || selectedProduct.image }} 
                   style={styles.enlargedImage}
                   resizeMode="cover"
                 />
