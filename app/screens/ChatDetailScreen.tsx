@@ -6,21 +6,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,6 +43,7 @@ interface ChatHeaderProps {
   product: Product;
   onBack: () => void;
   onViewProduct: (product: Product) => void;
+  topInset: number;
 }
 
 // Header avec nom du vendeur et photo
@@ -49,6 +51,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   product,
   onBack,
   onViewProduct,
+  topInset,
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -80,6 +83,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           borderBottomColor: colors.border, 
           backgroundColor: colors.background,
           opacity: fadeAnim,
+          paddingTop: topInset,
         }
       ]}
     >
@@ -252,7 +256,8 @@ const MessageInput: React.FC<{
   onSend: () => void;
   onSendImage: (imageUri: string) => void;
   colors: any;
-}> = ({ message, onMessageChange, onSend, onSendImage, colors }) => {
+  bottomInset: number;
+}> = ({ message, onMessageChange, onSend, onSendImage, colors, bottomInset }) => {
 
   const pickImage = async () => {
     try {
@@ -331,7 +336,8 @@ const MessageInput: React.FC<{
   return (
     <View style={[styles.inputContainer, { 
       backgroundColor: colors.background, 
-      borderTopColor: colors.border 
+      borderTopColor: colors.border,
+      paddingBottom: bottomInset > 0 ? bottomInset : 16,
     }]}>
       <View style={[styles.inputWrapper, { backgroundColor: colors.card }]}>
         {/* Bouton d'ajout d'image */}
@@ -426,6 +432,9 @@ export default function ChatScreen() {
   ]);
 
   const flatListRef = useRef<FlatList>(null);
+  
+  // Récupérer les safe areas
+  const insets = useSafeAreaInsets();
 
   const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
@@ -487,11 +496,7 @@ export default function ChatScreen() {
   );
 
   return (
-    <KeyboardAvoidingView 
-      style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
       {/* Header avec photo et nom du vendeur */}
@@ -499,31 +504,42 @@ export default function ChatScreen() {
         product={currentProduct}
         onBack={() => router.back()}
         onViewProduct={handleViewProduct}
+        topInset={insets.top}
       />
 
-      {/* Liste des Messages Inversée */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={item => item.id}
-        style={styles.messagesList}
-        contentContainerStyle={styles.messagesContent}
-        showsVerticalScrollIndicator={false}
-        inverted
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-      />
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        {/* Liste des Messages Inversée */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={item => item.id}
+          style={styles.messagesList}
+          contentContainerStyle={[
+            styles.messagesContent,
+            { paddingBottom: Platform.OS === 'android' ? 20 : 0 }
+          ]}
+          showsVerticalScrollIndicator={false}
+          inverted
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+        />
 
-      {/* Input Bar avec bouton d'upload */}
-      <MessageInput
-        message={message}
-        onMessageChange={setMessage}
-        onSend={sendMessage}
-        onSendImage={sendImage}
-        colors={colors}
-      />
-    </KeyboardAvoidingView>
+        {/* Input Bar avec bouton d'upload */}
+        <MessageInput
+          message={message}
+          onMessageChange={setMessage}
+          onSend={sendMessage}
+          onSendImage={sendImage}
+          colors={colors}
+          bottomInset={insets.bottom}
+        />
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -531,9 +547,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   // Header Styles - Avec photo du vendeur
   header: {
-    paddingTop: 60,
     borderBottomWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
@@ -550,6 +568,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 12,
+    paddingTop: 10,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -715,6 +734,7 @@ const styles = StyleSheet.create({
   // Input Styles avec bouton d'upload
   inputContainer: {
     padding: 16,
+    paddingTop: 12,
     borderTopWidth: 1,
   },
   inputWrapper: {

@@ -1,8 +1,9 @@
-// components/ProductDetailSkeleton.tsx - VERSION HAUT CONTRASTE
+// components/ProductDetailSkeleton.tsx - VERSION CORRIGÉE POUR ANDROID
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import {
   Dimensions,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,6 +18,7 @@ import Animated, {
   withRepeat,
   withTiming
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -99,7 +101,10 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView 
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={Platform.OS === 'ios' ? ['top'] : ['top', 'left', 'right']}
+    >
       <StatusBar barStyle="light-content" />
 
       {/* Header INSTANTANÉ */}
@@ -167,6 +172,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
       <ScrollView 
         style={[styles.content, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
         {/* En-tête produit */}
         <View style={[
@@ -176,11 +182,14 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
           }
         ]}>
           <View style={styles.titleSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Détails du produit
-            </Text>
             <AnimatedSkeletonBox 
-              width={width * 0.6} 
+              width={width * 0.7} 
+              height={24} 
+              borderRadius={4} 
+              variant="strong"
+            />
+            <AnimatedSkeletonBox 
+              width={width * 0.4} 
               height={14} 
               borderRadius={4} 
               style={{ marginTop: 8 }} 
@@ -196,9 +205,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Description
-          </Text>
+          <AnimatedSkeletonBox width={120} height={18} borderRadius={4} variant="strong" />
           <AnimatedSkeletonBox width={width - 40} height={16} borderRadius={4} style={{ marginTop: 12 }} variant="default" />
           <AnimatedSkeletonBox width={(width - 40) * 0.9} height={16} borderRadius={4} style={{ marginTop: 8 }} variant="default" />
           <AnimatedSkeletonBox width={(width - 40) * 0.7} height={16} borderRadius={4} style={{ marginTop: 8 }} variant="default" />
@@ -211,7 +218,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
               key={index} 
               style={[styles.tag, { backgroundColor: colors.card }]}
             >
-              <Ionicons name="information-circle-outline" size={16} color={colors.tint} />
+              <AnimatedSkeletonBox width={16} height={16} borderRadius={8} variant="default" />
               <AnimatedSkeletonBox width={120} height={14} borderRadius={4} variant="default" />
             </View>
           ))}
@@ -219,9 +226,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
 
         {/* Vendeur */}
         <View style={[styles.sellerCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Informations vendeur
-          </Text>
+          <AnimatedSkeletonBox width={180} height={18} borderRadius={4} variant="strong" />
           <View style={styles.sellerInfo}>
             <AnimatedSkeletonBox width={50} height={50} borderRadius={25} variant="strong" />
             <View style={styles.sellerDetails}>
@@ -229,51 +234,53 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
               <AnimatedSkeletonBox width={80} height={14} borderRadius={4} style={{ marginTop: 4 }} variant="default" />
             </View>
           </View>
-          <View style={styles.sellerMetrics}>
+          <View style={[styles.sellerMetrics, { borderTopColor: colors.border }]}>
             <View style={styles.metric}>
               <AnimatedSkeletonBox width={40} height={16} borderRadius={4} variant="default" />
-              <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Taux de réponse
-              </Text>
+              <AnimatedSkeletonBox width={60} height={12} borderRadius={4} style={{ marginTop: 4 }} variant="default" />
             </View>
             <View style={[styles.metricDivider, { backgroundColor: colors.border }]} />
             <View style={styles.metric}>
               <AnimatedSkeletonBox width={40} height={16} borderRadius={4} variant="default" />
-              <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Temps de réponse
-              </Text>
+              <AnimatedSkeletonBox width={60} height={12} borderRadius={4} style={{ marginTop: 4 }} variant="default" />
             </View>
           </View>
         </View>
 
         {/* Espace pour les boutons */}
-        <View style={{ height: 100 }} />
+        <View style={{ height: Platform.OS === 'android' ? 120 : 100 }} />
       </ScrollView>
 
-      {/* Boutons d'action INSTANTANÉS */}
+      {/* Boutons d'action EN SKELETON */}
       <View style={[styles.actionBar, { backgroundColor: colors.background }]}>
-        <View style={[styles.buttonSkeleton, { backgroundColor: colors.card }]}>
-          <Text style={[styles.buttonText, { color: colors.text }]}>
-            Discuter avec le vendeur
-          </Text>
-        </View>
-        <View style={[styles.buttonSkeleton, { backgroundColor: colors.tint }]}>
-          <Text style={[styles.buttonText, { color: '#FFF' }]}>
-            Acheter
-          </Text>
-        </View>
+        <AnimatedSkeletonBox 
+          width={'48%'} 
+          height={50} 
+          borderRadius={12}
+          variant="default"
+        />
+        <AnimatedSkeletonBox 
+          width={'48%'} 
+          height={50} 
+          borderRadius={12}
+          variant="strong"
+        />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: Platform.OS === 'android' ? 20 : 0,
+  },
+  scrollContent: {
+    paddingBottom: Platform.OS === 'android' ? 30 : 0,
   },
   header: {
     position: 'absolute',
-    top: 50,
+    top: Platform.OS === 'ios' ? 50 : 40,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -326,6 +333,7 @@ const styles = StyleSheet.create({
   },
   thumbnailsContainer: {
     paddingVertical: 15,
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   thumbnailsContent: {
     paddingHorizontal: 15,
@@ -341,6 +349,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    elevation: 8,
   },
   titleSection: {
     flex: 1,
@@ -352,11 +362,6 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 20,
     marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 12,
   },
   tagsContainer: {
     paddingHorizontal: 20,
@@ -370,17 +375,22 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     gap: 10,
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    elevation: 8,
   },
   sellerCard: {
     margin: 20,
     padding: 20,
     borderRadius: 12,
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    elevation: 8,
   },
   sellerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     marginBottom: 15,
+    marginTop: 15,
   },
   sellerDetails: {
     flex: 1,
@@ -389,16 +399,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
   },
   metric: {
     flex: 1,
     alignItems: 'center',
-  },
-  metricLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 4,
   },
   metricDivider: {
     width: 1,
@@ -412,17 +416,8 @@ const styles = StyleSheet.create({
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  buttonSkeleton: {
-    flex: 1,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    paddingBottom: Platform.OS === 'android' ? 30 : 20,
+    marginBottom: Platform.OS === 'android' ? 10 : 0,
   },
   skeletonBox: {
     borderRadius: 6,

@@ -8,6 +8,7 @@ import {
   Dimensions,
   FlatList,
   Modal,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -16,6 +17,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Import React Query
 import { useQuery } from '@tanstack/react-query';
@@ -93,7 +95,7 @@ export default function ProductDetailScreen() {
   // Gestion d'erreur
   if (error || !product) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.tint} />
           <Text style={[styles.errorText, { color: colors.text }]}>
@@ -114,7 +116,7 @@ export default function ProductDetailScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -192,7 +194,10 @@ export default function ProductDetailScreen() {
     };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView 
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={Platform.OS === 'ios' ? ['top'] : ['top', 'left', 'right']}
+    >
       <StatusBar barStyle="light-content" />
 
       {/* Header */}
@@ -329,6 +334,7 @@ export default function ProductDetailScreen() {
       <ScrollView 
         style={[styles.content, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
         {/* En-tête produit */}
         <View style={[
@@ -452,7 +458,7 @@ export default function ProductDetailScreen() {
         </View>
 
         {/* Espace pour les boutons */}
-        <View style={{ height: 100 }} />
+        <View style={{ height: Platform.OS === 'android' ? 120 : 100 }} />
       </ScrollView>
 
       {/* Boutons d'action */}
@@ -479,7 +485,7 @@ export default function ProductDetailScreen() {
         statusBarTranslucent={true}
         animationType="fade"
       >
-        <View style={styles.galleryContainer}>
+        <SafeAreaView style={styles.galleryContainer}>
           <StatusBar barStyle="light-content" />
           
           {/* Header galerie */}
@@ -549,16 +555,19 @@ export default function ProductDetailScreen() {
               />
             ))}
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
-// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: Platform.OS === 'android' ? 20 : 0,
+  },
+  scrollContent: {
+    paddingBottom: Platform.OS === 'android' ? 30 : 0,
   },
   errorContainer: {
     flex: 1,
@@ -596,7 +605,7 @@ const styles = StyleSheet.create({
   },
   header: {
     position: 'absolute',
-    top: 50,
+    top: Platform.OS === 'ios' ? 50 : 40,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -708,7 +717,7 @@ const styles = StyleSheet.create({
     margin: 20,
     borderRadius: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
   },
   titleSection: {
     flex: 1,
@@ -757,7 +766,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 10,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
   },
   tagText: {
     fontSize: 14,
@@ -782,7 +791,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
   },
   sellerHeader: {
     flexDirection: 'row',
@@ -869,6 +878,8 @@ const styles = StyleSheet.create({
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.1)',
+    paddingBottom: Platform.OS === 'android' ? 30 : 20,
+    marginBottom: Platform.OS === 'android' ? 10 : 0,
   },
   // Styles pour la galerie
   galleryContainer: {
@@ -877,7 +888,7 @@ const styles = StyleSheet.create({
   },
   galleryHeader: {
     position: 'absolute',
-    top: 50,
+    top: Platform.OS === 'ios' ? 50 : 40,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -909,7 +920,7 @@ const styles = StyleSheet.create({
   },
   galleryIndicators: {
     position: 'absolute',
-    bottom: 40,
+    bottom: Platform.OS === 'ios' ? 40 : 80,
     left: 0,
     right: 0,
     flexDirection: 'row',
