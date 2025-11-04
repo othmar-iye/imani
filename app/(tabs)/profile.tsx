@@ -445,7 +445,7 @@ export default function ProfileScreen() {
             <>
               <MenuItem
                 icon="cube-outline"
-                label={t('myItems')}
+                label={t('myItemsName')}
                 count={profileData?.stats.items.toString() || '12'}
                 onPress={() => router.push('/screens/profileOption/MyItemsScreen')}
                 colors={colors}

@@ -1,28 +1,35 @@
+// screens/MyItemsScreen.tsx (version avec React Query)
 import CustomButton from '@/components/CustomButton';
+import { MyItemsSkeleton } from '@/components/MyItemsSkeleton';
 import ProductCardItem from '@/components/ProductCardItem';
 import SearchBar from '@/components/SearchBar';
 import { Theme } from '@/constants/theme';
+import { useAuth } from '@/src/context/AuthContext';
+import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Animated,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  useColorScheme,
-  View
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Image,
+    Modal,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    useColorScheme,
+    View
 } from 'react-native';
+
+// Import React Query
+import { useQuery } from '@tanstack/react-query';
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,16 +41,75 @@ interface Product {
   image: string;
   category: string;
   location: string;
-  status: 'active' | 'sold' | 'draft';
+  status: 'active' | 'sold' | 'pending' | 'rejected';
   views: number;
   likes: number;
   createdAt: string;
   isFavorite?: boolean;
   discount?: number;
+  images?: string[];
+  condition?: string;
+  description?: string;
+  product_state?: 'pending' | 'active' | 'rejected' | 'sold';
 }
+
+// Fonction pour récupérer les produits de l'utilisateur
+const fetchMyProducts = async (userId: string): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('seller_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  console.log('🔍 Produits trouvés:', data?.length);
+  
+  // Transformer les données avec gestion robuste des images
+  return data.map(product => {
+    // Gestion des images
+    let imagesArray: string[] = [];
+    
+    if (typeof product.images === 'string') {
+      try {
+        imagesArray = JSON.parse(product.images);
+      } catch (e) {
+        console.error('❌ Erreur parsing JSON images:', e);
+        imagesArray = [];
+      }
+    } else if (Array.isArray(product.images)) {
+      imagesArray = product.images;
+    }
+    
+    console.log(`📸 ${product.name}:`, imagesArray);
+    
+    const mainImage = imagesArray[0] || 'https://via.placeholder.com/400?text=Image+Manquante';
+    
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.price_discount || product.price,
+      image: mainImage,
+      category: product.category,
+      location: product.location,
+      status: product.product_state || 'pending',
+      views: product.views || 0,
+      likes: product.likes || 0,
+      createdAt: product.created_at,
+      images: imagesArray,
+      condition: product.condition,
+      description: product.description,
+      product_state: product.product_state
+    };
+  });
+};
 
 export default function MyItemsScreen() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -70,73 +136,17 @@ export default function MyItemsScreen() {
   const slideAnim = useRef(new Animated.Value(30)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  // Données simulées des articles
-  const myProducts: Product[] = [
-    {
-      id: '1',
-      name: 'iPhone 15 Pro Max 256GB',
-      price: 1200,
-      originalPrice: 1400,
-      image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400',
-      category: 'Électronique',
-      location: 'Lubumbashi',
-      status: 'active',
-      views: 245,
-      likes: 34,
-      createdAt: '2024-01-15',
-      discount: 15
-    },
-    {
-      id: '2',
-      name: 'Canon EOS R6 Mark II',
-      price: 850,
-      image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400',
-      category: 'Photographie',
-      location: 'Kinshasa',
-      status: 'sold',
-      views: 189,
-      likes: 22,
-      createdAt: '2024-01-10'
-    },
-    {
-      id: '3',
-      name: 'Nike Air Jordan 1 Retro',
-      price: 180,
-      originalPrice: 220,
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-      category: 'Mode',
-      location: 'Lubumbashi',
-      status: 'active',
-      views: 156,
-      likes: 45,
-      createdAt: '2024-01-08',
-      discount: 20
-    },
-    {
-      id: '4',
-      name: 'MacBook Pro 14" M3',
-      price: 2200,
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-      category: 'Électronique',
-      location: 'Goma',
-      status: 'draft',
-      views: 0,
-      likes: 0,
-      createdAt: '2024-01-05'
-    },
-    {
-      id: '6',
-      name: 'Sac à dos The North Face',
-      price: 120,
-      image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
-      category: 'Mode',
-      location: 'Kinshasa',
-      status: 'sold',
-      views: 167,
-      likes: 29,
-      createdAt: '2023-12-28'
-    }
-  ];
+  // Utilisation de React Query pour les produits
+  const { 
+    data: myProducts = [], 
+    isLoading: productsLoading, 
+    error: productsError,
+    refetch
+  } = useQuery({
+    queryKey: ['my-products', user?.id],
+    queryFn: () => fetchMyProducts(user?.id || ''),
+    enabled: !!user?.id,
+  });
 
   const filteredProducts = myProducts.filter(product => {
     if (searchQuery) {
@@ -151,15 +161,72 @@ export default function MyItemsScreen() {
     return true;
   });
 
+  // Configuration des statuts avec la nouvelle structure
   const getStatusConfig = (status: string) => {
     const configs = {
-      active: { color: colors.success, icon: 'checkmark-circle-outline', label: t('myItems:status.active', 'Actif') },
-      sold: { color: colors.tint, icon: 'cash-outline', label: t('myItems:status.sold', 'Vendu') },
-      draft: { color: colors.warning, icon: 'document-outline', label: t('myItems:status.draft', 'Brouillon') },
+      active: { 
+        color: colors.success, 
+        icon: 'checkmark-circle-outline', 
+        label: t('myItems.status.active', 'Actif') 
+      },
+      sold: { 
+        color: colors.tint, 
+        icon: 'cash-outline', 
+        label: t('myItems.status.sold', 'Vendu') 
+      },
+      pending: { 
+        color: colors.warning, 
+        icon: 'time-outline', 
+        label: t('myItems.status.pending', 'En attente') 
+      },
+      rejected: { 
+        color: colors.error, 
+        icon: 'close-circle-outline', 
+        label: t('myItems.status.rejected', 'Rejeté') 
+      },
     };
-    return configs[status as keyof typeof configs] || configs.active;
+    return configs[status as keyof typeof configs] || configs.pending;
   };
 
+  // État de chargement - AVEC SKELETON
+  if (productsLoading) {
+    return <MyItemsSkeleton colors={colors} />;
+  }
+
+  // État d'erreur
+  if (productsError) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.card }]}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.replace('/(tabs)/profile')}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.tint} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {t('myItems.title', 'Mes articles')}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            {t('Erreur de chargement des articles')}
+          </Text>
+          <CustomButton
+            title={t('Réessayer')}
+            onPress={() => refetch()}
+            variant="primary"
+            size="medium"
+            style={styles.retryButton}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  // Le reste du code reste identique pour les fonctions de gestion...
   const handleViewProduct = (productId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     closeModal();
@@ -181,8 +248,8 @@ export default function MyItemsScreen() {
     closeModal();
     setTimeout(() => {
       Alert.alert(
-        t('myItems:deleteTitle', 'Supprimer l\'article'),
-        t('myItems:deleteMessage', `Êtes-vous sûr de vouloir supprimer "${productName}" ?`),
+        t('myItems.deleteTitle', 'Supprimer l\'article'),
+        t('myItems.deleteMessage', `Êtes-vous sûr de vouloir supprimer "${productName}" ?`),
         [
           { 
             text: t('cancel', 'Annuler'), 
@@ -194,9 +261,21 @@ export default function MyItemsScreen() {
           { 
             text: t('delete', 'Supprimer'), 
             style: 'destructive', 
-            onPress: () => {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              Alert.alert('Succès', 'Article supprimé avec succès');
+            onPress: async () => {
+              try {
+                const { error } = await supabase
+                  .from('products')
+                  .delete()
+                  .eq('id', productId);
+
+                if (error) throw error;
+
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                Alert.alert(t('Succès'), t('Article supprimé avec succès'));
+                refetch(); // Recharger la liste avec React Query
+              } catch (error) {
+                Alert.alert(t('Erreur'), t('Impossible de supprimer l\'article'));
+              }
             }
           },
         ]
@@ -204,24 +283,15 @@ export default function MyItemsScreen() {
     }, 200);
   };
 
-  const handleFilterPress = () => {
-    console.log('Ouvrir les filtres des articles');
-    // router.push('/screens/items/FiltersScreen');
-  };
-
-  // Gestion du long press
   const handleLongPress = (product: Product) => {
-    // Vibration au long press
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedProduct(product);
     
-    // Reset animations
     scaleAnim.setValue(0.9);
     opacityAnim.setValue(0);
     slideAnim.setValue(30);
     overlayOpacity.setValue(0);
     
-    // Animation d'ouverture plus fluide
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -251,10 +321,8 @@ export default function MyItemsScreen() {
   };
 
   const closeModal = () => {
-    // Vibration légère à la fermeture
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Animation de fermeture synchronisée
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 0.9,
@@ -291,7 +359,6 @@ export default function MyItemsScreen() {
     />
   );
 
-  // Modal pour les actions Pinterest-like
   const renderActionModal = () => (
     <Modal
       visible={isModalVisible}
@@ -301,12 +368,10 @@ export default function MyItemsScreen() {
       onRequestClose={closeModal}
     >
       <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]}>
-        {/* Zone cliquable pour fermer - seulement sur les bords */}
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.modalOverlayTouchable} />
         </TouchableWithoutFeedback>
         
-        {/* Contenu du modal - zone non cliquable pour fermer */}
         <Animated.View 
           style={[
             styles.modalContent,
@@ -321,14 +386,12 @@ export default function MyItemsScreen() {
         >
           {selectedProduct && (
             <>
-              {/* Carte agrandie avec effet d'ombre */}
               <View style={[
                 styles.enlargedCard,
                 { 
                   backgroundColor: colors.card,
                 }
               ]}>
-                {/* Bouton de fermeture */}
                 <TouchableOpacity 
                   style={[
                     styles.closeButton,
@@ -352,7 +415,6 @@ export default function MyItemsScreen() {
                     ${selectedProduct.price}
                   </Text>
                   
-                  {/* Informations supplémentaires */}
                   <View style={styles.enlargedDetails}>
                     <View style={styles.detailRow}>
                       <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
@@ -363,20 +425,19 @@ export default function MyItemsScreen() {
                     <View style={styles.detailRow}>
                       <Ionicons name="eye-outline" size={16} color={colors.textSecondary} />
                       <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                        {selectedProduct.views} vues
+                        {selectedProduct.views} {t('vues')}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Ionicons name="heart-outline" size={16} color={colors.textSecondary} />
                       <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                        {selectedProduct.likes} likes
+                        {selectedProduct.likes} {t('likes')}
                       </Text>
                     </View>
                   </View>
                 </View>
               </View>
 
-              {/* Actions */}
               <View style={[
                 styles.actionsContainerModal,
                 { backgroundColor: colors.card }
@@ -387,7 +448,7 @@ export default function MyItemsScreen() {
                 >
                   <Ionicons name="eye-outline" size={24} color={colors.tint} />
                   <Text style={[styles.actionText, { color: colors.text }]}>
-                    {t('myItems:actions.view', 'Voir')}
+                    {t('myItems.actions.view', 'Voir')}
                   </Text>
                 </TouchableOpacity>
 
@@ -397,7 +458,7 @@ export default function MyItemsScreen() {
                 >
                   <Ionicons name="create-outline" size={24} color={colors.tint} />
                   <Text style={[styles.actionText, { color: colors.text }]}>
-                    {t('myItems:actions.edit', 'Modifier')}
+                    {t('myItems.actions.edit', 'Modifier')}
                   </Text>
                 </TouchableOpacity>
 
@@ -407,7 +468,7 @@ export default function MyItemsScreen() {
                 >
                   <Ionicons name="trash-outline" size={24} color={colors.error} />
                   <Text style={[styles.actionText, { color: colors.error }]}>
-                    {t('myItems:actions.delete', 'Supprimer')}
+                    {t('myItems.actions.delete', 'Supprimer')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -422,14 +483,14 @@ export default function MyItemsScreen() {
     <View style={styles.emptyContainer}>
       <Ionicons name="cube-outline" size={48} color={colors.textSecondary} />
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        {t('myItems:empty.title', 'Aucun article')}
+        {t('myItems.empty.title', 'Aucun article')}
       </Text>
       <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-        {t('myItems:empty.subtitle', 'Les articles que vous publiez apparaîtront ici')}
+        {t('myItems.empty.subtitle', 'Les articles que vous publiez apparaîtront ici')}
       </Text>
       <CustomButton
-        title={t('myItems:empty.addButton', 'Ajouter un article')}
-        onPress={() => console.log('Ajouter un article')}
+        title={t('myItems.empty.addButton', 'Ajouter un article')}
+        onPress={() => router.push('/(tabs)/sell')}
         variant="primary"
         size="medium"
         style={styles.addButton}
@@ -445,7 +506,7 @@ export default function MyItemsScreen() {
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.replace('/(tabs)/profile')}
+          onPress={() => router.back()}
         >
           <Ionicons 
             name="chevron-back" 
@@ -454,7 +515,7 @@ export default function MyItemsScreen() {
           />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('myItems:title', 'Mes articles')}
+          {t('myItems.title', 'Mes articles')}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -463,10 +524,10 @@ export default function MyItemsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Barre de recherche avec composant SearchBar */}
+        {/* Barre de recherche */}
         <View style={styles.searchWrapper}>
           <SearchBar
-            placeholder={t('myItems:searchPlaceholder', 'Rechercher un article...')}
+            placeholder={t('myItems.searchPlaceholder', 'Rechercher un article...')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             showFilterButton={false}
@@ -474,7 +535,7 @@ export default function MyItemsScreen() {
           />
         </View>
 
-        {/* Liste des articles - Grille 2 colonnes */}
+        {/* Liste des articles */}
         {filteredProducts.length > 0 ? (
           <FlatList
             data={filteredProducts}
@@ -496,11 +557,11 @@ export default function MyItemsScreen() {
   );
 }
 
+// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Header
   header: { 
     flexDirection: 'row',
     alignItems: 'center',
@@ -525,12 +586,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     marginTop: 25,
   },
-  // Search Wrapper
   searchWrapper: {
     marginHorizontal: 20,
     marginBottom: 16,
   },
-  // Products Grid
   productsGrid: { 
     paddingHorizontal: 10,
     marginTop: 20,
@@ -540,7 +599,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -659,6 +717,21 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   addButton: {
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
     marginTop: 16,
   },
 });

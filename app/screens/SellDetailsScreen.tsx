@@ -231,8 +231,7 @@ export default function SellDetailsScreen() {
         location: formData.location,
         seller_id: user.id,
         views: 0,
-        is_available: true,
-        is_valid: false,
+        product_state: 'pending',
         created_at: new Date().toISOString(),
       };
 
@@ -277,7 +276,7 @@ export default function SellDetailsScreen() {
           {
             text: t('common.ok', 'OK'),
             onPress: () => {
-              router.push('/screens/profileOption/MyItemsScreen');
+              router.push('/(tabs)/home');
             }
           }
         ]

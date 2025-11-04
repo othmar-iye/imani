@@ -7,6 +7,39 @@ const resources = {
   fr: {
     translation: {
 
+        // MY ITEMS
+        myItems: {
+        title: "Mes articles",
+        searchPlaceholder: "Rechercher un article...",
+        
+        // Statuts des articles
+        status: {
+            active: "Actif",
+            sold: "Vendu", 
+            pending: "En attente",
+            rejected: "Rejeté",
+            draft: "Brouillon"
+        },
+        
+        // Actions dans le modal
+        actions: {
+            view: "Voir",
+            edit: "Modifier", 
+            delete: "Supprimer"
+        },
+        
+        // Messages de suppression
+        deleteTitle: "Supprimer l'article",
+        deleteMessage: "Êtes-vous sûr de vouloir supprimer \"{{productName}}\" ?",
+        
+        // État vide
+        empty: {
+            title: "Aucun article",
+            subtitle: "Les articles que vous publiez apparaîtront ici",
+            addButton: "Ajouter un article"
+        }
+        },
+
         // ===== NOUVELLES TRADUCTIONS POUR L'ÉCRAN DE VENTE =====
         exitConfirmation: "Quitter la publication ?",
         discard: "Abandonner",
@@ -408,7 +441,7 @@ const resources = {
       enterFullName: "Votre nom complet",
       
       // Sections du profil
-      myItems: "Mes articles",
+      myItemsName: "Mes articles",
       myWallet: "Mon portefeuille",
       myOrders: "Mes commandes",
       myConversations: "Mes discussions",
@@ -533,6 +566,39 @@ const resources = {
 
   en: {
     translation: {
+
+        // MES ARTICLES
+        myItems: {
+        title: "My Items",
+        searchPlaceholder: "Search an item...",
+        
+        // Item statuses
+        status: {
+            active: "Active",
+            sold: "Sold",
+            pending: "Pending", 
+            rejected: "Rejected",
+            draft: "Draft"
+        },
+        
+        // Actions in modal
+        actions: {
+            view: "View",
+            edit: "Edit",
+            delete: "Delete"
+        },
+        
+        // Delete messages
+        deleteTitle: "Delete Item", 
+        deleteMessage: "Are you sure you want to delete \"{{productName}}\"?",
+        
+        // Empty state
+        empty: {
+            title: "No Items",
+            subtitle: "Items you publish will appear here",
+            addButton: "Add Item"
+        }
+        },
 
         // ===== NEW TRANSLATIONS FOR SELL SCREEN =====
         exitConfirmation: "Leave publication?",
@@ -934,7 +1000,7 @@ const resources = {
       enterFullName: "Your full name",
       
       // Profile sections
-      myItems: "My Items",
+      myItemsName: "My Items",
       myWallet: "My Wallet",
       myOrders: "My Orders",
       myConversations: "My Conversations",
