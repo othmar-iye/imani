@@ -61,6 +61,18 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
       console.error('Erreur chargement profil:', error);
     }
 
+    // 🆕 COMPTER LES ARTICLES DE L'UTILISATEUR
+    const { count: itemsCount, error: countError } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('seller_id', user.id);
+
+    if (countError) {
+      console.error('Erreur comptage articles:', countError);
+    }
+
+    const userItemsCount = itemsCount || 0;
+
     // Utiliser les données de user_profiles si disponibles, sinon les métadonnées de l'user
     const profileData: ProfileData = {
       fullName: user?.user_metadata?.full_name || 'Utilisateur',
@@ -68,9 +80,9 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
       sellerStatus: getSellerStatus(userProfile?.verification_status),
       location: userProfile?.city || 'Lubumbashi, RDC',
       stats: {
-        items: userProfile?.items_count || 12,
-        salesStat: userProfile?.sales_count || 8,
-        ratings: userProfile?.rating || 4.8
+        items: userItemsCount, // 🆕 Utiliser le compte réel des articles
+        salesStat: userProfile?.sales_count || 0,
+        ratings: userProfile?.rating || 0
       }
     };
 
@@ -78,6 +90,18 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
   } catch (error) {
     console.error('Erreur lors du chargement du profil:', error);
     
+    // 🆕 Compter les articles même en cas d'erreur partielle
+    let itemsCount = 0;
+    try {
+      const { count } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('seller_id', user.id);
+      itemsCount = count || 0;
+    } catch (countError) {
+      console.error('Erreur comptage articles fallback:', countError);
+    }
+
     // Retourner des données par défaut en cas d'erreur
     return {
       fullName: user?.user_metadata?.full_name || 'Utilisateur',
@@ -85,9 +109,9 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
       sellerStatus: 'member',
       location: 'Lubumbashi, RDC',
       stats: {
-        items: 12,
-        salesStat: 8,
-        ratings: 4.8
+        items: itemsCount,
+        salesStat: 0,
+        ratings: 0
       }
     };
   }
@@ -446,7 +470,8 @@ export default function ProfileScreen() {
               <MenuItem
                 icon="cube-outline"
                 label={t('myItemsName')}
-                count={profileData?.stats.items.toString() || '12'}
+                // 🆕 MODIFICATION: Afficher le count seulement si > 0
+                count={profileData?.stats.items > 0 ? profileData.stats.items.toString() : undefined}
                 onPress={() => router.push('/screens/profileOption/MyItemsScreen')}
                 colors={colors}
               />

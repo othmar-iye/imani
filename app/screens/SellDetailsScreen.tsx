@@ -5,6 +5,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { categories, Category } from '@/src/data/categories';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -61,6 +62,48 @@ const LOCATIONS = [
     'Sakania', 'Ankoro', 'Bukama', 'Kamina', 'Malemba Nkulu', 'Matadi',
     'Nyunzu', 'Kabondo Dianda', 'Kazembe', 'Moba', 'Mwana Muyombo', 'Pweto'
   ];
+
+// Fonction de compression d'image
+const compressImage = async (
+  imageUri: string, 
+  quality: number = 0.7,
+  maxWidth: number = 1200,
+  maxHeight: number = 1200
+): Promise<string> => {
+  try {
+    console.log('🔧 Compression de l\'image:', imageUri);
+    
+    const result = await manipulateAsync(
+      imageUri,
+      [
+        {
+          resize: {
+            width: maxWidth,
+            height: maxHeight,
+          },
+        },
+      ],
+      {
+        compress: quality,
+        format: SaveFormat.JPEG,
+        base64: false,
+      }
+    );
+    
+    console.log('✅ Image compressée:', {
+      original: imageUri,
+      compressed: result.uri,
+      width: result.width,
+      height: result.height
+    });
+    
+    return result.uri;
+  } catch (error) {
+    console.error('❌ Erreur compression image:', error);
+    // En cas d'erreur, retourner l'image originale
+    return imageUri;
+  }
+};
 
 export default function SellDetailsScreen() {
   const { t } = useTranslation();
@@ -142,10 +185,16 @@ export default function SellDetailsScreen() {
           throw new Error(`Image ${index + 1} n'a pas d'URI valide`);
         }
 
-        const response = await fetch(image.uri);
+        console.log(`📤 Upload image ${index + 1}/${images.length}`);
+        
+        // Étape 1: Compression de l'image
+        const compressedImageUri = await compressImage(image.uri, 0.8, 1200, 1200);
+        
+        // Étape 2: Récupération de l'image compressée
+        const response = await fetch(compressedImageUri);
         
         if (!response.ok) {
-          throw new Error(`Erreur fetch image ${index + 1}: ${response.status}`);
+          throw new Error(`Erreur fetch image compressée ${index + 1}: ${response.status}`);
         }
         
         // Convertir la réponse en arrayBuffer puis en Uint8Array pour Supabase
@@ -153,8 +202,10 @@ export default function SellDetailsScreen() {
         const uint8Array = new Uint8Array(arrayBuffer);
         
         if (uint8Array.length === 0) {
-          throw new Error(`Données image ${index + 1} sont vides`);
+          throw new Error(`Données image compressée ${index + 1} sont vides`);
         }
+
+        console.log(`📊 Taille image compressée: ${(uint8Array.length / 1024 / 1024).toFixed(2)} MB`);
 
         // Créer un nom de fichier unique
         const fileName = `${user?.id}/${productId}/${Date.now()}-${index}.jpg`;
@@ -178,11 +229,13 @@ export default function SellDetailsScreen() {
 
         if (urlData?.publicUrl) {
           uploadedUrls.push(urlData.publicUrl);
+          console.log(`✅ Image ${index + 1} uploadée: ${urlData.publicUrl}`);
         } else {
           throw new Error(`Impossible d'obtenir l'URL publique pour l'image ${index + 1}`);
         }
       }
     } catch (error) {
+      console.error('❌ Erreur upload images:', error);
       throw new Error('Erreur lors de l\'upload des images');
     }
     
@@ -245,7 +298,7 @@ export default function SellDetailsScreen() {
 
   const proceedWithInsertion = async (productData: any) => {
     try {
-      // Uploader toutes les images d'abord
+      // Uploader toutes les images d'abord (avec compression)
       const imageUrls = await uploadImages('temp-product');
       
       if (imageUrls.length === 0) {
