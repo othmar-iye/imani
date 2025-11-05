@@ -3,6 +3,7 @@ import { useCustomTheme } from '@/src/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Animated,
     StyleSheet,
@@ -12,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PasswordSuccessScreen = () => {
   const { colors } = useCustomTheme();
+  const { t } = useTranslation();
   
   // Références pour les animations
   const iconScale = useRef(new Animated.Value(0)).current;
@@ -117,7 +119,7 @@ const PasswordSuccessScreen = () => {
             }
           ]}
         >
-          Mot de passe
+          {t('passwordConfirmed.titleLine1')}
         </Animated.Text>
         <Animated.Text 
           style={[
@@ -134,7 +136,7 @@ const PasswordSuccessScreen = () => {
             }
           ]}
         >
-          changé avec succès
+          {t('passwordConfirmed.titleLine2')}
         </Animated.Text>
         
         {/* Message de confirmation avec animation */}
@@ -153,7 +155,7 @@ const PasswordSuccessScreen = () => {
             }
           ]}
         >
-          Ton mot de passe a été mis à jour avec succès. Tu peux maintenant te connecter avec ton nouveau mot de passe.
+          {t('passwordConfirmed.subtitle')}
         </Animated.Text>
 
         {/* CustomButton avec animations */}
@@ -164,7 +166,7 @@ const PasswordSuccessScreen = () => {
           }}
         >
           <CustomButton
-            title="Se connecter"
+            title={t('passwordConfirmed.loginButton')}
             onPress={handleLogin}
             variant="primary"
             size="large"

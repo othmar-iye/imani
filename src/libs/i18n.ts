@@ -7,6 +7,114 @@ const resources = {
   fr: {
     translation: {
 
+        // CONFIRMED PASSWORD
+        passwordConfirmed: {
+            titleLine1: "Mot de passe",
+            titleLine2: "changé avec succès",
+            subtitle: "Ton mot de passe a été mis à jour avec succès. Tu peux maintenant te connecter avec ton nouveau mot de passe.",
+            loginButton: "Se connecter",
+        },
+
+        // NEW PASSWORD
+        yourAccount: "votre compte",
+        passwordNew: {
+            title: "Nouveau mot de passe",
+            subtitle: "Créez un nouveau mot de passe pour {{email}}.",
+            newPasswordPlaceholder: "Nouveau mot de passe",
+            confirmPasswordPlaceholder: "Confirmer le mot de passe",
+            updateButton: "Mettre à jour le mot de passe",
+            updating: "Mise à jour...",
+            devMode: "Mode développement activé",
+            errors: {
+                requiredFields: "Veuillez remplir tous les champs",
+                passwordTooShort: "Le mot de passe doit contenir au moins 6 caractères",
+                passwordsDontMatch: "Les mots de passe ne correspondent pas",
+                genericError: "❌ Une erreur est survenue lors de la mise à jour du mot de passe",
+            },
+            success: {
+                standard: "✅ Mot de passe mis à jour avec succès",
+                dev: "✅ [DEV] Mot de passe mis à jour (simulation)",
+            }
+        },
+
+        // FORGOT PASSWORD
+        passwordForgot: {
+            title: "Mot de passe oublié",
+            subtitle: "Entrez votre adresse email pour réinitialiser votre mot de passe.",
+            emailPlaceholder: "Votre adresse email",
+            resetButton: "Réinitialiser le mot de passe",
+            resetting: "Vérification...",
+            backToLogin: "Retour à la connexion",
+            devMode: "Mode développement : Redirection directe",
+            errors: {
+            requiredEmail: "Veuillez entrer votre adresse email",
+            invalidEmail: "Veuillez entrer une adresse email valide",
+            emailNotFound: "❌ Aucun compte trouvé avec cette adresse email",
+            genericError: "Une erreur est survenue lors de la réinitialisation",
+            }
+        },
+
+        // WELCOME
+        welcome: {
+            title: "Donne une nouvelle vie à tes objets",
+            subtitle: "Achète et vends facilement, tout depuis ton téléphone.",
+            registerButton: "Inscription",
+            loginButton: "Connexion",
+        },
+
+        // REGISTER 
+        register: {
+            title: "Rejoins-nous",
+            subtitle: "Crée ton compte et commence à donner une nouvelle vie à tes objets.",
+            fullName: "Nom complet",
+            fullNamePlaceholder: "Nom complet",
+            email: "Email",
+            emailPlaceholder: "Email",
+            password: "Mot de passe",
+            passwordPlaceholder: "Mot de passe",
+            confirmPassword: "Confirmer le mot de passe",
+            confirmPasswordPlaceholder: "Confirmer le mot de passe",
+            registerButton: "S'inscrire",
+            registering: "Inscription...",
+            loginLink: "Déjà un compte ? Se connecter",
+            errors: {
+            requiredFields: "Veuillez remplir tous les champs",
+            passwordsDontMatch: "Les mots de passe ne correspondent pas",
+            passwordTooShort: "Le mot de passe doit contenir au moins 6 caractères",
+            accountExists: "Un compte avec cet email existe déjà. Veuillez vous connecter.",
+            genericError: "Une erreur est survenue lors de l'inscription",
+            registrationError: "Erreur d'inscription"
+            },
+            success: {
+            title: "Inscription réussie !",
+            message: "Votre compte a été créé avec succès."
+            },
+            validation: {
+            passwordsMismatch: "❌ Les mots de passe ne correspondent pas",
+            passwordMinLength: "⚠️ 6 caractères minimum"
+            }
+        },
+
+        // LOGIN
+        login: {
+            title: "Heureux de te revoir",
+            subtitle: "Accède à ton compte et reprends tes échanges en toute simplicité.",
+            email: "Email",
+            emailPlaceholder: "Email",
+            password: "Mot de passe",
+            passwordPlaceholder: "Mot de passe",
+            forgotPassword: "Mot de passe oublié ?",
+            loginButton: "Se connecter",
+            loggingIn: "Connexion...",
+            createAccount: "Créez un nouveau compte",
+            errors: {
+            requiredFields: "Veuillez remplir tous les champs",
+            invalidCredentials: "❌ Email ou mot de passe incorrect",
+            emailNotConfirmed: "❌ Veuillez confirmer votre email avant de vous connecter",
+            genericError: "❌ Une erreur est survenue lors de la connexion",
+            }
+        },
+
         // NOUVELLES TRADUCTIONS POUR SETTINGS
         appearance: "Apparence",
         languageRegion: "Langue et région",
@@ -629,6 +737,114 @@ const resources = {
 
   en: {
     translation: {
+
+        // CONFIRMED PASSWORD
+        passwordConfirmed: {
+            titleLine1: "Password",
+            titleLine2: "changed successfully",
+            subtitle: "Your password has been updated successfully. You can now log in with your new password.",
+            loginButton: "Log in",
+        },
+
+        // NEW PASSWORD
+        yourAccount: "your account",
+        passwordNew: {
+            title: "New password",
+            subtitle: "Create a new password for {{email}}.",
+            newPasswordPlaceholder: "New password",
+            confirmPasswordPlaceholder: "Confirm password",
+            updateButton: "Update password",
+            updating: "Updating...",
+            devMode: "Development mode activated",
+            errors: {
+                requiredFields: "Please fill all fields",
+                passwordTooShort: "Password must be at least 6 characters",
+                passwordsDontMatch: "Passwords don't match",
+                genericError: "❌ An error occurred while updating password",
+            },
+            success: {
+                standard: "✅ Password updated successfully",
+                dev: "✅ [DEV] Password updated (simulation)",
+            }
+        },
+
+        // FORGOT PASSWORD
+        passwordForgot: {
+            title: "Forgot password",
+            subtitle: "Enter your email address to reset your password.",
+            emailPlaceholder: "Your email address",
+            resetButton: "Reset password",
+            resetting: "Checking...",
+            backToLogin: "Back to login",
+            devMode: "Development mode: Direct redirect",
+            errors: {
+            requiredEmail: "Please enter your email address",
+            invalidEmail: "Please enter a valid email address",
+            emailNotFound: "❌ No account found with this email address",
+            genericError: "An error occurred during reset",
+            }
+        },
+
+        // WELCOME
+        welcome: {
+            title: "Give new life to your items",
+            subtitle: "Buy and sell easily, all from your phone.",
+            registerButton: "Sign up",
+            loginButton: "Log in",
+        },
+
+        // REGISTER
+        register: {
+            title: "Join us",
+            subtitle: "Create your account and start giving new life to your items.",
+            fullName: "Full name",
+            fullNamePlaceholder: "Full name",
+            email: "Email",
+            emailPlaceholder: "Email",
+            password: "Password",
+            passwordPlaceholder: "Password",
+            confirmPassword: "Confirm password",
+            confirmPasswordPlaceholder: "Confirm password",
+            registerButton: "Sign up",
+            registering: "Signing up...",
+            loginLink: "Already have an account? Log in",
+            errors: {
+            requiredFields: "Please fill all fields",
+            passwordsDontMatch: "Passwords don't match",
+            passwordTooShort: "Password must be at least 6 characters",
+            accountExists: "An account with this email already exists. Please log in.",
+            genericError: "An error occurred during registration",
+            registrationError: "Registration error"
+            },
+            success: {
+            title: "Registration successful!",
+            message: "Your account has been created successfully."
+            },
+            validation: {
+            passwordsMismatch: "❌ Passwords don't match",
+            passwordMinLength: "⚠️ Minimum 6 characters"
+            }
+        },
+
+        // LOGIN
+        login: {
+            title: "Happy to see you again",
+            subtitle: "Access your account and resume your exchanges with ease.",
+            email: "Email",
+            emailPlaceholder: "Email",
+            password: "Password",
+            passwordPlaceholder: "Password",
+            forgotPassword: "Forgot password?",
+            loginButton: "Log in",
+            loggingIn: "Logging in...",
+            createAccount: "Create a new account",
+            errors: {
+            requiredFields: "Please fill all fields",
+            invalidCredentials: "❌ Incorrect email or password",
+            emailNotConfirmed: "❌ Please confirm your email before logging in",
+            genericError: "❌ An error occurred during login",
+            }
+        },
 
         // NEW TRANSLATIONS FOR SETTINGS
         appearance: "Appearance",

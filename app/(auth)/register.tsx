@@ -5,6 +5,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Keyboard,
@@ -32,6 +33,7 @@ const RegisterScreen = () => {
   });
 
   const { colors } = useCustomTheme();
+  const { t } = useTranslation();
 
   // Refs pour gérer le focus des champs
   const emailRef = useRef<TextInput>(null);
@@ -53,21 +55,20 @@ const RegisterScreen = () => {
     }));
   };
 
-  
-    const handleRegister = async () => {
+  const handleRegister = async () => {
     // Validation des champs
     if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
-        Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+        Alert.alert(t('error'), t('register.errors.requiredFields'));
         return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-        Alert.alert('Erreur', 'Les mots de passe ne correspondent pas');
+        Alert.alert(t('error'), t('register.errors.passwordsDontMatch'));
         return;
     }
 
     if (formData.password.length < 6) {
-        Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
+        Alert.alert(t('error'), t('register.errors.passwordTooShort'));
         return;
     }
 
@@ -90,12 +91,12 @@ const RegisterScreen = () => {
         if (error.message.includes('already registered') || 
             error.message.includes('user_exists')) {
             Alert.alert(
-            'Compte existant', 
-            'Un compte avec cet email existe déjà. Veuillez vous connecter.',
-            [{ text: 'Se connecter', onPress: () => router.replace('/(auth)/login') }]
+            t('register.errors.accountExists'),
+            t('register.errors.accountExists'),
+            [{ text: t('login.loginButton'), onPress: () => router.replace('/(auth)/login') }]
             );
         } else {
-            Alert.alert('Erreur d\'inscription', error.message);
+            Alert.alert(t('register.errors.registrationError'), error.message);
         }
         return;
         }
@@ -103,26 +104,26 @@ const RegisterScreen = () => {
         // Vérifier le cas où identities est vide (compte existe déjà)
         if (data.user && data.user.identities && data.user.identities.length === 0) {
         Alert.alert(
-            'Compte existant', 
-            'Un compte avec cet email existe déjà. Veuillez vous connecter.',
-            [{ text: 'Se connecter', onPress: () => router.replace('/(auth)/login') }]
+            t('register.errors.accountExists'),
+            t('register.errors.accountExists'),
+            [{ text: t('login.loginButton'), onPress: () => router.replace('/(auth)/login') }]
         );
         return;
         }
 
         // SUCCÈS - Inscription réussie
         Alert.alert(
-        'Inscription réussie !',
-        'Votre compte a été créé avec succès.',
+        t('register.success.title'),
+        t('register.success.message'),
         [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]
         );
 
     } catch (error: any) {
-        Alert.alert('Erreur', 'Une erreur est survenue lors de l\'inscription');
+        Alert.alert(t('error'), t('register.errors.genericError'));
     } finally {
         setLoading(false);
     }
-    };
+  };
 
   // Vérifier si le formulaire est valide
   const isFormValid = formData.fullName && 
@@ -146,11 +147,13 @@ const RegisterScreen = () => {
           >
 
             {/* Titre principal */}
-            <Text style={[styles.title, { color: colors.tint }]}>Rejoins-nous</Text>
+            <Text style={[styles.title, { color: colors.tint }]}>
+              {t('register.title')}
+            </Text>
             
             {/* Sous-titre */}
             <Text style={[styles.subtitle, { color: colors.text }]}>
-              Crée ton compte et commence à donner une nouvelle vie à tes objets.
+              {t('register.subtitle')}
             </Text>
 
             {/* Section Formulaire */}
@@ -169,7 +172,7 @@ const RegisterScreen = () => {
                 />
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
-                  placeholder="Nom complet"
+                  placeholder={t('register.fullNamePlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   autoCapitalize="words"
                   value={formData.fullName}
@@ -194,7 +197,7 @@ const RegisterScreen = () => {
                 <TextInput
                   ref={emailRef}
                   style={[styles.input, { color: colors.text }]}
-                  placeholder="Email"
+                  placeholder={t('register.emailPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -220,7 +223,7 @@ const RegisterScreen = () => {
                 <TextInput
                   ref={passwordRef}
                   style={[styles.inputWithIcon, { color: colors.text }]}
-                  placeholder="Mot de passe"
+                  placeholder={t('register.passwordPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   secureTextEntry={!showPassword}
                   value={formData.password}
@@ -255,7 +258,7 @@ const RegisterScreen = () => {
                 <TextInput
                   ref={confirmPasswordRef}
                   style={[styles.inputWithIcon, { color: colors.text }]}
-                  placeholder="Confirmer le mot de passe"
+                  placeholder={t('register.confirmPasswordPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   secureTextEntry={!showConfirmPassword}
                   value={formData.confirmPassword}
@@ -278,13 +281,13 @@ const RegisterScreen = () => {
               {/* Messages de validation */}
               {formData.confirmPassword && formData.password !== formData.confirmPassword && (
                 <Text style={styles.errorText}>
-                  ❌ Les mots de passe ne correspondent pas
+                  {t('register.validation.passwordsMismatch')}
                 </Text>
               )}
               
               {formData.password && formData.password.length < 6 && (
                 <Text style={styles.warningText}>
-                  ⚠️ 6 caractères minimum
+                  {t('register.validation.passwordMinLength')}
                 </Text>
               )}
             </View>
@@ -294,7 +297,7 @@ const RegisterScreen = () => {
 
             {/* Bouton d'inscription */}
             <CustomButton
-              title={loading ? "Inscription..." : "S'inscrire"}
+              title={loading ? t('register.registering') : t('register.registerButton')}
               onPress={handleRegister}
               variant="primary"
               size="large"
@@ -308,7 +311,7 @@ const RegisterScreen = () => {
               onPress={() => router.replace('/(auth)/login')}
             >
               <Text style={[styles.loginLinkText, { color: colors.text }]}>
-                Déjà un compte ? Se connecter
+                {t('register.loginLink')}
               </Text>
             </TouchableOpacity>
 

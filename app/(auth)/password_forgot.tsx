@@ -4,6 +4,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -24,6 +25,7 @@ const PasswordForgotScreen = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { colors } = useCustomTheme();
+  const { t } = useTranslation();
 
   const checkIfEmailExists = async (email: string): Promise<boolean> => {
     try {
@@ -53,13 +55,13 @@ const PasswordForgotScreen = () => {
     setSuccess('');
 
     if (!email) {
-        setError('Veuillez entrer votre adresse email');
+        setError(t('passwordForgot.errors.requiredEmail'));
         return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-        setError('Veuillez entrer une adresse email valide');
+        setError(t('passwordForgot.errors.invalidEmail'));
         return;
     }
 
@@ -73,7 +75,7 @@ const PasswordForgotScreen = () => {
         console.log('✅ Email existe:', emailExists);
 
         if (!emailExists) {
-            setError('❌ Aucun compte trouvé avec cette adresse email');
+            setError(t('passwordForgot.errors.emailNotFound'));
             setLoading(false);
             return;
         }
@@ -154,17 +156,19 @@ const PasswordForgotScreen = () => {
               <Ionicons name="arrow-back" size={24} color={colors.tint} />
             </TouchableOpacity>
 
-            <Text style={[styles.title, { color: colors.tint }]}>Mot de passe oublié</Text>
+            <Text style={[styles.title, { color: colors.tint }]}>
+              {t('passwordForgot.title')}
+            </Text>
             
             <Text style={[styles.subtitle, { color: colors.text }]}>
-              Entrez votre adresse email pour réinitialiser votre mot de passe.
+              {t('passwordForgot.subtitle')}
             </Text>
 
             {/* Message pour le développement */}
             <View style={styles.devNote}>
               <Ionicons name="code-slash" size={16} color={colors.tint} />
               <Text style={[styles.devNoteText, { color: colors.tint }]}>
-                Mode développement : Redirection directe
+                {t('passwordForgot.devMode')}
               </Text>
             </View>
 
@@ -181,7 +185,7 @@ const PasswordForgotScreen = () => {
                 />
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
-                  placeholder="Votre adresse email"
+                  placeholder={t('passwordForgot.emailPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -208,7 +212,7 @@ const PasswordForgotScreen = () => {
             <View style={[styles.separator, { backgroundColor: colors.borderInput }]} />
 
             <CustomButton
-              title={loading ? "Vérification..." : "Réinitialiser le mot de passe"}
+              title={loading ? t('passwordForgot.resetting') : t('passwordForgot.resetButton')}
               onPress={handleResetPassword}
               variant="primary"
               size="large"
@@ -221,7 +225,7 @@ const PasswordForgotScreen = () => {
               onPress={() => router.replace('/(auth)/login')}
             >
               <Text style={[styles.backToLoginText, { color: colors.text }]}>
-                Retour à la connexion
+                {t('passwordForgot.backToLogin')}
               </Text>
             </TouchableOpacity>
           </ScrollView>

@@ -1,10 +1,12 @@
 import CustomButton from '@/components/CustomButton';
 import { useCustomTheme } from '@/src/context/ThemeContext';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 const Welcome = () => {
     const { colors } = useCustomTheme();
+    const { t } = useTranslation();
 
     function handleRegister(): void {
         router.replace('/(auth)/register')
@@ -25,25 +27,25 @@ const Welcome = () => {
 
       {/* Titre */}
       <Text style={[styles.title, { color: colors.tint }]}>
-        Donne une nouvelle vie à tes objets
+        {t('welcome.title')}
       </Text>
 
       {/* Sous-texte */}
       <Text style={[styles.subtitle, { color: colors.text }]}>
-        Achète et vends facilement, tout depuis ton téléphone.
+        {t('welcome.subtitle')}
       </Text>
 
       {/* Boutons */}
       <View style={styles.buttonContainer}>
         <CustomButton
-            title="Inscription"
+            title={t('welcome.registerButton')}
             onPress={handleRegister}
             variant="primary"
             size="large"
         />
 
         <CustomButton
-            title="Connexion"
+            title={t('welcome.loginButton')}
             onPress={handleLogin}
             variant="secondary"
             size="large"

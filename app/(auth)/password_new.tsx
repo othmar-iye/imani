@@ -4,17 +4,18 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,23 +32,24 @@ const PasswordNewScreen = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { colors } = useCustomTheme();
+  const { t } = useTranslation();
 
   const handleUpdatePassword = async () => {
     setError('');
     setSuccess('');
 
     if (!newPassword || !confirmPassword) {
-      setError('Veuillez remplir tous les champs');
+      setError(t('passwordNew.errors.requiredFields'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setError(t('passwordNew.errors.passwordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError(t('passwordNew.errors.passwordsDontMatch'));
       return;
     }
 
@@ -69,9 +71,9 @@ const PasswordNewScreen = () => {
           console.log('❌ Méthode standard échouée, utilisation alternative...');
           // Ici vous pouvez utiliser une Edge Function personnalisée
           // ou une autre méthode pour le développement
-          setSuccess('✅ [DEV] Mot de passe mis à jour (simulation)');
+          setSuccess(t('passwordNew.success.dev'));
         } else {
-          setSuccess('✅ Mot de passe mis à jour avec succès');
+          setSuccess(t('passwordNew.success.standard'));
         }
       } else {
         // Mode production normal
@@ -83,7 +85,7 @@ const PasswordNewScreen = () => {
           setError(`❌ ${updateError.message}`);
           return;
         }
-        setSuccess('✅ Mot de passe mis à jour avec succès');
+        setSuccess(t('passwordNew.success.standard'));
       }
 
       // Redirection vers la connexion
@@ -92,7 +94,7 @@ const PasswordNewScreen = () => {
       }, 2000);
 
     } catch (error: any) {
-      setError('❌ Une erreur est survenue lors de la mise à jour du mot de passe');
+      setError(t('passwordNew.errors.genericError'));
       console.error('Update password error:', error);
     } finally {
       setLoading(false);
@@ -120,10 +122,12 @@ const PasswordNewScreen = () => {
               <Ionicons name="arrow-back" size={24} color={colors.tint} />
             </TouchableOpacity>
 
-            <Text style={[styles.title, { color: colors.tint }]}>Nouveau mot de passe</Text>
+            <Text style={[styles.title, { color: colors.tint }]}>
+              {t('passwordNew.title')}
+            </Text>
             
             <Text style={[styles.subtitle, { color: colors.text }]}>
-              Créez un nouveau mot de passe pour {emailFromParams || 'votre compte'}.
+              {t('passwordNew.subtitle', { email: emailFromParams || t('yourAccount') })}
             </Text>
 
             {/* Indicateur mode développement */}
@@ -131,7 +135,7 @@ const PasswordNewScreen = () => {
               <View style={styles.devNote}>
                 <Ionicons name="code-slash" size={16} color={colors.tint} />
                 <Text style={[styles.devNoteText, { color: colors.tint }]}>
-                  Mode développement activé
+                  {t('passwordNew.devMode')}
                 </Text>
               </View>
             )}
@@ -149,7 +153,7 @@ const PasswordNewScreen = () => {
                 />
                 <TextInput
                   style={[styles.inputWithIcon, { color: colors.text }]}
-                  placeholder="Nouveau mot de passe"
+                  placeholder={t('passwordNew.newPasswordPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   secureTextEntry={!showNewPassword}
                   value={newPassword}
@@ -183,7 +187,7 @@ const PasswordNewScreen = () => {
                 />
                 <TextInput
                   style={[styles.inputWithIcon, { color: colors.text }]}
-                  placeholder="Confirmer le mot de passe"
+                  placeholder={t('passwordNew.confirmPasswordPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
@@ -219,7 +223,7 @@ const PasswordNewScreen = () => {
             <View style={[styles.separator, { backgroundColor: colors.borderInput }]} />
 
             <CustomButton
-              title={loading ? "Mise à jour..." : "Mettre à jour le mot de passe"}
+              title={loading ? t('passwordNew.updating') : t('passwordNew.updateButton')}
               onPress={handleUpdatePassword}
               variant="primary"
               size="large"

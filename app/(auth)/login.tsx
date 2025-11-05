@@ -4,6 +4,7 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -25,6 +26,7 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { colors } = useCustomTheme();
+  const { t } = useTranslation();
 
   // Refs pour gérer le focus des champs
   const passwordRef = useRef<TextInput>(null);
@@ -39,7 +41,7 @@ const LoginScreen = () => {
 
     // Validation des champs
     if (!email || !password) {
-      setError('Veuillez remplir tous les champs');
+      setError(t('login.errors.requiredFields'));
       return;
     }
 
@@ -54,9 +56,9 @@ const LoginScreen = () => {
       if (loginError) {
         // Afficher l'erreur directement dans l'interface
         if (loginError.message === 'Invalid login credentials') {
-          setError('❌ Email ou mot de passe incorrect');
+          setError(t('login.errors.invalidCredentials'));
         } else if (loginError.message.includes('Email not confirmed')) {
-          setError('❌ Veuillez confirmer votre email avant de vous connecter');
+          setError(t('login.errors.emailNotConfirmed'));
         } else {
           setError(`❌ ${loginError.message}`);
         }
@@ -68,7 +70,7 @@ const LoginScreen = () => {
         router.replace('/(tabs)/home');
       }
     } catch (error: any) {
-      setError('❌ Une erreur est survenue lors de la connexion');
+      setError(t('login.errors.genericError'));
       console.error('Login error:', error);
     } finally {
       setLoading(false);
@@ -91,11 +93,13 @@ const LoginScreen = () => {
             keyboardShouldPersistTaps="handled"
           >
             {/* Titre principal */}
-            <Text style={[styles.title, { color: colors.tint }]}>Heureux de te revoir</Text>
+            <Text style={[styles.title, { color: colors.tint }]}>
+              {t('login.title')}
+            </Text>
             
             {/* Sous-titre */}
             <Text style={[styles.subtitle, { color: colors.text }]}>
-              Accède à ton compte et reprends tes échanges en toute simplicité.
+              {t('login.subtitle')}
             </Text>
 
             {/* Section Formulaire */}
@@ -114,7 +118,7 @@ const LoginScreen = () => {
                 />
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
-                  placeholder="Email"
+                  placeholder={t('login.emailPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -143,7 +147,7 @@ const LoginScreen = () => {
                 <TextInput
                   ref={passwordRef}
                   style={[styles.inputWithIcon, { color: colors.text }]}
-                  placeholder="Mot de passe"
+                  placeholder={t('login.passwordPlaceholder')}
                   placeholderTextColor={colors.tabIconDefault}
                   secureTextEntry={!showPassword}
                   value={password}
@@ -176,7 +180,7 @@ const LoginScreen = () => {
                 onPress={() => router.push('/(auth)/password_forgot')}
               >
                 <Text style={[styles.forgotPasswordText, { color: colors.tint }]}>
-                  Mot de passe oublié ?
+                  {t('login.forgotPassword')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -186,7 +190,7 @@ const LoginScreen = () => {
 
             {/* Bouton de connexion */}
             <CustomButton
-              title={loading ? "Connexion..." : "Se connecter"}
+              title={loading ? t('login.loggingIn') : t('login.loginButton')}
               onPress={handleLogin}
               variant="primary"
               size="large"
@@ -200,7 +204,7 @@ const LoginScreen = () => {
               onPress={() => router.replace('/(auth)/register')}
             >
               <Text style={[styles.createAccountText, { color: colors.text }]}>
-                Créez un nouveau compte
+                {t('login.createAccount')}
               </Text>
             </TouchableOpacity>
           </ScrollView>
