@@ -3,10 +3,10 @@ import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useNavigation } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
@@ -26,49 +26,17 @@ import { ExitConfirmationModal } from '@/components/ExitConfirmationModal';
 import { ImageGridComponent } from '@/components/ImageGridComponent';
 import { ImagePickerModal } from '@/components/ImagePickerModal';
 import { SellerStatusCard } from '@/components/SellerStatusCard';
+import { SellSkeleton } from '@/components/SellSkeleton';
 
 interface SelectedImage {
     uri: string;
     id: string;
 }
 
-// Fonction pour récupérer le statut vendeur
-const fetchSellerStatus = async (user: any): Promise<{ isSeller: boolean; status: string }> => {
-    if (!user) {
-        return { isSeller: false, status: 'not_authenticated' };
-    }
-
-    try {
-        const { data: userProfile, error } = await supabase
-            .from('user_profiles')
-            .select('verification_status')
-            .eq('id', user.id)
-            .single();
-
-        // CAS 1: L'utilisateur n'existe PAS dans la table → doit devenir vendeur
-        if (error && error.code === 'PGRST116') {
-            return { isSeller: false, status: 'not_seller' };
-        }
-
-        // CAS 2: Autre erreur
-        if (error) {
-            console.error('Erreur base de données:', error);
-            return { isSeller: false, status: 'not_seller' };
-        }
-
-        // CAS 3: Utilisateur existe dans la table → vérifier le statut
-        const isSeller = userProfile?.verification_status === 'verified';
-        
-        return { 
-            isSeller, 
-            status: userProfile?.verification_status || 'pending' 
-        };
-
-    } catch (error) {
-        console.error('Erreur inattendue:', error);
-        return { isSeller: false, status: 'not_seller' };
-    }
-};
+interface SellerStatus {
+    isSeller: boolean;
+    status: string;
+}
 
 export default function SellScreen() {
     const navigation = useNavigation();
@@ -77,17 +45,11 @@ export default function SellScreen() {
     const isDark = colorScheme === 'dark';
     const { t } = useTranslation();
 
-    // Query pour récupérer le statut vendeur
-    const { 
-        data: sellerStatus, 
-        isLoading: isLoadingStatus,
-        error: statusError,
-        refetch 
-    } = useQuery({
-        queryKey: ['seller-status', user?.id],
-        queryFn: () => fetchSellerStatus(user),
-        enabled: !!user,
-    });
+    const [sellerStatus, setSellerStatus] = useState<SellerStatus | null>(null);
+    const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [statusError, setStatusError] = useState<string | null>(null);
+    const [lastKnownStatus, setLastKnownStatus] = useState<string | null>(null);
 
     const colors = {
         background: isDark ? Theme.dark.background : Theme.light.background,
@@ -108,6 +70,79 @@ export default function SellScreen() {
     // Animation pour la modal de confirmation
     const slideAnim = useState(new Animated.Value(300))[0];
     const fadeAnim = useState(new Animated.Value(0))[0];
+
+    // Fonction pour récupérer le statut vendeur
+    const fetchSellerStatus = async (showLoading: boolean = true): Promise<void> => {
+        if (!user) {
+            setSellerStatus({ isSeller: false, status: 'not_authenticated' });
+            setLastKnownStatus('not_authenticated');
+            if (showLoading) setIsLoadingStatus(false);
+            setIsRefreshing(false);
+            return;
+        }
+
+        try {
+            if (showLoading) {
+                setIsLoadingStatus(true);
+            } else {
+                setIsRefreshing(true);
+            }
+            setStatusError(null);
+
+            const { data: userProfile, error } = await supabase
+                .from('user_profiles')
+                .select('verification_status')
+                .eq('id', user.id)
+                .single();
+
+            // CAS 1: L'utilisateur n'existe PAS dans la table → doit devenir vendeur
+            if (error && error.code === 'PGRST116') {
+                setSellerStatus({ isSeller: false, status: 'not_seller' });
+                setLastKnownStatus('not_seller');
+                return;
+            }
+
+            // CAS 2: Autre erreur
+            if (error) {
+                console.error('Erreur base de données:', error);
+                setStatusError('Erreur de base de données');
+                setSellerStatus({ isSeller: false, status: 'not_seller' });
+                setLastKnownStatus('not_seller');
+                return;
+            }
+
+            // CAS 3: Utilisateur existe dans la table → vérifier le statut
+            const isSeller = userProfile?.verification_status === 'verified';
+            const status = userProfile?.verification_status || 'not_seller';
+            
+            setSellerStatus({ isSeller, status });
+            setLastKnownStatus(status);
+
+        } catch (error) {
+            console.error('Erreur inattendue:', error);
+            setStatusError('Erreur inattendue');
+            setSellerStatus({ isSeller: false, status: 'not_seller' });
+            setLastKnownStatus('not_seller');
+        } finally {
+            if (showLoading) {
+                setIsLoadingStatus(false);
+            }
+            setIsRefreshing(false);
+        }
+    };
+
+    // 🔥 SOLUTION AVEC SKELETON : Rechargement silencieux
+    useFocusEffect(
+        useCallback(() => {
+            console.log('SellScreen focused - reloading seller status');
+            fetchSellerStatus();
+        }, [user])
+    );
+
+    // Premier chargement
+    useEffect(() => {
+        fetchSellerStatus();
+    }, [user]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -342,7 +377,7 @@ export default function SellScreen() {
         }
     };
 
-    // Fonction pour obtenir le message selon le statut
+    // 🆕 FONCTION AMÉLIORÉE POUR LES MESSAGES DE STATUT
     const getStatusMessage = () => {
         if (!user) {
             return {
@@ -350,56 +385,83 @@ export default function SellScreen() {
                 message: t('loginToSell', 'Veuillez vous connecter pour vendre des articles.'),
                 action: t('login', 'Se connecter'),
                 onPress: () => router.push('/(auth)/login'),
-                iconName: 'person-circle-outline' as const
+                iconName: 'person-circle-outline' as const,
             };
         }
 
-        // Si statut est 'not_seller' → l'utilisateur n'existe pas dans la table
-        if (sellerStatus?.status === 'not_seller') {
-            return {
-                title: t('becomeSeller', 'Devenir vendeur'),
-                message: t('verificationInfo', 'La vérification de votre identité est nécessaire pour devenir vendeur sur {{appName}}.', { appName: 'Imani' }),
-                action: t('becomeSeller', 'Devenir vendeur'),
-                onPress: () => router.push('/screens/ProfileSettingsScreen'),
-                iconName: 'person-add-outline' as const
-            };
-        }
-
-        // Si l'utilisateur existe dans la table, vérifier son statut
+        // Basé sur le statut de vérification
         switch(sellerStatus?.status) {
+            case 'not_seller':
+                return {
+                    title: t('becomeSeller', 'Devenir vendeur'),
+                    message: t('verificationInfo', 'La vérification de votre identité est nécessaire pour devenir vendeur sur {{appName}}.', { appName: 'Imani' }),
+                    action: t('becomeSeller', 'Devenir vendeur'),
+                    onPress: () => router.push('/screens/ProfileSettingsScreen'),
+                    iconName: 'person-add-outline' as const,
+                };
+                
             case 'pending_review':
                 return {
                     title: t('verificationInProgress', 'Vérification en cours'),
                     message: t('verificationTimeMessage', 'Votre demande de vérification est en cours de traitement. Cela peut prendre 24 à 48 heures. Vous serez notifié dès que votre profil sera vérifié.'),
-                    action: t('checkStatus', 'Vérifier le statut'),
-                    onPress: () => router.push('/screens/ProfileSettingsScreen'),
-                    iconName: 'time-outline' as const
+                    action: '',
+                    onPress: () => {},
+                    iconName: 'time-outline' as const,
                 };
+                
             case 'rejected':
                 return {
                     title: t('verificationRejected', 'Profil rejeté'),
                     message: t('verificationRejectedMessage', 'Votre demande de vérification a été rejetée. Veuillez vérifier vos documents et soumettre à nouveau votre profil.'),
                     action: t('resubmitProfile', 'Soumettre à nouveau'),
                     onPress: () => router.push('/screens/ProfileSettingsScreen'),
-                    iconName: 'close-circle-outline' as const
+                    iconName: 'close-circle-outline' as const,
                 };
+                
+            case 'verified':
+                // Ce cas ne devrait pas arriver ici car l'utilisateur est vendeur
+                return {
+                    title: '',
+                    message: '',
+                    action: '',
+                    onPress: () => {},
+                    iconName: 'checkmark-circle-outline' as const,
+                };
+                
             default:
                 return {
                     title: t('becomeSeller', 'Devenir vendeur'),
                     message: t('verificationInfo', 'La vérification de votre identité est nécessaire pour devenir vendeur sur {{appName}}.', { appName: 'Imani' }),
                     action: t('becomeSeller', 'Devenir vendeur'),
                     onPress: () => router.push('/screens/ProfileSettingsScreen'),
-                    iconName: 'alert-circle-outline' as const
+                    iconName: 'alert-circle-outline' as const,
                 };
         }
     };
 
-    // État de chargement
+    // 🎯 NOUVELLE LOGIQUE AVEC SKELETON
+    const getSkeletonMode = () => {
+        if (isLoadingStatus) {
+            return 'loading';
+        }
+        
+        // Si on a un statut connu, on affiche le skeleton correspondant
+        if (lastKnownStatus === 'verified') {
+            return 'seller';
+        } else if (lastKnownStatus && lastKnownStatus !== 'verified') {
+            return 'non-seller';
+        }
+        
+        return 'loading';
+    };
+
+    // État de chargement - MAINTENANT AVEC SKELETON SEULEMENT DANS LE CONTENU
     if (isLoadingStatus) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
                 
+                {/* Header toujours visible */}
                 <View style={[styles.header, { borderBottomColor: colors.border }]}>
                     <TouchableOpacity style={styles.closeButton} onPress={handleBack}>
                         <Ionicons name="close" size={26} color={colors.tint} />
@@ -410,14 +472,9 @@ export default function SellScreen() {
                     <View style={styles.headerRight} />
                 </View>
 
+                {/* Contenu avec skeleton */}
                 <View style={styles.content}>
-                    <View style={[styles.photoSection, { backgroundColor: colors.card }]}>
-                        <EmptyPhotoState 
-                            onAddPhoto={() => {}}
-                            colors={colors}
-                            disabled={true}
-                        />
-                    </View>
+                    <SellSkeleton colors={colors} mode={getSkeletonMode()} />
                 </View>
             </View>
         );
@@ -444,7 +501,7 @@ export default function SellScreen() {
                         title={t('error', 'Erreur')}
                         message={t('errorLoadingProfile', 'Erreur lors du chargement du profil')}
                         action={t('retry', 'Réessayer')}
-                        onPress={() => refetch()}
+                        onPress={() => fetchSellerStatus(true)}
                         iconName="alert-circle-outline"
                         colors={colors}
                     />
@@ -453,8 +510,8 @@ export default function SellScreen() {
         );
     }
 
-    // Utilisateur non vendeur
-    if (!sellerStatus?.isSeller) {
+    // 🆕 LOGIQUE AMÉLIORÉE : Afficher l'écran de vente seulement si l'utilisateur est vérifié
+    if (sellerStatus?.status !== 'verified') {
         const statusMessage = getStatusMessage();
         
         return (
@@ -485,7 +542,7 @@ export default function SellScreen() {
         );
     }
 
-    // Utilisateur vendeur vérifié - écran normal de vente
+    // ✅ Utilisateur vendeur vérifié - écran normal de vente
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />

@@ -28,12 +28,16 @@ export const SellerStatusCard: React.FC<SellerStatusCardProps> = ({
     <Text style={[styles.statusMessage, { color: colors.textSecondary }]}>
       {message}
     </Text>
-    <TouchableOpacity 
-      style={[styles.actionButton, { backgroundColor: colors.tint }]}
-      onPress={onPress}
-    >
-      <Text style={styles.actionButtonText}>{action}</Text>
-    </TouchableOpacity>
+    
+    {/* Afficher le bouton seulement si action n'est pas vide */}
+    {action && action.trim() !== '' && (
+      <TouchableOpacity 
+        style={[styles.actionButton, { backgroundColor: colors.tint }]}
+        onPress={onPress}
+      >
+        <Text style={styles.actionButtonText}>{action}</Text>
+      </TouchableOpacity>
+    )}
   </View>
 );
 
