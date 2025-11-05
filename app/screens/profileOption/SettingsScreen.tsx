@@ -1,7 +1,7 @@
 // screens/profileOption/SettingsScreen.tsx
 import { AppConfig } from '@/constants/app';
 import { Theme } from '@/constants/theme';
-import { changeAppLanguage } from '@/src/libs/i18n';
+import { useLanguage } from '@/hooks/useLanguage';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -21,7 +21,8 @@ import {
 } from 'react-native';
 
 export default function SettingsScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage, resetLanguage } = useLanguage();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -36,7 +37,6 @@ export default function SettingsScreen() {
 
   // États pour les paramètres
   const [themeMode, setThemeMode] = useState<'auto' | 'light' | 'dark'>('auto');
-  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
   const [notifications, setNotifications] = useState(true);
   const [biometric, setBiometric] = useState(false);
   
@@ -324,10 +324,16 @@ export default function SettingsScreen() {
         ...languageOptions.map(option => ({
           text: `${option.flag} ${option.label}`,
           onPress: async () => {
-            await changeAppLanguage(option.value); 
-            setCurrentLanguage(option.value);
+            await changeLanguage(option.value);
+            // Pas besoin de setCurrentLanguage car le hook gère déjà le re-render
           },
         })),
+        {
+          text: t('resetToAuto', 'Détection automatique'),
+          onPress: async () => {
+            await resetLanguage();
+          },
+        },
         { text: t('cancel'), style: 'cancel' }
       ]
     );

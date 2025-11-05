@@ -17,6 +17,9 @@ import NetInfo from '@react-native-community/netinfo';
 // React Query
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+// 2. Import de useTranslation
+import { useTranslation } from 'react-i18next';
+
 // Empêcher le splash screen automatique
 SplashScreen.preventAutoHideAsync();
 
@@ -34,8 +37,10 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [appIsReady, setAppIsReady] = useState(false);
   
-  // 2. États SIMPLES pour la gestion réseau
-  const [isConnected, setIsConnected] = useState<boolean | null>(true);
+  // 3. Utilisation du hook de traduction
+  const { t } = useTranslation();
+  
+  // 2. États SIMPLES pour la gestion réseau - VERSION ULTRA SIMPLIFIÉE
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerColor, setBannerColor] = useState('#4ECDC4');
@@ -59,34 +64,48 @@ export default function RootLayout() {
     prepare();
   }, []);
 
-  // 4. Détection de la connexion réseau - VERSION SIMPLE
+  // 4. Détection de la connexion réseau - VERSION ULTRA SIMPLIFIÉE
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
     const unsubscribe = NetInfo.addEventListener(state => {
-      const connected = state.isConnected && state.isInternetReachable;
+      console.log('🔍 État réseau complet:', {
+        isConnected: state.isConnected,
+        isInternetReachable: state.isInternetReachable,
+        type: state.type,
+        details: state.details
+      });
+
+      // LOGIQUE TRÈS SIMPLE : seulement afficher si PAS connecté
+      const isCurrentlyConnected = state.isConnected === true;
       
-      if (isConnected !== connected) {
-        setIsConnected(connected);
-        
-        if (connected === false) {
-          // Perte de connexion
-          setBannerMessage("📡 Vérifiez votre connexion internet");
-          setBannerColor('#FF6B6B');
-          setShowBanner(true);
-        } else {
-          // Connexion rétablie
-          setBannerMessage("✅ Connexion rétablie");
+      if (!isCurrentlyConnected) {
+        console.log('❌ Pas de connexion internet');
+        // 4. Utilisation des traductions
+        setBannerMessage(t('network.checkConnection'));
+        setBannerColor('#FF6B6B');
+        setShowBanner(true);
+      } else {
+        console.log('✅ Connexion internet disponible');
+        // Cacher la bannière si elle était affichée
+        if (showBanner) {
+          // 5. Utilisation des traductions
+          setBannerMessage(t('network.connectionRestored'));
           setBannerColor('#4ECDC4');
           
-          // Cacher après 3 secondes
-          setTimeout(() => {
+          // Cacher après 2 secondes
+          timeoutId = setTimeout(() => {
             setShowBanner(false);
-          }, 3000);
+          }, 2000);
         }
       }
     });
 
-    return () => unsubscribe();
-  }, [isConnected]);
+    return () => {
+      unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [showBanner, t]); // 6. Ajout de 't' dans les dépendances
 
   // Afficher le splash screen personnalisé pendant le chargement
   if (!appIsReady) {
@@ -110,7 +129,7 @@ export default function RootLayout() {
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <View style={styles.fullScreen}>
               
-              {/* Bannière réseau - SIMPLE et EFFICACE */}
+              {/* Bannière réseau - SEULEMENT si showBanner est true */}
               {showBanner && (
                 <View 
                   style={[
@@ -170,7 +189,7 @@ const styles = StyleSheet.create({
     height: 200,
     resizeMode: 'contain',
   },
-  // Bannière réseau - SIMPLE
+  // Bannière réseau
   networkBanner: {
     position: 'absolute',
     top: 0,
@@ -185,12 +204,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
     textAlign: 'center',
-    paddingVertical: 15, // Beaucoup d'espace
+    paddingVertical: 15,
   },
   mainContent: {
     flex: 1,
   },
   contentWithBanner: {
-    paddingTop: 50, // Décale tout le contenu quand bannière visible
+    paddingTop: 50,
   },
 });

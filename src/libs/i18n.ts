@@ -1,11 +1,25 @@
 // lib/i18n.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Localization from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 const resources = {
   fr: {
     translation: {
+
+        // NETWORK CHECK
+        network: {
+            checkConnection: "📡 Vérifiez votre connexion internet",
+            connectionRestored: "✅ Connexion rétablie",
+        },
+
+        languageChanged: "Langue changée",
+        languageChangedMessage: "La langue de l'application a été modifiée",
+        languageReset: "Langue réinitialisée",
+        languageResetMessage: "La langue a été réinitialisée à la détection automatique",
+        currentLanguage: "Langue actuelle",
+        resetToAuto: "Détection automatique",
 
         // CONFIRMED PASSWORD
         passwordConfirmed: {
@@ -738,6 +752,19 @@ const resources = {
   en: {
     translation: {
 
+        // NETWORK CHECK
+        network: {
+            checkConnection: "📡 Check your internet connection",
+            connectionRestored: "✅ Connection restored",
+        },
+
+        languageChanged: "Language changed",
+        languageChangedMessage: "The app language has been changed",
+        languageReset: "Language reset",
+        languageResetMessage: "Language has been reset to auto-detection",
+        currentLanguage: "Current language",
+        resetToAuto: "Auto-detection",
+
         // CONFIRMED PASSWORD
         passwordConfirmed: {
             titleLine1: "Password",
@@ -1468,13 +1495,38 @@ const resources = {
 // Clé pour AsyncStorage
 const LANGUAGE_STORAGE_KEY = 'imani-app-language';
 
-// Fonction pour récupérer la langue sauvegardée
-const getSavedLanguage = async (): Promise<string> => {
+// Fonction pour détecter la langue automatiquement
+const detectLanguage = async (): Promise<string> => {
   try {
+    // 1. Vérifier si l'utilisateur a déjà choisi une langue
     const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-    return savedLanguage || 'fr'; // Français par défaut si rien de sauvegardé
+    if (savedLanguage) {
+      console.log('✅ Langue sauvegardée trouvée:', savedLanguage);
+      return savedLanguage;
+    }
+
+    // 2. Détection automatique avec expo-localization
+    const deviceLocales = Localization.getLocales();
+    const deviceLanguage = deviceLocales[0]?.languageCode || 'fr';
+    
+    console.log('🌍 Langues du téléphone:', deviceLocales.map(l => l.languageCode));
+    console.log('🔍 Langue principale détectée:', deviceLanguage);
+
+    // 3. Vérifier si la langue détectée est supportée
+    const supportedLanguages = ['fr', 'en'];
+    const detectedLanguage = supportedLanguages.includes(deviceLanguage) 
+      ? deviceLanguage 
+      : 'fr'; // Fallback en français
+
+    console.log('🎯 Langue sélectionnée:', detectedLanguage);
+    
+    // Sauvegarder la langue détectée
+    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, detectedLanguage);
+    
+    return detectedLanguage;
+
   } catch (error) {
-    console.error('Erreur lecture langue:', error);
+    console.error('❌ Erreur détection langue:', error);
     return 'fr'; // Fallback en français
   }
 };
@@ -1492,20 +1544,44 @@ export const changeAppLanguage = async (lng: string): Promise<void> => {
   }
 };
 
-// Initialiser i18n avec la langue sauvegardée
+// Fonction pour récupérer la langue actuelle
+export const getCurrentLanguage = (): string => {
+  return i18n.language;
+};
+
+// Fonction pour réinitialiser la détection automatique
+export const resetToAutoLanguage = async (): Promise<void> => {
+  try {
+    // Supprimer la langue sauvegardée
+    await AsyncStorage.removeItem(LANGUAGE_STORAGE_KEY);
+    
+    // Redétecter la langue automatiquement
+    const autoLanguage = await detectLanguage();
+    await i18n.changeLanguage(autoLanguage);
+    
+    console.log('🔄 Langue réinitialisée à la détection automatique:', autoLanguage);
+  } catch (error) {
+    console.error('❌ Erreur réinitialisation langue:', error);
+  }
+};
+
+// Initialiser i18n avec la langue détectée
 const initI18n = async () => {
-  const savedLanguage = await getSavedLanguage();
+  const detectedLanguage = await detectLanguage();
   
   i18n
     .use(initReactI18next)
     .init({
       resources,
-      lng: savedLanguage, // Utilise la langue sauvegardée
+      lng: detectedLanguage,
       fallbackLng: 'fr',
       interpolation: {
         escapeValue: false,
       },
+      debug: __DEV__, // Mode debug seulement en développement
     });
+
+  console.log('🚀 i18n initialisé avec la langue:', detectedLanguage);
 };
 
 // Démarrer l'initialisation
