@@ -7,19 +7,21 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// AJOUT : Import du service de notifications
+import { NotificationService } from '@/src/services/notificationService';
 
 const RegisterScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -109,6 +111,17 @@ const RegisterScreen = () => {
             [{ text: t('login.loginButton'), onPress: () => router.replace('/(auth)/login') }]
         );
         return;
+        }
+
+        // ✅ AJOUT : Créer la notification de bienvenue
+        if (data.user) {
+          try {
+            await NotificationService.welcome(data.user.id);
+            console.log('✅ Notification de bienvenue créée');
+          } catch (notificationError) {
+            console.log('⚠️ Notification non créée, mais inscription réussie:', notificationError);
+            // On continue même si la notification échoue
+          }
         }
 
         // SUCCÈS - Inscription réussie

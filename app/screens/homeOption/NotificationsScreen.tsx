@@ -1,5 +1,6 @@
 // screens/NotificationsScreen.tsx
 import { Theme } from '@/constants/theme';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
@@ -13,64 +14,19 @@ import {
   View
 } from 'react-native';
 
-// Définition des types
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  type: 'promotion' | 'order' | 'system' | 'message';
-}
-
-const notifications: Notification[] = [
-  { 
-    id: '1', 
-    title: 'Promotion spéciale 🎉', 
-    message: '50% de réduction sur toute la collection de chaussures. Offre valable jusqu\'à demain !', 
-    time: 'Il y a 2 min', 
-    read: false,
-    type: 'promotion'
-  },
-  { 
-    id: '2', 
-    title: 'Commande expédiée 📦', 
-    message: 'Votre commande #12345 a été expédiée. Suivez votre colis en temps réel.', 
-    time: 'Il y a 1h', 
-    read: true,
-    type: 'order'
-  },
-  { 
-    id: '3', 
-    title: 'Nouvelle collection ✨', 
-    message: 'Découvrez la nouvelle collection été 2024. Des styles frais pour votre garde-robe.', 
-    time: 'Il y a 3h', 
-    read: true,
-    type: 'promotion'
-  },
-  { 
-    id: '4', 
-    title: 'Message reçu 💬', 
-    message: 'Vous avez reçu un nouveau message de Jean Dupont concernant votre annonce.', 
-    time: 'Il y a 5h', 
-    read: false,
-    type: 'message'
-  },
-  { 
-    id: '5', 
-    title: 'Maintenance système 🔧', 
-    message: 'Une maintenance est prévue ce soir de 2h à 4h. Le service pourrait être temporairement indisponible.', 
-    time: 'Il y a 1 jour', 
-    read: true,
-    type: 'system'
-  },
-];
-
 export default function NotificationsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  
+  // Utilisation du hook pour les vraies données
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead 
+  } = useNotifications();
 
-   const colors = {
+  const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
     card: isDark ? Theme.dark.card : Theme.light.card,
     text: isDark ? Theme.dark.text : Theme.light.text,
@@ -82,23 +38,63 @@ export default function NotificationsScreen() {
     error: isDark ? '#FF453A' : '#FF3B30',
   };
 
+  // Fonction pour formater la date relative
+  const formatTime = (createdAt: string) => {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffInMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'À l\'instant';
+    if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`;
+    if (diffInMinutes < 1440) return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
+    return `Il y a ${Math.floor(diffInMinutes / 1440)} jour${Math.floor(diffInMinutes / 1440) > 1 ? 's' : ''}`;
+  };
+
+  // Fonction pour obtenir l'icône selon le type
   const getNotificationIcon = (type: string) => {
     switch (type) {
+      case 'system':
+        return { name: 'notifications', color: colors.tint };
+      case 'seller':
+        return { name: 'person', color: colors.success };
+      case 'product':
+        return { name: 'cube', color: colors.warning };
+      case 'message':
+        return { name: 'chatbubble', color: colors.tint };
       case 'promotion':
         return { name: 'pricetag', color: colors.tint };
-      case 'order':
-        return { name: 'cube', color: colors.success };
-      case 'message':
-        return { name: 'chatbubble', color: colors.warning };
-      case 'system':
-        return { name: 'settings', color: colors.textSecondary };
       default:
         return { name: 'notifications', color: colors.tint };
     }
   };
 
-  const renderNotification = ({ item }: { item: Notification }) => {
+  // Fonction pour déterminer la navigation selon le type
+  const getNavigationPath = (notification: any) => {
+    // Si la notification a déjà une action_url, on l'utilise
+    if (notification.action_url) {
+      return notification.action_url;
+    }
+
+    // Sinon, on définit des chemins par défaut selon le type
+    switch (notification.type) {
+      case 'system':
+        return '/(tabs)/home'; // Notifications système → Home
+      case 'seller':
+        return '/(tabs)/profile'; // Notifications vendeur → Profil
+      case 'product':
+        return '/(tabs)/profile?tab=myItems'; // Notifications produit → Mes articles
+      case 'message':
+        return '/(tabs)/chat'; // Notifications message → Chat
+      case 'promotion':
+        return '/(tabs)/home'; // Notifications promotion → Home
+      default:
+        return '/(tabs)/home'; // Par défaut → Home
+    }
+  };
+
+  const renderNotification = ({ item }: { item: any }) => {
     const icon = getNotificationIcon(item.type);
+    const isUnread = item.status === 'unread';
     
     return (
       <TouchableOpacity 
@@ -107,9 +103,18 @@ export default function NotificationsScreen() {
           { 
             backgroundColor: colors.card,
             borderLeftWidth: 4,
-            borderLeftColor: item.read ? 'transparent' : icon.color,
+            borderLeftColor: isUnread ? icon.color : 'transparent',
           }
         ]}
+        onPress={() => {
+          // Marquer comme lu au clic
+          if (isUnread) {
+            markAsRead(item.id);
+          }
+          // Navigation vers le chemin approprié
+          const navigationPath = getNavigationPath(item);
+          router.push(navigationPath);
+        }}
       >
         <View style={styles.notificationContent}>
           <View style={styles.notificationHeader}>
@@ -124,7 +129,7 @@ export default function NotificationsScreen() {
                 {item.title}
               </Text>
             </View>
-            {!item.read && (
+            {isUnread && (
               <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
             )}
           </View>
@@ -135,7 +140,7 @@ export default function NotificationsScreen() {
           
           <View style={styles.notificationFooter}>
             <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
-              {item.time}
+              {formatTime(item.created_at)}
             </Text>
             <Ionicons 
               name="chevron-forward" 
@@ -146,10 +151,6 @@ export default function NotificationsScreen() {
         </View>
       </TouchableOpacity>
     );
-  };
-
-  const markAllAsRead = () => {
-    console.log('Toutes les notifications marquées comme lues');
   };
 
   return (
@@ -174,22 +175,28 @@ export default function NotificationsScreen() {
           </Text>
         </View>
         
-        <TouchableOpacity onPress={markAllAsRead}>
-          <Text style={[styles.clearAll, { color: colors.tint }]}>
-            Tout effacer
-          </Text>
-        </TouchableOpacity>
+        {unreadCount > 0 && (
+          <TouchableOpacity onPress={markAllAsRead}>
+            <Text style={[styles.clearAll, { color: colors.tint }]}>
+              Tout effacer
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Statistiques rapides */}
+      {/* Statistiques rapides avec vraies données */}
       <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
         <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.text }]}>5</Text>
+          <Text style={[styles.statNumber, { color: colors.text }]}>
+            {notifications.length}
+          </Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
         </View>
         <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
         <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.tint }]}>2</Text>
+          <Text style={[styles.statNumber, { color: colors.tint }]}>
+            {unreadCount}
+          </Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Non lues</Text>
         </View>
       </View>
@@ -202,14 +209,17 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: 20 } // ← Ajuste selon besoin
+          { paddingBottom: 20 }
         ]}
-        style={styles.flatList} // ← Flex: 1 pour prendre tout l'espace
+        style={styles.flatList}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="notifications-off" size={64} color={colors.textSecondary} />
             <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
               Aucune notification
+            </Text>
+            <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
+              Vous serez notifié des nouvelles activités ici
             </Text>
           </View>
         }
@@ -228,7 +238,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 60, // ← Espace pour la status bar
+    paddingTop: 60,
     borderBottomWidth: 1,
   },
   headerLeft: {
@@ -253,7 +263,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
   },
   statItem: {
     flex: 1,
@@ -274,7 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   flatList: {
-    flex: 1, // ← Prend tout l'espace restant
+    flex: 1,
   },
   listContent: {
     // Supprime tout paddingBottom ici
@@ -284,7 +294,7 @@ const styles = StyleSheet.create({
     marginBottom: 12, 
     borderRadius: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8, // Garde elevation pour Android
+    elevation: 8,
   },
   notificationContent: {
     padding: 16,
@@ -333,10 +343,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 40,
   },
   emptyStateText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 18,
+    fontWeight: '600',
     marginTop: 16,
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
