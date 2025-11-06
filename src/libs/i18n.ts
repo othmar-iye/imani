@@ -8,6 +8,63 @@ const resources = {
   fr: {
     translation: {
 
+        // ===== NOUVELLES TRADUCTIONS NOTIFICATIONS =====
+        notifications: {
+            title: "Notifications",
+            clearAll: "Tout effacer",
+            markAllRead: "Tout marquer comme lu",
+            // Statistiques
+            total: "Total",
+            unread: "Non lues",
+            // États vides
+            emptyTitle: "Aucune notification",
+            emptySubtitle: "Vous serez notifié des nouvelles activités ici",
+            
+            // Types de notifications
+            types: {
+                system: "Système",
+                seller: "Vendeur",
+                product: "Produit", 
+                message: "Message",
+                promotion: "Promotion"
+            },
+            // Formatage du temps
+            time: {
+                justNow: "À l'instant",
+                minutesAgo: "Il y a {{count}} min",
+                hoursAgo: "Il y a {{count}}h",
+                daysAgo: "Il y a {{count}} jour",
+                daysAgo_plural: "Il y a {{count}} jours"
+            },
+            // Messages de notification (doivent correspondre à votre service)
+            messages: {
+                welcome: {
+                    title: "🎉 Bienvenue sur Imani !",
+                    message: "Votre compte a été créé avec succès. Commencez à explorer notre marketplace."
+                },
+                sellerSubmission: {
+                    title: "📋 Demande de vendeur soumise",
+                    message: "Votre demande pour devenir vendeur a été reçue. Notre équipe la traitera sous 24-48h."
+                },
+                sellerApproved: {
+                    title: "✅ Félicitations ! Vous êtes maintenant vendeur",
+                    message: "Votre demande a été approuvée. Vous pouvez maintenant publier des annonces."
+                },
+                sellerRejected: {
+                    title: "❌ Demande de vendeur rejetée",
+                    message: "Votre demande nécessite des modifications. Consultez vos emails pour plus de détails."
+                },
+                productPublished: {
+                    title: "📦 Votre article a été publié !",
+                    message: "\"{{productName}}\" est maintenant visible par tous les acheteurs."
+                },
+                profileCompleted: {
+                    title: "✅ Profil complété avec succès !",
+                    message: "Vos informations ont été sauvegardées. Votre profil est maintenant actif et visible."
+                }
+            }
+        },
+
         // NETWORK CHECK
         network: {
             checkConnection: "📡 Vérifiez votre connexion internet",
@@ -150,7 +207,7 @@ const resources = {
         english: "Anglais",
         
         // Notifications
-        notifications: "Notifications",
+        notificationsName: "Notifications",
         pushNotifications: "Notifications push",
         
         // Sécurité
@@ -752,6 +809,67 @@ const resources = {
   en: {
     translation: {
 
+        // NOTIFICATIONS  =====
+        notifications: {
+            title: "Notifications",
+            clearAll: "Clear all", 
+            markAllRead: "Mark all as read",
+            
+            // Statistics
+            total: "Total",
+            unread: "Unread",
+            
+            // Empty states
+            emptyTitle: "No notifications",
+            emptySubtitle: "You'll be notified of new activities here",
+            
+            // Notification types
+            types: {
+                system: "System",
+                seller: "Seller",
+                product: "Product",
+                message: "Message", 
+                promotion: "Promotion"
+            },
+            
+            // Time formatting
+            time: {
+                justNow: "Just now",
+                minutesAgo: "{{count}} min ago",
+                hoursAgo: "{{count}}h ago", 
+                daysAgo: "{{count}} day ago",
+                daysAgo_plural: "{{count}} days ago"
+            },
+            
+            // Notification messages (must match your service)
+            messages: {
+                welcome: {
+                    title: "🎉 Welcome to Imani!",
+                    message: "Your account has been created successfully. Start exploring our marketplace."
+                },
+                sellerSubmission: {
+                    title: "📋 Seller request submitted",
+                    message: "Your request to become a seller has been received. Our team will process it within 24-48h."
+                },
+                sellerApproved: {
+                    title: "✅ Congratulations! You are now a seller",
+                    message: "Your request has been approved. You can now publish listings."
+                },
+                sellerRejected: {
+                    title: "❌ Seller request rejected", 
+                    message: "Your request requires modifications. Check your emails for more details."
+                },
+                productPublished: {
+                    title: "📦 Your item has been published!",
+                    message: "\"{{productName}}\" is now visible to all buyers."
+                },
+                profileCompleted: {
+                    title: "✅ Profile completed successfully!",
+                    message: "Your information has been saved. Your profile is now active and visible."
+                }
+            }
+        },
+
         // NETWORK CHECK
         network: {
             checkConnection: "📡 Check your internet connection",
@@ -894,7 +1012,7 @@ const resources = {
         english: "English",
         
         // Notifications
-        notifications: "Notifications",
+        notificationsName: "Notifications",
         pushNotifications: "Push notifications",
         
         // Security

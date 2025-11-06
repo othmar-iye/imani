@@ -3,18 +3,222 @@ import { Theme } from '@/constants/theme';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  FlatList,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    FlatList,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withTiming
+} from 'react-native-reanimated';
+
+// Composant Skeleton intégré
+const NotificationsSkeleton = ({ colors }: { colors: any }) => {
+  const isDark = useColorScheme() === 'dark';
+  
+  const opacity = useSharedValue(0.4);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(0.8, { 
+        duration: 1000, 
+        easing: Easing.ease 
+      }),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
+  const AnimatedSkeletonBox = ({ 
+    width, 
+    height, 
+    borderRadius = 6,
+    style,
+    variant = 'default'
+  }: { 
+    width: number | string; 
+    height: number; 
+    borderRadius?: number;
+    style?: any;
+    variant?: 'default' | 'strong';
+  }) => {
+    const skeletonColors = {
+      dark: {
+        default: '#2A2A2A',
+        strong: '#333333'
+      },
+      light: {
+        default: '#D1D9E0',
+        strong: '#B8C4CE'
+      }
+    };
+
+    return (
+      <Animated.View 
+        style={[
+          styles.skeletonBox, 
+          { 
+            width, 
+            height, 
+            borderRadius,
+            backgroundColor: isDark 
+              ? skeletonColors.dark[variant]
+              : skeletonColors.light[variant],
+          },
+          animatedStyle,
+          style
+        ]}
+      />
+    );
+  };
+
+  const renderNotificationSkeleton = () => (
+    <View style={[styles.notificationCard, { backgroundColor: colors.card }]}>
+      <View style={styles.notificationContent}>
+        <View style={styles.notificationHeader}>
+          <View style={styles.titleContainer}>
+            <AnimatedSkeletonBox 
+              width={16} 
+              height={16} 
+              borderRadius={8}
+              variant="strong"
+            />
+            <AnimatedSkeletonBox 
+              width="70%" 
+              height={16} 
+              borderRadius={4}
+              style={{ marginLeft: 8 }}
+              variant="strong"
+            />
+          </View>
+          <AnimatedSkeletonBox 
+            width={8} 
+            height={8} 
+            borderRadius={4}
+            variant="strong"
+          />
+        </View>
+        
+        <AnimatedSkeletonBox 
+          width="100%" 
+          height={14} 
+          borderRadius={4}
+          style={{ marginBottom: 8 }}
+          variant="default"
+        />
+        <AnimatedSkeletonBox 
+          width="85%" 
+          height={14} 
+          borderRadius={4}
+          style={{ marginBottom: 12 }}
+          variant="default"
+        />
+        
+        <View style={styles.notificationFooter}>
+          <AnimatedSkeletonBox 
+            width={80} 
+            height={12} 
+            borderRadius={4}
+            variant="default"
+          />
+          <AnimatedSkeletonBox 
+            width={16} 
+            height={16} 
+            borderRadius={8}
+            variant="default"
+          />
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header Skeleton */}
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={styles.headerLeft}>
+          <Ionicons name="chevron-back" size={24} color={colors.tint} />
+          <AnimatedSkeletonBox 
+            width={150} 
+            height={24} 
+            borderRadius={6}
+            style={{ marginLeft: 12 }}
+            variant="strong"
+          />
+        </View>
+        <AnimatedSkeletonBox 
+          width={80} 
+          height={16} 
+          borderRadius={4}
+          variant="default"
+        />
+      </View>
+
+      {/* Statistiques Skeleton */}
+      <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
+        <View style={styles.statItem}>
+          <AnimatedSkeletonBox 
+            width={40} 
+            height={24} 
+            borderRadius={6}
+            variant="strong"
+          />
+          <AnimatedSkeletonBox 
+            width={40} 
+            height={12} 
+            borderRadius={4}
+            style={{ marginTop: 4 }}
+            variant="default"
+          />
+        </View>
+        <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
+        <View style={styles.statItem}>
+          <AnimatedSkeletonBox 
+            width={40} 
+            height={24} 
+            borderRadius={6}
+            variant="strong"
+          />
+          <AnimatedSkeletonBox 
+            width={50} 
+            height={12} 
+            borderRadius={4}
+            style={{ marginTop: 4 }}
+            variant="default"
+          />
+        </View>
+      </View>
+
+      {/* Liste des notifications Skeleton */}
+      <View style={styles.notificationsList}>
+        {[1, 2, 3, 4, 5].map((item) => (
+          <View key={item}>
+            {renderNotificationSkeleton()}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   
@@ -23,7 +227,8 @@ export default function NotificationsScreen() {
     notifications, 
     unreadCount, 
     markAsRead, 
-    markAllAsRead 
+    markAllAsRead,
+    isLoading = true // 🆕 Ajout d'un état de chargement par défaut
   } = useNotifications();
 
   const colors = {
@@ -38,16 +243,16 @@ export default function NotificationsScreen() {
     error: isDark ? '#FF453A' : '#FF3B30',
   };
 
-  // Fonction pour formater la date relative
+  // Fonction pour formater la date relative avec traductions
   const formatTime = (createdAt: string) => {
     const now = new Date();
     const created = new Date(createdAt);
     const diffInMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'À l\'instant';
-    if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`;
-    if (diffInMinutes < 1440) return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
-    return `Il y a ${Math.floor(diffInMinutes / 1440)} jour${Math.floor(diffInMinutes / 1440) > 1 ? 's' : ''}`;
+    if (diffInMinutes < 1) return t('notifications.time.justNow');
+    if (diffInMinutes < 60) return t('notifications.time.minutesAgo', { count: diffInMinutes });
+    if (diffInMinutes < 1440) return t('notifications.time.hoursAgo', { count: Math.floor(diffInMinutes / 60) });
+    return t('notifications.time.daysAgo', { count: Math.floor(diffInMinutes / 1440) });
   };
 
   // Fonction pour obtenir l'icône selon le type
@@ -153,6 +358,11 @@ export default function NotificationsScreen() {
     );
   };
 
+  // 🆕 AFFICHAGE DU SKELETON PENDANT LE CHARGEMENT
+  if (isLoading) {
+    return <NotificationsSkeleton colors={colors} />;
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -171,14 +381,14 @@ export default function NotificationsScreen() {
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Notifications
+            {t('notifications.title')}
           </Text>
         </View>
         
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllAsRead}>
             <Text style={[styles.clearAll, { color: colors.tint }]}>
-              Tout effacer
+              {t('notifications.clearAll')}
             </Text>
           </TouchableOpacity>
         )}
@@ -190,14 +400,18 @@ export default function NotificationsScreen() {
           <Text style={[styles.statNumber, { color: colors.text }]}>
             {notifications.length}
           </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            {t('notifications.total')}
+          </Text>
         </View>
         <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
         <View style={styles.statItem}>
           <Text style={[styles.statNumber, { color: colors.tint }]}>
             {unreadCount}
           </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Non lues</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            {t('notifications.unread')}
+          </Text>
         </View>
       </View>
 
@@ -216,10 +430,10 @@ export default function NotificationsScreen() {
           <View style={styles.emptyState}>
             <Ionicons name="notifications-off" size={64} color={colors.textSecondary} />
             <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
-              Aucune notification
+              {t('notifications.emptyTitle')}
             </Text>
             <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
-              Vous serez notifié des nouvelles activités ici
+              {t('notifications.emptySubtitle')}
             </Text>
           </View>
         }
@@ -287,10 +501,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    // Supprime tout paddingBottom ici
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  notificationsList: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   notificationCard: { 
-    marginHorizontal: 20, 
     marginBottom: 12, 
     borderRadius: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
@@ -357,5 +576,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  skeletonBox: {
+    borderRadius: 6,
   },
 });

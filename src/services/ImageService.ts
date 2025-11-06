@@ -1,5 +1,77 @@
 // services/ImageService.ts
 import { supabase } from '@/supabase';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+
+// Fonction pour créer une thumbnail (150x150px, carrée)
+export const createProfileThumbnail = async (
+  imageUri: string, 
+  quality: number = 0.6
+): Promise<string> => {
+  try {
+    // Créer une thumbnail carrée de 150x150px
+    const result = await manipulateAsync(
+      imageUri,
+      [
+        {
+          resize: {
+            width: 150,
+            height: 150,
+          },
+        },
+      ],
+      {
+        compress: quality,
+        format: SaveFormat.JPEG,
+        base64: false,
+      }
+    );
+    
+    return result.uri;
+  } catch (error) {
+    console.log('❌ Erreur création thumbnail:', error);
+    return imageUri; // Fallback sur l'image originale
+  }
+};
+
+// Fonction pour uploader la photo de profil AVEC thumbnail
+export const uploadProfilePictureWithThumbnail = async (
+  imageUri: string, 
+  userId: string
+): Promise<{ originalUrl: string | null; thumbnailUrl: string | null }> => {
+  try {
+    console.log('🟡 Début upload photo profil avec thumbnail...');
+    
+    if (imageUri.includes('supabase.co')) {
+      console.log('✅ Image déjà sur Supabase');
+      return { 
+        originalUrl: imageUri, 
+        thumbnailUrl: imageUri // Même URL pour les images existantes
+      };
+    }
+
+    const timestamp = Date.now();
+    
+    // ÉTAPE 1: Créer la thumbnail
+    console.log('🟡 Création thumbnail...');
+    const thumbnailUri = await createProfileThumbnail(imageUri);
+    const thumbnailFileName = `profiles/${userId}/thumbnail-${timestamp}.jpg`;
+    const thumbnailUrl = await uploadImageToStorage(thumbnailUri, thumbnailFileName);
+    
+    // ÉTAPE 2: Uploader l'image originale compressée
+    console.log('🟡 Upload image originale...');
+    const compressedUri = await compressImage(imageUri, 0.7);
+    const originalFileName = `profiles/${userId}/original-${timestamp}.jpg`;
+    const originalUrl = await uploadImageToStorage(compressedUri, originalFileName);
+
+    console.log('✅ Upload terminé - Original:', originalUrl, 'Thumbnail:', thumbnailUrl);
+    
+    return { originalUrl, thumbnailUrl };
+
+  } catch (error) {
+    console.error('❌ Erreur upload photo profil:', error);
+    throw error;
+  }
+};
 
 export const compressImage = async (imageUri: string, quality: number = 0.7): Promise<string> => {
   try {

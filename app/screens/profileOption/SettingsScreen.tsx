@@ -199,7 +199,7 @@ export default function SettingsScreen() {
       ],
     },
     {
-      title: t('notifications'),
+      title: t('notificationsName'),
       items: [
         {
           icon: 'notifications',

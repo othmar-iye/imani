@@ -4,18 +4,18 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  Modal,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    Animated,
+    Dimensions,
+    FlatList,
+    Modal,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -255,13 +255,6 @@ export default function ProductDetailScreen() {
                 transition={300}
                 priority="high"
               />
-              {/* Badge photo avec compteur */}
-              <View style={[styles.photoBadge, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
-                <Ionicons name="images" size={12} color="#FFF" />
-                <Text style={styles.photoBadgeText}>
-                  {index + 1}/{product.images.length}
-                </Text>
-              </View>
             </TouchableOpacity>
           )}
           keyExtractor={(_, index) => index.toString()}
@@ -305,18 +298,17 @@ export default function ProductDetailScreen() {
             })}
           </View>
           
-          {/* Bouton galerie */}
-          <TouchableOpacity 
-            style={[styles.galleryButton, { backgroundColor: 'rgba(0,0,0,0.7)' }]}
-            onPress={() => openGallery(activeIndex)}
-          >
-            <Ionicons name="grid" size={16} color="#FFF" />
-            <Text style={styles.galleryButtonText}>{t('productDetail.gallery')}</Text>
-          </TouchableOpacity>
+          {/* Badge photo avec compteur - DÉPLACÉ EN BAS À DROITE */}
+          <View style={[styles.photoBadge, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
+            <Ionicons name="images" size={12} color="#FFF" />
+            <Text style={styles.photoBadgeText}>
+              {activeIndex + 1}/{product.images.length}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Barre de miniatures OPTIMISÉE */}
+      {/* Barre de miniatures OPTIMISÉE - TAILLE RÉDUITE */}
       {product.images.length > 1 && (
         <View style={styles.thumbnailsContainer}>
           <FlatList
@@ -639,9 +631,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   photoBadge: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -659,8 +648,10 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 0,
     right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 15,
+    paddingHorizontal: 20,
   },
   indicators: {
     flexDirection: 'row',
@@ -686,16 +677,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   thumbnailsContainer: {
-    paddingVertical: 15,
+    paddingVertical: 12,
     backgroundColor: 'rgba(0,0,0,0.02)',
   },
   thumbnailsContent: {
     paddingHorizontal: 15,
-    gap: 10,
+    gap: 8,
   },
   thumbnail: {
-    width: 70,
-    height: 70,
+    width: 60, // Réduit de 70 à 60
+    height: 60, // Réduit de 70 à 60
     borderRadius: 8,
     borderWidth: 2,
     overflow: 'hidden',

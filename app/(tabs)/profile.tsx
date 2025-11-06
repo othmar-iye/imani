@@ -76,7 +76,7 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
     // Utiliser les données de user_profiles si disponibles, sinon les métadonnées de l'user
     const profileData: ProfileData = {
       fullName: user?.user_metadata?.full_name || 'Utilisateur',
-      profilePicture: userProfile?.profile_picture_url || getProfilePicture(user),
+      profilePicture: userProfile?.profile_picture_thumbnail_url || userProfile?.profile_picture_url || getProfilePicture(user),
       sellerStatus: getSellerStatus(userProfile?.verification_status),
       location: userProfile?.city || 'Lubumbashi, RDC',
       stats: {

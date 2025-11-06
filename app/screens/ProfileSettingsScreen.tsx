@@ -8,7 +8,12 @@ import { ProfilePictureSection } from '@/components/ProfilePictureSection';
 import { ProfileSettingsSkeleton } from '@/components/ProfileSettingsSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
-import { compressImage, uploadImageToStorage } from '@/src/services/ImageService';
+import {
+    compressImage,
+    uploadImageToStorage,
+    uploadProfilePictureWithThumbnail
+} from '@/src/services/ImageService';
+import { NotificationService } from '@/src/services/notificationService';
 import { formatDate, formatPhoneNumber, isValidDate, isValidPhoneNumber } from '@/src/utils/ValidationUtils';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,15 +23,15 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Animated,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Alert,
+    Animated,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Types pour les données du profil
@@ -40,6 +45,7 @@ interface UserProfile {
   identity_number: string;
   identity_document_url: string | null;
   profile_picture_url: string | null;
+  profile_picture_thumbnail_url: string | null;
   verification_status: string;
   updated_at: string;
 }
@@ -53,6 +59,7 @@ interface ProfileFormData {
   identityNumber: string;
   identityDocument: string | null;
   profilePicture: string | null;
+  profilePictureThumbnail: string | null;
 }
 
 export default function ProfileSettingsScreen() {
@@ -85,6 +92,7 @@ export default function ProfileSettingsScreen() {
     identityNumber: '',
     identityDocument: null,
     profilePicture: null,
+    profilePictureThumbnail: null,
   });
 
   // États pour l'édition des champs
@@ -141,30 +149,31 @@ export default function ProfileSettingsScreen() {
   // Initialiser les états avec les données du profil
   useEffect(() => {
     if (userProfile) {
-      setProfilePicture(userProfile.profile_picture_url);
-      setIdentityDocument(userProfile.identity_document_url);
-      
-      // Initialiser les données locales avec les données du profil
-      setLocalProfileData({
-        phoneNumber: userProfile.phone_number || '',
-        address: userProfile.address || '',
-        city: userProfile.city || 'Lubumbashi',
-        birthDate: userProfile.birth_date 
-          ? (() => {
-              const date = new Date(userProfile.birth_date);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            })()
-          : '',
-        identityType: userProfile.identity_type || null,
-        identityNumber: userProfile.identity_number || '',
-        identityDocument: userProfile.identity_document_url,
-        profilePicture: userProfile.profile_picture_url,
-      });
+        setProfilePicture(userProfile.profile_picture_url);
+        setIdentityDocument(userProfile.identity_document_url);
+        
+        // Initialiser les données locales avec les données du profil
+        setLocalProfileData({
+            phoneNumber: userProfile.phone_number || '',
+            address: userProfile.address || '',
+            city: userProfile.city || 'Lubumbashi',
+            birthDate: userProfile.birth_date 
+                ? (() => {
+                    const date = new Date(userProfile.birth_date);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                })()
+                : '',
+            identityType: userProfile.identity_type || null,
+            identityNumber: userProfile.identity_number || '',
+            identityDocument: userProfile.identity_document_url,
+            profilePicture: userProfile.profile_picture_url,
+            profilePictureThumbnail: userProfile.profile_picture_thumbnail_url,
+        });
     }
-  }, [userProfile]);
+    }, [userProfile]);
 
   // Fonction pour sauvegarder le profil
   const saveProfileData = async (formData: ProfileFormData): Promise<boolean> => {
@@ -177,15 +186,22 @@ export default function ProfileSettingsScreen() {
 
     try {
       let profilePictureUrl = formData.profilePicture;
+      let profilePictureThumbnailUrl = formData.profilePictureThumbnail; // NOUVEAU
       let identityDocumentUrl = formData.identityDocument;
 
-      // Upload des images si nécessaire
+      // UPLOAD PHOTO PROFIL AVEC THUMBNAIL (MODIFIÉ)
       if (formData.profilePicture && !formData.profilePicture.includes('supabase.co')) {
-        console.log('🟡 Upload photo profil...');
-        profilePictureUrl = await uploadImageToStorage(formData.profilePicture, `profiles/${user.id}`);
-        console.log('✅ Photo profil uploadée:', profilePictureUrl);
+        console.log('🟡 Upload photo profil avec thumbnail...');
+        const { originalUrl, thumbnailUrl } = await uploadProfilePictureWithThumbnail(
+          formData.profilePicture, 
+          user.id
+        );
+        profilePictureUrl = originalUrl;
+        profilePictureThumbnailUrl = thumbnailUrl; // SAUVEGARDER LA THUMBNAIL
+        console.log('✅ Photo profil uploadée - Original:', profilePictureUrl, 'Thumbnail:', profilePictureThumbnailUrl);
       }
 
+      // Upload document identité (inchangé)
       if (formData.identityDocument && !formData.identityDocument.includes('supabase.co')) {
         console.log('🟡 Upload document identité...');
         identityDocumentUrl = await uploadImageToStorage(formData.identityDocument, `identities/${user.id}`);
@@ -214,6 +230,7 @@ export default function ProfileSettingsScreen() {
         ? 'pending_review' 
         : 'not_submitted';
 
+      // MIS À JOUR : Ajouter la thumbnail dans les données
       const profileData = {
         id: user.id,
         phone_number: formData.phoneNumber,
@@ -224,6 +241,7 @@ export default function ProfileSettingsScreen() {
         identity_number: formData.identityNumber,
         identity_document_url: identityDocumentUrl,
         profile_picture_url: profilePictureUrl,
+        profile_picture_thumbnail_url: profilePictureThumbnailUrl, // NOUVEAU
         verification_status: verificationStatus,
         updated_at: new Date().toISOString(),
       };
@@ -279,7 +297,16 @@ export default function ProfileSettingsScreen() {
   // Mutation React Query pour sauvegarder
   const saveMutation = useMutation({
     mutationFn: saveProfileData,
-    onSuccess: () => {
+    onSuccess: async () => {
+        // 🆕 NOTIFICATION ICI
+        if (user) {
+            try {
+                await NotificationService.sellerSubmission(user.id);
+                console.log('✅ Notification de soumission vendeur créée');
+            } catch (notificationError) {
+                console.log('⚠️ Notification non créée, mais profil sauvegardé:', notificationError);
+            }
+        }
       // Attendre un peu avant de naviguer pour laisser le cache se mettre à jour
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['user-profile'] });
@@ -425,7 +452,7 @@ export default function ProfileSettingsScreen() {
         switch (type) {
           case 'profile':
             setProfilePicture(compressedUri);
-            setLocalProfileData(prev => ({ ...prev, profilePicture: compressedUri }));
+            setLocalProfileData(prev => ({ ...prev, profilePicture: compressedUri, profilePictureThumbnail: null }));
             break;
           case 'identity':
             setIdentityDocument(compressedUri);
@@ -468,7 +495,7 @@ export default function ProfileSettingsScreen() {
         switch (type) {
           case 'profile':
             setProfilePicture(compressedUri);
-            setLocalProfileData(prev => ({ ...prev, profilePicture: compressedUri }));
+            setLocalProfileData(prev => ({ ...prev, profilePicture: compressedUri, profilePictureThumbnail: null }));
             break;
           case 'identity':
             setIdentityDocument(compressedUri);
@@ -509,7 +536,7 @@ export default function ProfileSettingsScreen() {
   // Handlers pour la suppression d'images
   const handleRemoveProfilePicture = () => {
     setProfilePicture(null);
-    setLocalProfileData(prev => ({ ...prev, profilePicture: null }));
+    setLocalProfileData(prev => ({ ...prev, profilePicture: null, profilePictureThumbnail: null  }));
   };
 
   const handleRemoveIdentityDocument = () => {
@@ -643,22 +670,23 @@ export default function ProfileSettingsScreen() {
 
     // Vérifier si au moins une information a été modifiée
     const hasChanges = 
-      localProfileData.phoneNumber !== (userProfile?.phone_number || '') ||
-      localProfileData.address !== (userProfile?.address || '') ||
-      localProfileData.city !== (userProfile?.city || 'Lubumbashi') ||
-      localProfileData.birthDate !== (userProfile?.birth_date 
-        ? (() => {
-            const date = new Date(userProfile.birth_date);
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-          })()
-        : '') ||
-      localProfileData.identityType !== (userProfile?.identity_type || null) ||
-      localProfileData.identityNumber !== (userProfile?.identity_number || '') ||
-      localProfileData.identityDocument !== (userProfile?.identity_document_url || null) ||
-      localProfileData.profilePicture !== (userProfile?.profile_picture_url || null);
+        localProfileData.phoneNumber !== (userProfile?.phone_number || '') ||
+        localProfileData.address !== (userProfile?.address || '') ||
+        localProfileData.city !== (userProfile?.city || 'Lubumbashi') ||
+        localProfileData.birthDate !== (userProfile?.birth_date 
+            ? (() => {
+                const date = new Date(userProfile.birth_date);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            })()
+            : '') ||
+        localProfileData.identityType !== (userProfile?.identity_type || null) ||
+        localProfileData.identityNumber !== (userProfile?.identity_number || '') ||
+        localProfileData.identityDocument !== (userProfile?.identity_document_url || null) ||
+        localProfileData.profilePicture !== (userProfile?.profile_picture_url || null) ||
+        localProfileData.profilePictureThumbnail !== (userProfile?.profile_picture_thumbnail_url || null);
 
     if (!hasChanges) {
       Alert.alert(
