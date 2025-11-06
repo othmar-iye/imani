@@ -1,22 +1,21 @@
-// components/ProductDetailSkeleton.tsx - VERSION CORRIGÉE POUR ANDROID
+// components/ProductDetailSkeleton.tsx - VERSION CORRIGÉE
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import {
-  Dimensions,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View
+    Dimensions,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    useColorScheme,
+    View
 } from 'react-native';
 import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withTiming
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,7 +35,6 @@ interface ProductDetailSkeletonProps {
 export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ colors }) => {
   const isDark = useColorScheme() === 'dark';
   
-  // Animation avec un peu plus d'amplitude pour mieux voir
   const opacity = useSharedValue(0.4);
 
   useEffect(() => {
@@ -56,13 +54,12 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
     };
   });
 
-  // VERSION FORT CONTRASTE pour le mode clair
   const AnimatedSkeletonBox = ({ 
     width, 
     height, 
     borderRadius = 6,
     style,
-    variant = 'default' // 'default' | 'strong'
+    variant = 'default'
   }: { 
     width: number | string; 
     height: number; 
@@ -76,8 +73,8 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
         strong: '#333333'
       },
       light: {
-        default: '#D1D9E0',   // BEAUCOUP plus foncé - bien visible
-        strong: '#B8C4CE'     // Encore plus contrasté
+        default: '#D1D9E0',
+        strong: '#B8C4CE'
       }
     };
 
@@ -107,7 +104,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
     >
       <StatusBar barStyle="light-content" />
 
-      {/* Header INSTANTANÉ */}
+      {/* Header */}
       <View style={[styles.header, { backgroundColor: 'transparent' }]}>
         <View style={[styles.iconButton, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
           <Ionicons name="chevron-back" size={20} color="#FFF" />
@@ -123,7 +120,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
         </View>
       </View>
 
-      {/* Carousel SKELETON - Éléments grands avec forte visibilité */}
+      {/* Carousel SKELETON - CORRIGÉ */}
       <View style={styles.carouselContainer}>
         <AnimatedSkeletonBox 
           width={width} 
@@ -131,6 +128,8 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
           borderRadius={0} 
           variant="strong"
         />
+        
+        {/* Indicateurs CORRIGÉS - comme dans l'écran réel */}
         <View style={styles.indicatorsContainer}>
           <View style={styles.indicators}>
             {[1, 2, 3].map((_, index) => (
@@ -143,24 +142,31 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
               />
             ))}
           </View>
-          <View style={[styles.galleryButton, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
-            <Ionicons name="grid" size={16} color="#FFF" />
-            <Text style={styles.galleryButtonText}>Galerie</Text>
+          
+          {/* Badge photo - COMME DANS L'ÉCRAN RÉEL */}
+          <View style={[styles.photoBadge, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
+            <Ionicons name="images" size={12} color="#FFF" />
+            <AnimatedSkeletonBox 
+              width={30} 
+              height={12} 
+              borderRadius={4}
+              variant="default"
+            />
           </View>
         </View>
       </View>
 
-      {/* Barre de miniatures SKELETON */}
+      {/* Barre de miniatures SKELETON - TAILLE CORRIGÉE */}
       <View style={styles.thumbnailsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.thumbnailsContent}>
             {[1, 2, 3, 4].map((_, index) => (
               <AnimatedSkeletonBox 
                 key={index}
-                width={70} 
-                height={70} 
+                width={60} // TAILLE CORRIGÉE (60 au lieu de 70)
+                height={60} // TAILLE CORRIGÉE (60 au lieu de 70)
                 borderRadius={8}
-                style={{ marginRight: 10 }}
+                style={{ marginRight: 8 }} // ESPACEMENT CORRIGÉ
                 variant="strong"
               />
             ))}
@@ -168,7 +174,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
         </ScrollView>
       </View>
 
-      {/* Contenu avec mix d'éléments instantanés et skeleton */}
+      {/* Contenu principal */}
       <ScrollView 
         style={[styles.content, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
@@ -226,7 +232,6 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
 
         {/* Vendeur */}
         <View style={[styles.sellerCard, { backgroundColor: colors.card }]}>
-          <AnimatedSkeletonBox width={180} height={18} borderRadius={4} variant="strong" />
           <View style={styles.sellerInfo}>
             <AnimatedSkeletonBox width={50} height={50} borderRadius={25} variant="strong" />
             <View style={styles.sellerDetails}>
@@ -251,7 +256,7 @@ export const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ co
         <View style={{ height: Platform.OS === 'android' ? 120 : 100 }} />
       </ScrollView>
 
-      {/* Boutons d'action EN SKELETON */}
+      {/* Boutons d'action */}
       <View style={[styles.actionBar, { backgroundColor: colors.background }]}>
         <AnimatedSkeletonBox 
           width={'48%'} 
@@ -304,13 +309,16 @@ const styles = StyleSheet.create({
     height: height * 0.5,
     position: 'relative',
   },
+  // STYLES CORRIGÉS pour correspondre à l'écran réel
   indicatorsContainer: {
     position: 'absolute',
     bottom: 20,
     left: 0,
     right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 15,
+    paddingHorizontal: 20,
   },
   indicators: {
     flexDirection: 'row',
@@ -318,21 +326,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  galleryButton: {
+  photoBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
     gap: 6,
   },
-  galleryButtonText: {
+  photoBadgeText: {
     color: '#FFF',
     fontSize: 12,
     fontWeight: '600',
   },
   thumbnailsContainer: {
-    paddingVertical: 15,
+    paddingVertical: 12, // CORRIGÉ
     backgroundColor: 'rgba(0,0,0,0.02)',
   },
   thumbnailsContent: {
@@ -390,7 +398,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     marginBottom: 15,
-    marginTop: 15,
   },
   sellerDetails: {
     flex: 1,

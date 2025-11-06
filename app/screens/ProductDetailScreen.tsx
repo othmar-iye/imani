@@ -10,6 +10,7 @@ import {
     Modal,
     Platform,
     ScrollView,
+    Share,
     StatusBar,
     StyleSheet,
     Text,
@@ -48,6 +49,8 @@ const fetchProductDetail = async (productId: string): Promise<Product> => {
     }, 1200);
   });
 };
+
+
 
 export default function ProductDetailScreen() {
   const { productId } = useLocalSearchParams();
@@ -157,6 +160,19 @@ export default function ProductDetailScreen() {
     });
   };
 
+  // Fonction de partage
+    const handleShare = async () => {
+        try {
+            await Share.share({
+            title: product.name,
+            message: `Découvre ${product.name} à ${product.price}€ - ${product.description}`,
+            url: product.images[0], // Optionnel
+            });
+        } catch (error) {
+            console.log('Erreur de partage:', error);
+        }
+    };
+
   // Configuration du layout pour le carousel
   const getItemLayout = (data: any, index: number) => ({
     length: width,
@@ -210,7 +226,10 @@ export default function ProductDetailScreen() {
         </TouchableOpacity>
         
         <View style={styles.headerRight}>
-          <TouchableOpacity style={[styles.iconButton, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+          <TouchableOpacity 
+            style={[styles.iconButton, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
+            onPress={handleShare}
+          >
             <Ionicons name="share-outline" size={18} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity 
