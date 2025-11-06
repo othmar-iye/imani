@@ -204,9 +204,19 @@ export default function ProductDetailScreen() {
     </TouchableOpacity>
   );
 
-//   Au clique d'acheter
+    // Au clique d'acheter
     const handleSell = () => {
-      console.log('Acheter');
+        router.push({
+            pathname: '/screens/checkoutScreen',
+            params: {
+                productId: product.id,
+                productName: product.name,
+                productPrice: product.price.toString(),
+                productImage: product.images[0],
+                productDescription: product.description,
+                sellerName: product.seller.name,
+            }
+        });
     };
 
   return (
