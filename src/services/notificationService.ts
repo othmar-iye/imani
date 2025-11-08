@@ -128,5 +128,34 @@ export const NotificationService = {
       undefined,
       '/(auth)/login'
     );
-  }
+  },
+
+  /**
+   * Notification d'approbation d'article
+   */
+  async productApproved(userId: string, productName: string) {
+    return createNotification(
+      userId,
+      'notifications.messages.productApproved',
+      'product',
+      { productName },
+      '/(tabs)/profile?tab=myItems'
+    );
+  },
+
+  /**
+   * Notification de rejet d'article
+   */
+  async productRejected(userId: string, productName: string, rejectionReason?: string) {
+    return createNotification(
+      userId,
+      'notifications.messages.productRejected',
+      'product',
+      { 
+        productName,
+        rejectionReason: rejectionReason || 'Non spécifié'
+      },
+      '/(tabs)/profile?tab=myItems'
+    );
+  },
 };

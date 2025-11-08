@@ -3,23 +3,24 @@ import { Theme } from '@/constants/theme';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FlatList,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    FlatList,
+    RefreshControl,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withTiming
 } from 'react-native-reanimated';
 
 // Composant Skeleton intégré
@@ -217,18 +218,59 @@ const NotificationsSkeleton = ({ colors }: { colors: any }) => {
   );
 };
 
+// 🆕 Composant pour l'indicateur de synchronisation
+const SyncBanner = ({ 
+  onSync, 
+  onIgnore, 
+  colors,
+  t 
+}: { 
+  onSync: () => void; 
+  onIgnore: () => void; 
+  colors: any;
+  t: any;
+}) => (
+  <View style={[styles.syncBanner, { backgroundColor: colors.warning }]}>
+    <Ionicons name="sync" size={16} color="#FFF" />
+    <Text style={styles.syncBannerText}>
+      {t('notifications.syncBanner.title')}
+    </Text>
+    <View style={styles.syncButtons}>
+      <TouchableOpacity onPress={onSync} style={styles.syncButton}>
+        <Text style={styles.syncButtonText}>
+          {t('notifications.syncBanner.syncButton')}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onIgnore} style={styles.ignoreButton}>
+        <Text style={styles.ignoreButtonText}>
+          {t('notifications.syncBanner.ignoreButton')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
 export default function NotificationsScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   
-  // Utilisation du hook pour les vraies données
+  // États pour le contrôle intelligent
+  const [refreshing, setRefreshing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 🆕 Utilisation du hook modifié
   const { 
     notifications, 
     unreadCount, 
     markAsRead, 
     markAllAsRead,
-    isLoading = true // 🆕 Ajout d'un état de chargement par défaut
+    isLoading,
+    hasNewData, // 🆕 Nouvelles données détectées
+    refresh,
+    syncNewData, // 🆕 Synchroniser les nouvelles données
+    ignoreNewData // 🆕 Ignorer les nouvelles données
   } = useNotifications();
 
   const colors = {
@@ -242,6 +284,37 @@ export default function NotificationsScreen() {
     warning: isDark ? '#FF9F0A' : '#FF9500',
     error: isDark ? '#FF453A' : '#FF3B30',
   };
+
+  // 🆕 SYNCHRONISATION INTELLIGENTE des nouvelles données
+  const handleSyncNewData = async () => {
+    setIsSyncing(true);
+    try {
+      await syncNewData();
+      // Le skeleton s'affichera automatiquement pendant syncNewData
+    } catch (err) {
+      setError(t('notifications.syncStates.error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // 🆕 Ignorer les nouvelles données
+  const handleIgnoreNewData = () => {
+    ignoreNewData();
+  };
+
+  // 🆕 Pull-to-Refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      await refresh();
+    } catch (err) {
+      setError(t('notifications.syncStates.error'));
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh, t]);
 
   // Fonction pour formater la date relative avec traductions
   const formatTime = (createdAt: string) => {
@@ -275,25 +348,23 @@ export default function NotificationsScreen() {
 
   // Fonction pour déterminer la navigation selon le type
   const getNavigationPath = (notification: any) => {
-    // Si la notification a déjà une action_url, on l'utilise
     if (notification.action_url) {
       return notification.action_url;
     }
 
-    // Sinon, on définit des chemins par défaut selon le type
     switch (notification.type) {
       case 'system':
-        return '/(tabs)/home'; // Notifications système → Home
+        return '/(tabs)/home';
       case 'seller':
-        return '/(tabs)/profile'; // Notifications vendeur → Profil
+        return '/(tabs)/profile';
       case 'product':
-        return '/(tabs)/profile?tab=myItems'; // Notifications produit → Mes articles
+        return '/(tabs)/profile?tab=myItems';
       case 'message':
-        return '/(tabs)/chat'; // Notifications message → Chat
+        return '/(tabs)/chat';
       case 'promotion':
-        return '/(tabs)/home'; // Notifications promotion → Home
+        return '/(tabs)/home';
       default:
-        return '/(tabs)/home'; // Par défaut → Home
+        return '/(tabs)/home';
     }
   };
 
@@ -312,11 +383,9 @@ export default function NotificationsScreen() {
           }
         ]}
         onPress={() => {
-          // Marquer comme lu au clic
           if (isUnread) {
             markAsRead(item.id);
           }
-          // Navigation vers le chemin approprié
           const navigationPath = getNavigationPath(item);
           router.push(navigationPath);
         }}
@@ -358,8 +427,49 @@ export default function NotificationsScreen() {
     );
   };
 
-  // 🆕 AFFICHAGE DU SKELETON PENDANT LE CHARGEMENT
-  if (isLoading) {
+  // 🆕 AFFICHAGE DES ERREURS
+  if (error && !isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.tint} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {t('notifications.title')}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.errorState}>
+          <Ionicons name="warning" size={64} color={colors.error} />
+          <Text style={[styles.errorStateText, { color: colors.text }]}>
+            {t('notifications.syncStates.error')}
+          </Text>
+          <Text style={[styles.errorStateSubtext, { color: colors.textSecondary }]}>
+            {error}
+          </Text>
+          <TouchableOpacity 
+            style={[styles.retryButton, { backgroundColor: colors.tint }]}
+            onPress={onRefresh}
+          >
+            <Text style={styles.retryButtonText}>
+              {t('retry')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // 🆕 AFFICHAGE DU SKELETON UNIQUEMENT PENDANT LE CHARGEMENT INITIAL OU SYNCHRONISATION
+  if (isLoading || isSyncing) {
     return <NotificationsSkeleton colors={colors} />;
   }
 
@@ -374,11 +484,7 @@ export default function NotificationsScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons 
-              name="chevron-back" 
-              size={24} 
-              color={colors.tint} 
-            />
+            <Ionicons name="chevron-back" size={24} color={colors.tint} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
             {t('notifications.title')}
@@ -415,7 +521,17 @@ export default function NotificationsScreen() {
         </View>
       </View>
 
-      {/* Liste des notifications - Prend tout l'espace */}
+      {/* 🆕 BANNER DE SYNCHRONISATION - S'affiche seulement quand il y a de nouvelles données */}
+      {hasNewData && (
+        <SyncBanner 
+          onSync={handleSyncNewData}
+          onIgnore={handleIgnoreNewData}
+          colors={colors}
+          t={t}
+        />
+      )}
+
+      {/* Liste des notifications avec Pull-to-Refresh */}
       <FlatList
         data={notifications}
         renderItem={renderNotification}
@@ -426,6 +542,14 @@ export default function NotificationsScreen() {
           { paddingBottom: 20 }
         ]}
         style={styles.flatList}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.tint}
+            colors={[colors.tint]}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="notifications-off" size={64} color={colors.textSecondary} />
@@ -435,6 +559,14 @@ export default function NotificationsScreen() {
             <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
               {t('notifications.emptySubtitle')}
             </Text>
+            <TouchableOpacity 
+              style={[styles.retryButton, { backgroundColor: colors.tint }]}
+              onPress={onRefresh}
+            >
+              <Text style={styles.retryButtonText}>
+                {t('retry')}
+              </Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -579,5 +711,84 @@ const styles = StyleSheet.create({
   },
   skeletonBox: {
     borderRadius: 6,
+  },
+  // 🆕 NOUVEAUX STYLES POUR LE SYSTÈME INTELLIGENT
+  syncBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 8,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    elevation: 4,
+  },
+  syncBannerText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+    marginLeft: 8,
+  },
+  syncButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  syncButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  ignoreButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  syncButtonText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  ignoreButtonText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  errorState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  errorStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  errorStateSubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

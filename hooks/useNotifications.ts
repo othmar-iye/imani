@@ -21,6 +21,7 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasNewData, setHasNewData] = useState(false); // 🆕 Flag pour nouvelles données
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -95,7 +96,7 @@ export const useNotifications = () => {
     }
   };
 
-  // 🆕 REALTIME SUBSCRIPTION AVEC LOGS DÉTAILLÉS
+  // 🆕 REALTIME SUBSCRIPTION INTELLIGENTE
   useEffect(() => {
     if (!user) {
       return;
@@ -109,7 +110,7 @@ export const useNotifications = () => {
       .on(
         'postgres_changes',
         {
-          event: '*', // 👈 Écoute TOUS les événements pour debug
+          event: '*', // Écoute TOUS les événements
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${user.id}`
@@ -122,33 +123,23 @@ export const useNotifications = () => {
             old: payload.old
           });
           
-          // Recharger les notifications pour tous les événements
-          loadNotifications();
+          // 🆕 Marquer qu'il y a de nouvelles données disponibles
+          setHasNewData(true);
         }
       )
       .subscribe((status) => {
-        // console.log('🔔 📡 STATUT SUBSCRIPTION:', status);
-        
-        // if (status === 'SUBSCRIBED') {
-        //   console.log('✅ ✅ ABONNEMENT REALTIME RÉUSSI!');
-        // }
-        // if (status === 'CHANNEL_ERROR') {
-        //   console.log('❌ ❌ ERREUR ABONNEMENT REALTIME');
-        // }
-        // if (status === 'TIMED_OUT') {
-        //   console.log('⏰ ⏰ TIMEOUT ABONNEMENT REALTIME');
-        // }
+        console.log('🔔 📡 STATUT SUBSCRIPTION:', status);
       });
 
-    // 🆕 FALLBACK: Polling toutes les 15 secondes au cas où realtime échoue
-    const pollingInterval = setInterval(() => {
-      loadNotifications();
-    }, 15000);
+    // 🆕 SUPPRIMEZ LE POLLING - On compte sur realtime seulement
+    // const pollingInterval = setInterval(() => {
+    //   loadNotifications();
+    // }, 15000);
 
     // Nettoyage
     return () => {
       subscription.unsubscribe();
-      clearInterval(pollingInterval);
+      // clearInterval(pollingInterval); // 🆕 Plus de polling
     };
   }, [user]);
 
@@ -165,13 +156,29 @@ export const useNotifications = () => {
     loadNotifications();
   }, [user]);
 
+  // 🆕 Fonction pour synchroniser et récupérer les nouvelles données
+  const syncNewData = async () => {
+    if (hasNewData) {
+      await loadNotifications();
+      setHasNewData(false); // Reset le flag après synchronisation
+    }
+  };
+
+  // 🆕 Fonction pour ignorer les nouvelles données
+  const ignoreNewData = () => {
+    setHasNewData(false);
+  };
+
   return {
     notifications,
     unreadCount,
     isLoading,
+    hasNewData, // 🆕 Nouvelles données disponibles
     loadNotifications,
     markAsRead,
     markAllAsRead,
-    refresh: loadNotifications
+    refresh: loadNotifications,
+    syncNewData, // 🆕 Synchroniser les nouvelles données
+    ignoreNewData // 🆕 Ignorer les nouvelles données
   };
 };

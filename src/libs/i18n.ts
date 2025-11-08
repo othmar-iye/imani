@@ -42,6 +42,39 @@ const resources = {
 
         // ===== NOUVELLES TRADUCTIONS NOTIFICATIONS =====
         notifications: {
+
+            errorLoading: "Erreur lors du chargement des notifications",
+            refreshError: "Impossible de rafraîchir les notifications",
+            
+            // Messages pour le banner de nouvelles notifications (si vous l'utilisez encore)
+            newNotifications: {
+                title: "Nouvelles notifications",
+                message: "{{count}} nouvelle notification",
+                message_plural: "{{count}} nouvelles notifications",
+                view: "Voir",
+            },
+
+            newDataAvailable: "Nouvelles données disponibles",
+            syncNewData: "Synchroniser les nouvelles données",
+            ignore: "Ignorer",
+            syncing: "Synchronisation en cours...",
+            
+            // Messages du banner de synchronisation
+            syncBanner: {
+                title: "Nouvelles notifications disponibles",
+                message: "{{count}} nouvelle notification reçue",
+                message_plural: "{{count}} nouvelles notifications reçues",
+                syncButton: "Actualiser",
+                ignoreButton: "Ignorer"
+            },
+            
+            // États de synchronisation
+            syncStates: {
+                syncing: "Mise à jour des notifications...",
+                success: "Notifications mises à jour",
+                error: "Erreur de synchronisation",
+            },
+
             title: "Notifications",
             clearAll: "Tout effacer",
             markAllRead: "Tout marquer comme lu",
@@ -97,6 +130,14 @@ const resources = {
                 passwordReset: {
                     title: "🔐 Mot de passe mis à jour",
                     message: "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe."
+                },
+                productApproved: {
+                    title: "✅ Votre article a été approuvé !",
+                    message: "\"{{productName}}\" est maintenant publié et visible par tous les acheteurs."
+                },
+                productRejected: {
+                    title: "❌ Article non approuvé",
+                    message: "\"{{productName}}\" n'a pas été approuvé. Raison : {{rejectionReason}}"
                 },
             }
         },
@@ -881,6 +922,39 @@ const resources = {
 
         // NOTIFICATIONS  =====
         notifications: {
+
+            errorLoading: "Error loading notifications",
+            refreshError: "Unable to refresh notifications",
+            
+            // Messages for new notifications banner (if you still use it)
+            newNotifications: {
+                title: "New notifications",
+                message: "{{count}} new notification",
+                message_plural: "{{count}} new notifications",
+                view: "View",
+            },
+
+            newDataAvailable: "New data available",
+            syncNewData: "Sync new data", 
+            ignore: "Ignore",
+            syncing: "Syncing...",
+            
+            // Sync banner messages
+            syncBanner: {
+                title: "New notifications available",
+                message: "{{count}} new notification received",
+                message_plural: "{{count}} new notifications received",
+                syncButton: "Refresh",
+                ignoreButton: "Ignore"
+            },
+            
+            // Sync states
+            syncStates: {
+                syncing: "Updating notifications...",
+                success: "Notifications updated", 
+                error: "Sync error",
+            },
+
             title: "Notifications",
             clearAll: "Clear all", 
             markAllRead: "Mark all as read",
@@ -940,6 +1014,14 @@ const resources = {
                 passwordReset: {
                     title: "🔐 Password updated",
                     message: "Your password has been reset successfully. You can now log in with your new password."
+                },
+                productApproved: {
+                    title: "✅ Your item has been approved!",
+                    message: "\"{{productName}}\" is now published and visible to all buyers."
+                },
+                productRejected: {
+                    title: "❌ Item not approved", 
+                    message: "\"{{productName}}\" was not approved. Reason: {{rejectionReason}}"
                 },
             }
         },
