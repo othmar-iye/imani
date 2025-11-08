@@ -39,6 +39,7 @@ import CustomButton from '@/components/CustomButton';
 import { categories as categoriesData } from '@/src/data/categories';
 
 // Import i18n
+import { NotificationIcon } from '@/components/NotificationIcon';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
@@ -322,16 +323,10 @@ export default function HomeScreen() {
         <View style={[styles.header, { backgroundColor: theme.background }]}>
           <View style={styles.locationContainer}>
             <Text style={[styles.locationText, { color: theme.text }]}>
-              {t('home.welcome')} 👋
+              {t('home.welcome')} 
             </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.notificationButton} 
-            onPress={() => router.push('/screens/homeOption/NotificationsScreen')}
-          >
-            <Ionicons name="notifications-outline" size={24} color={theme.text} />
-            <View style={[styles.notificationBadge, { backgroundColor: '#EF4444' }]} />
-          </TouchableOpacity>
+          <NotificationIcon color={theme.text} size={24} />
         </View>
 
         {/* CONTENU ADAPTATIF - Condition base vide */}
