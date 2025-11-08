@@ -1,9 +1,10 @@
 // components/NotificationIcon.tsx
 import { useNotifications } from '@/hooks/useNotifications';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface NotificationIconProps {
   color?: string;
@@ -14,13 +15,18 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
   color = '#000', 
   size = 24 
 }) => {
-  const { unreadCount } = useNotifications();
+  const { unreadCount, refresh } = useNotifications();
   
-  // Logique d'affichage du badge
-  const showBadge = unreadCount > 0;
-  const showNumber = unreadCount > 4; // Chiffre seulement si +4 notifications
-  const badgeText = unreadCount > 99 ? '99+' : unreadCount.toString();
-
+  // ✅ FORCER LE RE-REFRESH QUAND L'ÉCRAN EST AFFICHÉ
+  useFocusEffect(
+    React.useCallback(() => {
+      // Recharge les notifications quand on revient sur la Home
+      refresh();
+    }, [refresh])
+  );
+  
+  const hasUnreadNotifications = unreadCount > 0;
+  
   const handlePress = () => {
     router.push('/screens/homeOption/NotificationsScreen');
   };
@@ -34,19 +40,8 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
           color={color} 
         />
         
-        {showBadge && (
-          <View 
-            style={[
-              styles.badge,
-              showNumber ? styles.badgeWithNumber : styles.badgeDot,
-            ]}
-          >
-            {showNumber && (
-              <Text style={styles.badgeText}>
-                {badgeText}
-              </Text>
-            )}
-          </View>
+        {hasUnreadNotifications && (
+          <View style={styles.notificationDot} />
         )}
       </View>
     </TouchableOpacity>
@@ -56,35 +51,20 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 8,
+    position: 'relative',
   },
   iconContainer: {
     position: 'relative',
   },
-  badge: {
+  notificationDot: {
     position: 'absolute',
-    top: -2,
-    right: -2,
+    top: -1,
+    right: -1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: '#EF4444',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
-  },
-  badgeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  badgeWithNumber: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    paddingHorizontal: 4,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-    textAlign: 'center',
   },
 });

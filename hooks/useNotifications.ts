@@ -55,11 +55,24 @@ export const useNotifications = () => {
         return;
       }
 
+      // 🆕 VALIDATION DES DONNÉES
+      const validData = data || [];
+      
+      // S'assurer que chaque notification a un statut valide
+      const validatedData = validData.map(notification => ({
+        ...notification,
+        status: notification.status === 'read' ? 'read' : 'unread' // Force la valeur
+      }));
+
       // Traduire toutes les notifications
-      const translatedNotifications = (data || []).map(translateNotification);
+      const translatedNotifications = validatedData.map(translateNotification);
       
       setNotifications(translatedNotifications);
-      setUnreadCount(data?.filter(n => n.status === 'unread').length || 0);
+      
+      // 🆕 CALCUL EXPLICITE ET VALIDÉ
+      const calculatedUnreadCount = validatedData.filter(n => n.status === 'unread').length;
+      setUnreadCount(calculatedUnreadCount);
+      
     } catch (error) {
       console.error('Erreur inattendue:', error);
     } finally {
@@ -131,15 +144,9 @@ export const useNotifications = () => {
         console.log('🔔 📡 STATUT SUBSCRIPTION:', status);
       });
 
-    // 🆕 SUPPRIMEZ LE POLLING - On compte sur realtime seulement
-    // const pollingInterval = setInterval(() => {
-    //   loadNotifications();
-    // }, 15000);
-
     // Nettoyage
     return () => {
       subscription.unsubscribe();
-      // clearInterval(pollingInterval); // 🆕 Plus de polling
     };
   }, [user]);
 
