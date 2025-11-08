@@ -529,7 +529,7 @@ const resources = {
             
             location: {
                 title: "Localisation",
-                subtitle: "Haut-Katanga, RD Congo",
+                subtitle: "RD Congo",
                 description: "Recherchez votre ville pour voir les annonces locales",
                 searchPlaceholder: "Rechercher une ville...",
                 citiesFound: "{{count}} ville(s) trouvée(s)",
@@ -1370,7 +1370,7 @@ const resources = {
             
             location: {
                 title: "Location",
-                subtitle: "Haut-Katanga, DRC",
+                subtitle: "DRC",
                 description: "Search your city to see local listings",
                 searchPlaceholder: "Search a city...",
                 citiesFound: "{{count}} city(ies) found",
