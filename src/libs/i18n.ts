@@ -225,6 +225,8 @@ const resources = {
         // NOUVELLES TRADUCTIONS POUR SETTINGS
         appearance: "Apparence",
         languageRegion: "Langue et région",
+        language: 'Langue',
+        theme: 'Thème',
         security: "Sécurité",
         privacy: "Confidentialité",
         support: "Support",
@@ -1066,6 +1068,8 @@ const resources = {
         // NEW TRANSLATIONS FOR SETTINGS
         appearance: "Appearance",
         languageRegion: "Language & Region", 
+        language: 'Language',
+        theme: 'Theme',
         security: "Security",
         privacy: "Privacy",
         support: "Support",

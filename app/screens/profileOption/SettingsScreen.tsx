@@ -8,21 +8,21 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Alert,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { currentLanguage, changeLanguage, resetLanguage } = useLanguage();
+  const { currentLanguage, changeLanguage } = useLanguage(); // 🆕 resetLanguage supprimé
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -325,15 +325,8 @@ export default function SettingsScreen() {
           text: `${option.flag} ${option.label}`,
           onPress: async () => {
             await changeLanguage(option.value);
-            // Pas besoin de setCurrentLanguage car le hook gère déjà le re-render
           },
         })),
-        {
-          text: t('resetToAuto', 'Détection automatique'),
-          onPress: async () => {
-            await resetLanguage();
-          },
-        },
         { text: t('cancel'), style: 'cancel' }
       ]
     );
