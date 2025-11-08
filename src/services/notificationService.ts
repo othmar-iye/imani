@@ -1,11 +1,19 @@
 // services/notificationService.ts
 import { supabase } from '@/supabase';
 
+/**
+ * Fonction de base pour créer une notification
+ * @param userId - ID de l'utilisateur destinataire
+ * @param translationKey - Clé de traduction (ex: 'notifications.messages.welcome')
+ * @param type - Type de notification
+ * @param translationParams - Paramètres pour les variables de traduction
+ * @param actionUrl - URL de redirection au clic
+ */
 export const createNotification = async (
   userId: string,
-  title: string,
-  message: string,
+  translationKey: string,
   type: 'system' | 'seller' | 'product' | 'message' | 'promotion',
+  translationParams?: Record<string, any>,
   actionUrl?: string
 ) => {
   const { data, error } = await supabase
@@ -13,8 +21,8 @@ export const createNotification = async (
     .insert([
       {
         user_id: userId,
-        title,
-        message,
+        translation_key: translationKey, // 🆕 Nouvelle colonne
+        translation_params: translationParams || {}, // 🆕 Nouvelle colonne
         type,
         action_url: actionUrl,
         status: 'unread'
@@ -30,66 +38,95 @@ export const createNotification = async (
   return data[0];
 };
 
-// Fonctions spécifiques
 export const NotificationService = {
+  /**
+   * Notification de bienvenue à la création de compte
+   */
   async welcome(userId: string) {
     return createNotification(
       userId,
-      '🎉 Bienvenue sur Imani !',
-      'Votre compte a été créé avec succès. Commencez à explorer notre marketplace.',
+      'notifications.messages.welcome',
       'system',
+      undefined,
       '/(tabs)/home'
     );
   },
 
-  // AJOUT : Notification pour profil complété
+  /**
+   * Notification lorsque le profil est complété
+   */
   async profileCompleted(userId: string) {
     return createNotification(
       userId,
-      '✅ Profil complété avec succès !',
-      'Vos informations ont été sauvegardées. Votre profil est maintenant actif et visible.',
+      'notifications.messages.profileCompleted',
       'system',
+      undefined,
       '/(tabs)/profile'
     );
   },
 
+  /**
+   * Notification de soumission de demande vendeur
+   */
   async sellerSubmission(userId: string) {
     return createNotification(
       userId,
-      '📋 Demande de vendeur soumise',
-      'Votre demande pour devenir vendeur a été reçue. Notre équipe la traitera sous 24-48h.',
+      'notifications.messages.sellerSubmission',
       'seller',
+      undefined,
       '/(tabs)/profile'
     );
   },
 
+  /**
+   * Notification d'approbation de statut vendeur
+   */
   async sellerApproved(userId: string) {
     return createNotification(
       userId,
-      '✅ Félicitations ! Vous êtes maintenant vendeur',
-      'Votre demande a été approuvée. Vous pouvez maintenant publier des annonces.',
+      'notifications.messages.sellerApproved',
       'seller',
+      undefined,
       '/(tabs)/sell'
     );
   },
 
+  /**
+   * Notification de rejet de demande vendeur
+   */
   async sellerRejected(userId: string) {
     return createNotification(
       userId,
-      '❌ Demande de vendeur rejetée',
-      'Votre demande nécessite des modifications. Consultez vos emails pour plus de détails.',
+      'notifications.messages.sellerRejected',
       'seller',
+      undefined,
       '/(tabs)/profile'
     );
   },
 
+  /**
+   * Notification de soumission d'article
+   */
   async productPublished(userId: string, productName: string) {
     return createNotification(
       userId,
-      '📦 Votre article a été publié !',
-      `"${productName}" est maintenant visible par tous les acheteurs.`,
+      'notifications.messages.productPublished',
       'product',
+      { productName },
       '/(tabs)/profile?tab=myItems'
+    );
+  },
+
+  /**
+   * Notification de réussite de réinitialisation du mot de passe
+   */
+  async passwordResetSuccess(userId: string) {
+    return createNotification(
+      userId,
+      'notifications.messages.passwordReset',
+      'system',
+      undefined,
+      '/(auth)/login'
     );
   }
 };

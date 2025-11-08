@@ -8,6 +8,7 @@ import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import 'react-native-get-random-values';
 import 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

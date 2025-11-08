@@ -93,7 +93,11 @@ const resources = {
                 profileCompleted: {
                     title: "✅ Profil complété avec succès !",
                     message: "Vos informations ont été sauvegardées. Votre profil est maintenant actif et visible."
-                }
+                },
+                passwordReset: {
+                    title: "🔐 Mot de passe mis à jour",
+                    message: "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe."
+                },
             }
         },
 
@@ -930,7 +934,11 @@ const resources = {
                 profileCompleted: {
                     title: "✅ Profile completed successfully!",
                     message: "Your information has been saved. Your profile is now active and visible."
-                }
+                },
+                passwordReset: {
+                    title: "🔐 Password updated",
+                    message: "Your password has been reset successfully. You can now log in with your new password."
+                },
             }
         },
 

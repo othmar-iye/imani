@@ -6,16 +6,16 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -58,8 +58,6 @@ const PasswordNewScreen = () => {
     try {
       // SOLUTION POUR LE DÉVELOPPEMENT LOCAL :
       if (devMode) {
-        // En mode développement, on utilise une méthode alternative
-        // On peut essayer de créer un nouvel utilisateur ou mettre à jour via une fonction custom
         console.log('🔄 Mode développement - Mise à jour du mot de passe...');
         
         // Essayer la méthode standard (peut échouer sans session)
@@ -88,7 +86,7 @@ const PasswordNewScreen = () => {
         setSuccess(t('passwordNew.success.standard'));
       }
 
-      // Redirection vers la connexion
+      // Redirection vers la confirmation
       setTimeout(() => {
         router.replace('/(auth)/password_confirmed');
       }, 2000);

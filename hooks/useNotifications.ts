@@ -2,30 +2,47 @@
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next'; // 🆕 Import pour les traductions
 
 export interface Notification {
   id: string;
-  title: string;
-  message: string;
+  user_id: string;
+  translation_key: string; // 🆕 Clé de traduction au lieu du texte direct
+  translation_params: Record<string, any>; // 🆕 Paramètres pour les variables
   type: 'system' | 'seller' | 'product' | 'message' | 'promotion';
   status: 'read' | 'unread';
   action_url?: string;
   created_at: string;
+  // 🆕 Champs calculés (traduits à la volée)
+  title: string;
+  message: string;
 }
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true); // 🆕 État de chargement
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { t } = useTranslation(); // 🆕 Hook de traduction
+
+  // 🆕 Fonction pour traduire une notification
+  const translateNotification = (notification: any): Notification => {
+    const baseKey = notification.translation_key;
+    
+    return {
+      ...notification,
+      title: t(`${baseKey}.title`, notification.translation_params || {}),
+      message: t(`${baseKey}.message`, notification.translation_params || {})
+    };
+  };
 
   const loadNotifications = async () => {
     if (!user) {
-      setIsLoading(false); // 🆕 Pas de chargement si pas d'utilisateur
+      setIsLoading(false);
       return;
     }
     
-    setIsLoading(true); // 🆕 Début du chargement
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -38,12 +55,15 @@ export const useNotifications = () => {
         return;
       }
 
-      setNotifications(data || []);
+      // 🆕 Traduire toutes les notifications
+      const translatedNotifications = (data || []).map(translateNotification);
+      
+      setNotifications(translatedNotifications);
       setUnreadCount(data?.filter(n => n.status === 'unread').length || 0);
     } catch (error) {
       console.error('Erreur inattendue:', error);
     } finally {
-      setIsLoading(false); // 🆕 Fin du chargement dans tous les cas
+      setIsLoading(false);
     }
   };
 
@@ -76,6 +96,15 @@ export const useNotifications = () => {
     }
   };
 
+  // 🆕 Recharger les notifications quand la langue change
+  useEffect(() => {
+    if (notifications.length > 0) {
+      // Retraduire les notifications existantes avec la nouvelle langue
+      const retranslatedNotifications = notifications.map(translateNotification);
+      setNotifications(retranslatedNotifications);
+    }
+  }, [t]); // Se déclenche quand la traduction change
+
   useEffect(() => {
     loadNotifications();
   }, [user]);
@@ -83,7 +112,7 @@ export const useNotifications = () => {
   return {
     notifications,
     unreadCount,
-    isLoading, // 🆕 Retournez l'état de chargement
+    isLoading,
     loadNotifications,
     markAsRead,
     markAllAsRead,
