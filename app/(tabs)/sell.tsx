@@ -564,7 +564,7 @@ export default function SellScreen() {
             <View style={styles.content}>
                 <View style={[styles.photoSection, { backgroundColor: colors.card }]}>
                     <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                        {t('photos', 'Photos')} ({selectedImages.length}/5)
+                        {t('sell.photos', 'Photos')} ({selectedImages.length}/5)
                     </Text>
                     
                     {selectedImages.length === 0 ? (

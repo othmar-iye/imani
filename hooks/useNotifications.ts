@@ -95,57 +95,62 @@ export const useNotifications = () => {
     }
   };
 
-  // 🆕 REALTIME SUBSCRIPTION - Mise à jour automatique
+  // 🆕 REALTIME SUBSCRIPTION AVEC LOGS DÉTAILLÉS
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
-    console.log('🔔 Démarrage subscription realtime pour:', user.id);
+    console.log('🔔 🚀 Démarrage subscription realtime pour user:', user.id);
 
-    // S'abonner aux nouvelles notifications
+    // S'abonner aux changements de la table notifications
     const subscription = supabase
       .channel(`notifications-${user.id}`)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*', // 👈 Écoute TOUS les événements pour debug
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🆕 NOUVELLE NOTIFICATION REALTIME:', payload);
+          console.log('🎯 REALTIME EVENT REÇU:', {
+            event: payload.eventType,
+            table: payload.table,
+            new: payload.new,
+            old: payload.old
+          });
           
-          // Recharger automatiquement les notifications
+          // Recharger les notifications pour tous les événements
           loadNotifications();
         }
       )
-      .on(
-        'postgres_changes', 
-        {
-          event: 'UPDATE',
-          schema: 'public', 
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📝 NOTIFICATION MISE À JOUR:', payload);
-          
-          // Si le statut change (marqué comme lu)
-          if (payload.new.status !== payload.old.status) {
-            loadNotifications();
-          }
-        }
-      )
       .subscribe((status) => {
-        console.log('🔔 Statut subscription realtime:', status);
+        // console.log('🔔 📡 STATUT SUBSCRIPTION:', status);
+        
+        // if (status === 'SUBSCRIBED') {
+        //   console.log('✅ ✅ ABONNEMENT REALTIME RÉUSSI!');
+        // }
+        // if (status === 'CHANNEL_ERROR') {
+        //   console.log('❌ ❌ ERREUR ABONNEMENT REALTIME');
+        // }
+        // if (status === 'TIMED_OUT') {
+        //   console.log('⏰ ⏰ TIMEOUT ABONNEMENT REALTIME');
+        // }
       });
 
-    // Nettoyer la subscription
+    // 🆕 FALLBACK: Polling toutes les 15 secondes au cas où realtime échoue
+    const pollingInterval = setInterval(() => {
+      loadNotifications();
+    }, 15000);
+
+    // Nettoyage
     return () => {
-      console.log('🔔 Nettoyage subscription realtime');
       subscription.unsubscribe();
+      clearInterval(pollingInterval);
     };
-  }, [user]); // Se reconnecte si l'user change
+  }, [user]);
 
   // 🆕 Recharger les notifications quand la langue change
   useEffect(() => {

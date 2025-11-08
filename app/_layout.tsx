@@ -128,7 +128,12 @@ export default function RootLayout() {
       <AuthProvider>
         <CustomThemeProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <View style={styles.fullScreen}>
+            <View
+                style={[
+                    styles.fullScreen,
+                    { backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }
+                ]}
+            >
               
               {/* Bannière réseau - SEULEMENT si showBanner est true */}
               {showBanner && (
@@ -153,7 +158,15 @@ export default function RootLayout() {
                 styles.mainContent,
                 showBanner && styles.contentWithBanner
               ]}>
-                <Stack screenOptions={{ headerShown: false }} initialRouteName="(auth)">
+                <Stack 
+                    screenOptions={{
+                        headerShown: false,
+                        contentStyle: {
+                            backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+                        },
+                    }} 
+                    initialRouteName="(auth)"
+                >
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="index" />
