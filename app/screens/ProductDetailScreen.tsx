@@ -586,6 +586,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingBottom: Platform.OS === 'android' ? 20 : 0,
+    backgroundColor: Theme.light.background,
   },
   scrollContent: {
     paddingBottom: Platform.OS === 'android' ? 30 : 0,
@@ -626,7 +627,7 @@ const styles = StyleSheet.create({
   },
   header: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 40,
+    top: Platform.OS === 'ios' ? 55 : 40,
     left: 0,
     right: 0,
     flexDirection: 'row',

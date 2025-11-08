@@ -535,8 +535,6 @@ export default function HomeScreen() {
   );
 }
 
-// ... (les styles restent identiques)
-
 const styles = StyleSheet.create({
   // NOUVEAUX STYLES POUR MODE VIDE
   emptyDatabaseContainer: {
@@ -605,6 +603,7 @@ const styles = StyleSheet.create({
   // Styles existants...
   scrollView: {
     flex: 1,
+    backgroundColor: Theme.light.background,
   },
   header: {
     flexDirection: 'row',

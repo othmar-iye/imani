@@ -8,6 +8,38 @@ const resources = {
   fr: {
     translation: {
 
+        // Checkout
+        checkout: {
+            title: "Paiement",
+            yourOrder: "Votre commande",
+            invoiceDetails: "Détails de la facture",
+            seller: "Vendeur",
+            subtotal: "Sous-total",
+            deliveryFee: "Frais de livraison",
+            platformFee: "Frais de plateforme",
+            toPay: "À Payer",
+            avoidCancellation: "Évitez toute annulation de commande",
+            paymentMethod: "Méthode de paiement",
+            pay: "Payer",
+            
+            // Formulaires de paiement
+            cardInformation: "Informations de carte",
+            cardName: "Nom sur la carte",
+            cardNamePlaceholder: "Maksudur Rhaman",
+            cardNumber: "Numéro de carte",
+            cardNumberPlaceholder: "2050 1950 2033 724",
+            expiryDate: "Date d'expiration",
+            expiryDatePlaceholder: "MM/AA",
+            cvv: "CVV",
+            cvvPlaceholder: "123",
+            
+            // Formulaire mobile
+            phoneNumber: "Numéro de téléphone",
+            yourNumber: "Votre numéro",
+            phonePlaceholder: "+243 XX XXX XXXX",
+            mobileConfirmation: "Vous recevrez une demande de confirmation sur votre mobile"
+        },
+
         // ===== NOUVELLES TRADUCTIONS NOTIFICATIONS =====
         notifications: {
             title: "Notifications",
@@ -808,6 +840,38 @@ const resources = {
 
   en: {
     translation: {
+
+        // CHECKOUT
+        checkout: {
+            title: "Checkout",
+            yourOrder: "Your Order",
+            invoiceDetails: "Invoice Details",
+            seller: "Seller",
+            subtotal: "Subtotal",
+            deliveryFee: "Delivery Fee",
+            platformFee: "Platform Fee",
+            toPay: "To Pay",
+            avoidCancellation: "Avoid order cancellation",
+            paymentMethod: "Payment Method",
+            pay: "Pay",
+            
+            // Payment forms
+            cardInformation: "Card Information",
+            cardName: "Name on Card",
+            cardNamePlaceholder: "Maksudur Rhaman",
+            cardNumber: "Card Number",
+            cardNumberPlaceholder: "2050 1950 2033 724",
+            expiryDate: "Expiry Date",
+            expiryDatePlaceholder: "MM/YY",
+            cvv: "CVV",
+            cvvPlaceholder: "123",
+            
+            // Mobile form
+            phoneNumber: "Phone Number",
+            yourNumber: "Your Number",
+            phonePlaceholder: "+243 XX XXX XXXX",
+            mobileConfirmation: "You will receive a confirmation request on your mobile",
+        },
 
         // NOTIFICATIONS  =====
         notifications: {

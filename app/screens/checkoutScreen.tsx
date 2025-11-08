@@ -59,11 +59,11 @@ export default function CheckoutScreen() {
   const cartItems = [
     {
       id: productId as string || '1',
-      name: productName as string || 'Mini Table',
+      name: productName as string || t('productDetail.conditionTypes.new'),
       seller: sellerName as string || 'Pellipilk',
       price: parseInt(productPrice as string) || 4590,
       currency: '$',
-      description: productDescription as string || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+      description: productDescription as string || t('productDetail.description'),
       image: productImage as string || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop'
     }
   ];
@@ -124,12 +124,12 @@ export default function CheckoutScreen() {
   const renderCardForm = () => (
     <View style={[styles.paymentForm, { backgroundColor: colors.card }]}>
       <Text style={[styles.formTitle, { color: colors.text }]}>
-        Informations de carte
+        {t('checkout.cardInformation')}
       </Text>
       
       <View style={[styles.inputContainer, { borderColor: colors.border }]}>
         <Text style={[styles.inputLabel, { color: colors.text }]}>
-          Nom sur la carte *
+          {t('checkout.cardName')} *
         </Text>
         <TextInput
           style={[styles.input, { 
@@ -139,14 +139,14 @@ export default function CheckoutScreen() {
           }]}
           value={cardName}
           onChangeText={setCardName}
-          placeholder="Maksudur Rhaman"
+          placeholder={t('checkout.cardNamePlaceholder')}
           placeholderTextColor={colors.textSecondary}
         />
       </View>
 
       <View style={[styles.inputContainer, { borderColor: colors.border }]}>
         <Text style={[styles.inputLabel, { color: colors.text }]}>
-          Numéro de carte *
+          {t('checkout.cardNumber')} *
         </Text>
         <TextInput
           style={[styles.input, { 
@@ -156,7 +156,7 @@ export default function CheckoutScreen() {
           }]}
           value={cardNumber}
           onChangeText={setCardNumber}
-          placeholder="2050 1950 2033 724"
+          placeholder={t('checkout.cardNumberPlaceholder')}
           placeholderTextColor={colors.textSecondary}
           keyboardType="numeric"
         />
@@ -165,7 +165,7 @@ export default function CheckoutScreen() {
       <View style={styles.row}>
         <View style={[styles.inputContainer, { flex: 1, marginRight: 10, borderColor: colors.border }]}>
           <Text style={[styles.inputLabel, { color: colors.text }]}>
-            Date d'expiration *
+            {t('checkout.expiryDate')} *
           </Text>
           <TextInput
             style={[styles.input, { 
@@ -175,14 +175,14 @@ export default function CheckoutScreen() {
             }]}
             value={expiryDate}
             onChangeText={setExpiryDate}
-            placeholder="MM/AA"
+            placeholder={t('checkout.expiryDatePlaceholder')}
             placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={[styles.inputContainer, { flex: 1, borderColor: colors.border }]}>
           <Text style={[styles.inputLabel, { color: colors.text }]}>
-            CVV *
+            {t('checkout.cvv')} *
           </Text>
           <TextInput
             style={[styles.input, { 
@@ -192,7 +192,7 @@ export default function CheckoutScreen() {
             }]}
             value={cvv}
             onChangeText={setCvv}
-            placeholder="123"
+            placeholder={t('checkout.cvvPlaceholder')}
             placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
             secureTextEntry
@@ -205,12 +205,12 @@ export default function CheckoutScreen() {
   const renderMobileForm = () => (
     <View style={[styles.paymentForm, { backgroundColor: colors.card }]}>
       <Text style={[styles.formTitle, { color: colors.text }]}>
-        Numéro de téléphone
+        {t('checkout.phoneNumber')}
       </Text>
       
       <View style={[styles.inputContainer, { borderColor: colors.border }]}>
         <Text style={[styles.inputLabel, { color: colors.text }]}>
-          Votre numéro *
+          {t('checkout.yourNumber')} *
         </Text>
         <TextInput
           style={[styles.input, { 
@@ -220,14 +220,14 @@ export default function CheckoutScreen() {
           }]}
           value={phoneNumber}
           onChangeText={setPhoneNumber}
-          placeholder="+243 XX XXX XXXX"
+          placeholder={t('checkout.phonePlaceholder')}
           placeholderTextColor={colors.textSecondary}
           keyboardType="phone-pad"
         />
       </View>
 
       <Text style={[styles.note, { color: colors.textSecondary }]}>
-        Vous recevrez une demande de confirmation sur votre mobile
+        {t('checkout.mobileConfirmation')}
       </Text>
     </View>
   );
@@ -250,7 +250,7 @@ export default function CheckoutScreen() {
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Paiement
+            {t('checkout.title')}
           </Text>
         </View>
         
@@ -264,7 +264,7 @@ export default function CheckoutScreen() {
         {/* Résumé de la commande avec photo */}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Votre commande
+            {t('checkout.yourOrder')}
           </Text>
           
           {cartItems.map((item) => (
@@ -282,7 +282,7 @@ export default function CheckoutScreen() {
                   {item.description}
                 </Text>
                 <Text style={[styles.itemSeller, { color: colors.textSecondary }]}>
-                  Vendeur: {item.seller}
+                  {t('checkout.seller')}: {item.seller}
                 </Text>
               </View>
               <Text style={[styles.itemPrice, { color: colors.tint }]}>
@@ -295,12 +295,12 @@ export default function CheckoutScreen() {
         {/* Détails de la facture */}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Détails de la facture
+            {t('checkout.invoiceDetails')}
           </Text>
           
           <View style={styles.invoiceRow}>
             <Text style={[styles.invoiceLabel, { color: colors.textSecondary }]}>
-              Sous-total
+              {t('checkout.subtotal')}
             </Text>
             <Text style={[styles.invoiceValue, { color: colors.text }]}>
               {formatCurrency(subtotal)}
@@ -309,7 +309,7 @@ export default function CheckoutScreen() {
           
           <View style={styles.invoiceRow}>
             <Text style={[styles.invoiceLabel, { color: colors.textSecondary }]}>
-              Frais de livraison
+              {t('checkout.deliveryFee')}
             </Text>
             <Text style={[styles.invoiceValue, { color: colors.text }]}>
               {formatCurrency(deliveryFee)}
@@ -318,7 +318,7 @@ export default function CheckoutScreen() {
           
           <View style={styles.invoiceRow}>
             <Text style={[styles.invoiceLabel, { color: colors.textSecondary }]}>
-              Frais de plateforme
+              {t('checkout.platformFee')}
             </Text>
             <Text style={[styles.invoiceValue, { color: colors.text }]}>
               {formatCurrency(platformFee)}
@@ -329,7 +329,7 @@ export default function CheckoutScreen() {
 
           <View style={styles.totalRow}>
             <Text style={[styles.totalLabel, { color: colors.text }]}>
-              À Payer
+              {t('checkout.toPay')}
             </Text>
             <Text style={[styles.totalValue, { color: colors.tint }]}>
               {formatCurrency(total)}
@@ -339,7 +339,7 @@ export default function CheckoutScreen() {
           <View style={[styles.noteCard, { backgroundColor: colors.background }]}>
             <Ionicons name="information-circle-outline" size={16} color={colors.tint} />
             <Text style={[styles.noteText, { color: colors.textSecondary }]}>
-              Évitez toute annulation de commande
+              {t('checkout.avoidCancellation')}
             </Text>
           </View>
         </View>
@@ -347,7 +347,7 @@ export default function CheckoutScreen() {
         {/* Méthodes de paiement avec vrais logos */}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Méthode de paiement
+            {t('checkout.paymentMethod')}
           </Text>
           
           {paymentMethods.map((method) => (
@@ -404,7 +404,7 @@ export default function CheckoutScreen() {
       {/* Bouton de paiement fixe */}
       <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
         <CustomButton
-          title={`Payer ${formatCurrency(total)}`}
+          title={`${t('checkout.pay')} ${formatCurrency(total)}`}
           onPress={handlePayment}
           variant="primary"
           size="large"
