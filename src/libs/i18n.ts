@@ -143,6 +143,10 @@ const resources = {
                     title: "❌ Article non approuvé",
                     message: "\"{{productName}}\" n'a pas été approuvé. Raison : {{rejectionReason}}"
                 },
+                productSubmitted: {
+                    title: "📋 Article soumis pour validation",
+                    message: "Votre article \"{{productName}}\" a été soumis avec succès. Notre équipe le vérifiera sous 24-48h."
+                },
             }
         },
 
@@ -1031,6 +1035,10 @@ const resources = {
                 productRejected: {
                     title: "❌ Item not approved", 
                     message: "\"{{productName}}\" was not approved. Reason: {{rejectionReason}}"
+                },
+                productSubmitted: {
+                    title: "📋 Item submitted for review", 
+                    message: "Your item \"{{productName}}\" has been successfully submitted. Our team will review it within 24-48h."
                 },
             }
         },

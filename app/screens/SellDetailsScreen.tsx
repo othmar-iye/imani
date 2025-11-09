@@ -34,6 +34,8 @@ import { ProductFormSection } from '@/components/ProductFormSection';
 import { SelectField } from '@/components/SelectField';
 import { ValidationInfoCard } from '@/components/ValidationInfoCard';
 
+import { NotificationService } from '@/src/services/notificationService';
+
 interface SelectedImage {
   uri: string;
   id: string;
@@ -95,7 +97,6 @@ const compressImage = async (
   }
 };
 
-// FONCTION POUR CRÉER LA MINIATURE AVEC RATIO RESPECTÉ
 // FONCTION POUR CRÉER LA MINIATURE AVEC RATIO RESPECTÉ
 const createThumbnail = async (
   imageUri: string, 
@@ -368,6 +369,17 @@ export default function SellDetailsScreen() {
       if (productError) {
         throw productError;
       }
+
+        // ✅ AJOUT : Créer la notification de SOUMISSION (pas d'approbation)
+        if (product && user) {
+            try {
+                await NotificationService.productSubmitted(user.id, productData.name);
+                console.log('✅ Notification de soumission créée');
+            } catch (notificationError) {
+                console.log('⚠️ Notification non créée, mais produit soumis:', notificationError);
+                // On continue même si la notification échoue
+            }
+        }
 
       // ✅ REDIRECTION RAPIDE SANS ALERTE BLOQUANTE
       setIsSubmitting(false);

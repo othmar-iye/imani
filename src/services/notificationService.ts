@@ -131,6 +131,19 @@ export const NotificationService = {
   },
 
   /**
+   * Notification de soumission d'article (en attente de validation)
+   */
+  async productSubmitted(userId: string, productName: string) {
+    return createNotification(
+      userId,
+      'notifications.messages.productSubmitted', // 🆕 Nouvelle clé de traduction
+      'product',
+      { productName },
+      '/(tabs)/profile?tab=myItems'
+    );
+  },
+
+  /**
    * Notification d'approbation d'article
    */
   async productApproved(userId: string, productName: string) {
