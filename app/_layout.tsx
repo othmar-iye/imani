@@ -21,6 +21,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // 2. Import de useTranslation
 import { useTranslation } from 'react-i18next';
 
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 // Empêcher le splash screen automatique
 SplashScreen.preventAutoHideAsync();
 
@@ -126,6 +128,7 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <CustomThemeProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <View
@@ -177,6 +180,7 @@ export default function RootLayout() {
             </View>
           </ThemeProvider>
         </CustomThemeProvider>
+        </GestureHandlerRootView>
       </AuthProvider>
     </QueryClientProvider>
   );

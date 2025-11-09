@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   FlatList,
   RefreshControl,
   StatusBar,
@@ -15,6 +16,7 @@ import {
   useColorScheme,
   View
 } from 'react-native';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -22,6 +24,47 @@ import Animated, {
   withRepeat,
   withTiming
 } from 'react-native-reanimated';
+
+// Composant pour l'action de swipe (bouton de suppression)
+const RightActions = ({
+    progress,
+    dragX,
+    onDelete,
+    colors
+}: {
+    progress: any;
+    dragX: any;
+    onDelete: () => void;
+    colors: any;
+}) => {
+    const scale = useSharedValue(1);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ scale: scale.value }],
+        };
+    });
+
+    const handlePress = () => {
+        // Animation de pression
+        scale.value = withTiming(0.9, { duration: 100 }, () => {
+            scale.value = withTiming(1, { duration: 100 });
+        });
+        onDelete();
+    };
+
+    return (
+        <TouchableOpacity
+            onPress={handlePress}
+            style={[styles.deleteAction, { backgroundColor: colors.error }]}
+        >
+            <Animated.View style={[styles.deleteContent, animatedStyle]}>
+                <Ionicons name="trash-outline" size={24} color="#FFF" />
+                <Text style={styles.deleteText}>Supprimer</Text>
+            </Animated.View>
+        </TouchableOpacity>
+    );
+};
 
 // Composant Skeleton intégré
 const NotificationsSkeleton = ({ colors }: { colors: any }) => {
@@ -218,7 +261,7 @@ const NotificationsSkeleton = ({ colors }: { colors: any }) => {
   );
 };
 
-// 🆕 Composant pour l'indicateur de synchronisation
+// Composant pour l'indicateur de synchronisation
 const SyncBanner = ({ 
   onSync, 
   onIgnore, 
@@ -259,18 +302,20 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const swipeableRefs = new Map(); // Pour gérer les références des swipeables
 
-  // 🆕 Utilisation du hook modifié
+  // Utilisation du hook modifié
   const { 
     notifications, 
     unreadCount, 
     markAsRead, 
     markAllAsRead,
+    deleteNotification, // ✅ Maintenant disponible
     isLoading,
-    hasNewData, // 🆕 Nouvelles données détectées
+    hasNewData,
     refresh,
-    syncNewData, // 🆕 Synchroniser les nouvelles données
-    ignoreNewData // 🆕 Ignorer les nouvelles données
+    syncNewData,
+    ignoreNewData
   } = useNotifications();
 
   const colors = {
@@ -285,32 +330,70 @@ export default function NotificationsScreen() {
     error: isDark ? '#FF453A' : '#FF3B30',
   };
 
-  // 🆕 SYNCHRONISATION INTELLIGENTE des nouvelles données
+  // FONCTION DE SUPPRESSION
+  const handleDeleteNotification = (notificationId: string) => {
+    Alert.alert(
+      t('notifications.deleteTitle') || 'Supprimer la notification',
+      t('notifications.deleteMessage') || 'Êtes-vous sûr de vouloir supprimer cette notification ? Cette action est irréversible.',
+      [
+        {
+          text: t('cancel') || 'Annuler',
+          style: 'cancel',
+          onPress: () => {
+            // Fermer le swipeable quand on annule
+            const swipeable = swipeableRefs.get(notificationId);
+            if (swipeable) {
+              swipeable.close();
+            }
+          }
+        },
+        {
+          text: t('delete') || 'Supprimer',
+          style: 'destructive',
+          onPress: () => {
+            deleteNotification(notificationId);
+            // Retirer la référence
+            swipeableRefs.delete(notificationId);
+          }
+        }
+      ]
+    );
+  };
+
+  // Fermer tous les swipeables ouverts
+  const closeAllSwipeables = () => {
+    swipeableRefs.forEach((swipeable) => {
+      if (swipeable) {
+        swipeable.close();
+      }
+    });
+  };
+
+  // SYNCHRONISATION INTELLIGENTE des nouvelles données
   const handleSyncNewData = async () => {
     setIsSyncing(true);
     try {
       await syncNewData();
-      // Le skeleton s'affichera automatiquement pendant syncNewData
     } catch (err) {
-      setError(t('notifications.syncStates.error'));
+      setError(t('notifications.syncStates.error') || 'Erreur de synchronisation');
     } finally {
       setIsSyncing(false);
     }
   };
 
-  // 🆕 Ignorer les nouvelles données
+  // Ignorer les nouvelles données
   const handleIgnoreNewData = () => {
     ignoreNewData();
   };
 
-  // 🆕 Pull-to-Refresh handler
+  // Pull-to-Refresh handler
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setError(null);
     try {
       await refresh();
     } catch (err) {
-      setError(t('notifications.syncStates.error'));
+      setError(t('notifications.syncStates.error') || 'Erreur de rafraîchissement');
     } finally {
       setRefreshing(false);
     }
@@ -322,10 +405,10 @@ export default function NotificationsScreen() {
     const created = new Date(createdAt);
     const diffInMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
     
-    if (diffInMinutes < 1) return t('notifications.time.justNow');
-    if (diffInMinutes < 60) return t('notifications.time.minutesAgo', { count: diffInMinutes });
-    if (diffInMinutes < 1440) return t('notifications.time.hoursAgo', { count: Math.floor(diffInMinutes / 60) });
-    return t('notifications.time.daysAgo', { count: Math.floor(diffInMinutes / 1440) });
+    if (diffInMinutes < 1) return t('notifications.time.justNow') || 'À l\'instant';
+    if (diffInMinutes < 60) return t('notifications.time.minutesAgo', { count: diffInMinutes }) || `${diffInMinutes} min`;
+    if (diffInMinutes < 1440) return t('notifications.time.hoursAgo', { count: Math.floor(diffInMinutes / 60) }) || `${Math.floor(diffInMinutes / 60)} h`;
+    return t('notifications.time.daysAgo', { count: Math.floor(diffInMinutes / 1440) }) || `${Math.floor(diffInMinutes / 1440)} j`;
   };
 
   // Fonction pour obtenir l'icône selon le type
@@ -373,71 +456,155 @@ export default function NotificationsScreen() {
     const isUnread = item.status === 'unread';
     
     return (
-      <TouchableOpacity 
-        style={[
-          styles.notificationCard, 
-          { 
-            backgroundColor: colors.card,
-            borderLeftWidth: 4,
-            borderLeftColor: isUnread ? icon.color : 'transparent',
+      <Swipeable
+        ref={(ref) => {
+          if (ref) {
+            swipeableRefs.set(item.id, ref);
+          } else {
+            swipeableRefs.delete(item.id);
           }
-        ]}
-        onPress={() => {
-          if (isUnread) {
-            markAsRead(item.id);
-          }
-          const navigationPath = getNavigationPath(item);
-          router.push(navigationPath);
         }}
+        renderRightActions={(progress, dragX) => (
+          <RightActions
+            progress={progress}
+            dragX={dragX}
+            onDelete={() => handleDeleteNotification(item.id)}
+            colors={colors}
+          />
+        )}
+        rightThreshold={40}
+        onSwipeableWillOpen={() => {
+          // Fermer les autres swipeables quand on en ouvre un
+          swipeableRefs.forEach((swipeable, id) => {
+            if (id !== item.id && swipeable) {
+              swipeable.close();
+            }
+          });
+        }}
+        containerStyle={styles.swipeableContainer}
       >
-        <View style={styles.notificationContent}>
-          <View style={styles.notificationHeader}>
-            <View style={styles.titleContainer}>
-              <Ionicons 
-                name={icon.name as any} 
-                size={16} 
-                color={icon.color} 
-                style={styles.notificationIcon}
-              />
-              <Text style={[styles.notificationTitle, { color: colors.text }]}>
-                {item.title}
-              </Text>
+        <TouchableOpacity 
+          style={[
+            styles.notificationCard, 
+            { 
+              backgroundColor: colors.card,
+              borderLeftWidth: 4,
+              borderLeftColor: isUnread ? icon.color : 'transparent',
+            }
+          ]}
+          onPress={() => {
+            if (isUnread) {
+              markAsRead(item.id);
+            }
+            const navigationPath = getNavigationPath(item);
+            router.push(navigationPath);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.notificationContent}>
+            <View style={styles.notificationHeader}>
+              <View style={styles.titleContainer}>
+                <Ionicons 
+                  name={icon.name as any} 
+                  size={16} 
+                  color={icon.color} 
+                  style={styles.notificationIcon}
+                />
+                <Text style={[styles.notificationTitle, { color: colors.text }]}>
+                  {item.title}
+                </Text>
+              </View>
+              {isUnread && (
+                <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
+              )}
             </View>
-            {isUnread && (
-              <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
-            )}
-          </View>
-          
-          <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
-            {item.message}
-          </Text>
-          
-          <View style={styles.notificationFooter}>
-            <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
-              {formatTime(item.created_at)}
+            
+            <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
+              {item.message}
             </Text>
-            <Ionicons 
-              name="chevron-forward" 
-              size={16} 
-              color={colors.textSecondary} 
-            />
+            
+            <View style={styles.notificationFooter}>
+              <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
+                {formatTime(item.created_at)}
+              </Text>
+              <Ionicons 
+                name="chevron-forward" 
+                size={16} 
+                color={colors.textSecondary} 
+              />
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
-  // 🆕 AFFICHAGE DES ERREURS
+  // AFFICHAGE DES ERREURS
   if (error && !isLoading) {
     return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+          
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
+            <View style={styles.headerLeft}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="chevron-back" size={24} color={colors.tint} />
+              </TouchableOpacity>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>
+                {t('notifications.title')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.errorState}>
+            <Ionicons name="warning" size={64} color={colors.error} />
+            <Text style={[styles.errorStateText, { color: colors.text }]}>
+              {t('notifications.syncStates.error') || 'Erreur'}
+            </Text>
+            <Text style={[styles.errorStateSubtext, { color: colors.textSecondary }]}>
+              {error}
+            </Text>
+            <TouchableOpacity 
+              style={[styles.retryButton, { backgroundColor: colors.tint }]}
+              onPress={onRefresh}
+            >
+              <Text style={styles.retryButtonText}>
+                {t('retry') || 'Réessayer'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </GestureHandlerRootView>
+    );
+  }
+
+  // AFFICHAGE DU SKELETON UNIQUEMENT PENDANT LE CHARGEMENT INITIAL OU SYNCHRONISATION
+  if (isLoading || isSyncing) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NotificationsSkeleton colors={colors} />
+      </GestureHandlerRootView>
+    );
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         
+        {/* Header avec back button */}
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <View style={styles.headerLeft}>
             <TouchableOpacity 
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => {
+                closeAllSwipeables();
+                router.back();
+              }}
             >
               <Ionicons name="chevron-back" size={24} color={colors.tint} />
             </TouchableOpacity>
@@ -445,132 +612,89 @@ export default function NotificationsScreen() {
               {t('notifications.title')}
             </Text>
           </View>
-        </View>
-
-        <View style={styles.errorState}>
-          <Ionicons name="warning" size={64} color={colors.error} />
-          <Text style={[styles.errorStateText, { color: colors.text }]}>
-            {t('notifications.syncStates.error')}
-          </Text>
-          <Text style={[styles.errorStateSubtext, { color: colors.textSecondary }]}>
-            {error}
-          </Text>
-          <TouchableOpacity 
-            style={[styles.retryButton, { backgroundColor: colors.tint }]}
-            onPress={onRefresh}
-          >
-            <Text style={styles.retryButtonText}>
-              {t('retry')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  // 🆕 AFFICHAGE DU SKELETON UNIQUEMENT PENDANT LE CHARGEMENT INITIAL OU SYNCHRONISATION
-  if (isLoading || isSyncing) {
-    return <NotificationsSkeleton colors={colors} />;
-  }
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
-      {/* Header avec back button */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="chevron-back" size={24} color={colors.tint} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {t('notifications.title')}
-          </Text>
-        </View>
-        
-        {unreadCount > 0 && (
-          <TouchableOpacity onPress={markAllAsRead}>
-            <Text style={[styles.clearAll, { color: colors.tint }]}>
-              {t('notifications.clearAll')}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Statistiques rapides avec vraies données */}
-      <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.text }]}>
-            {notifications.length}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {t('notifications.total')}
-          </Text>
-        </View>
-        <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.tint }]}>
-            {unreadCount}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {t('notifications.unread')}
-          </Text>
-        </View>
-      </View>
-
-      {/* 🆕 BANNER DE SYNCHRONISATION - S'affiche seulement quand il y a de nouvelles données */}
-      {hasNewData && (
-        <SyncBanner 
-          onSync={handleSyncNewData}
-          onIgnore={handleIgnoreNewData}
-          colors={colors}
-          t={t}
-        />
-      )}
-
-      {/* Liste des notifications avec Pull-to-Refresh */}
-      <FlatList
-        data={notifications}
-        renderItem={renderNotification}
-        keyExtractor={item => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: 20 }
-        ]}
-        style={styles.flatList}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.tint}
-            colors={[colors.tint]}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="notifications-off" size={64} color={colors.textSecondary} />
-            <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
-              {t('notifications.emptyTitle')}
-            </Text>
-            <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
-              {t('notifications.emptySubtitle')}
-            </Text>
-            <TouchableOpacity 
-              style={[styles.retryButton, { backgroundColor: colors.tint }]}
-              onPress={onRefresh}
-            >
-              <Text style={styles.retryButtonText}>
-                {t('retry')}
+          
+          {unreadCount > 0 && (
+            <TouchableOpacity onPress={markAllAsRead}>
+              <Text style={[styles.clearAll, { color: colors.tint }]}>
+                {t('notifications.clearAll') || 'Tout marquer comme lu'}
               </Text>
             </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Statistiques rapides avec vraies données */}
+        <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: colors.text }]}>
+              {notifications.length}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {t('notifications.total') || 'Total'}
+            </Text>
           </View>
-        }
-      />
-    </View>
+          <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: colors.tint }]}>
+              {unreadCount}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {t('notifications.unread') || 'Non lues'}
+            </Text>
+          </View>
+        </View>
+
+        {/* BANNER DE SYNCHRONISATION - S'affiche seulement quand il y a de nouvelles données */}
+        {hasNewData && (
+          <SyncBanner 
+            onSync={handleSyncNewData}
+            onIgnore={handleIgnoreNewData}
+            colors={colors}
+            t={t}
+          />
+        )}
+
+        {/* Liste des notifications avec Pull-to-Refresh */}
+        <FlatList
+          data={notifications}
+          renderItem={renderNotification}
+          keyExtractor={item => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: 20 }
+          ]}
+          style={styles.flatList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.tint}
+              colors={[colors.tint]}
+            />
+          }
+          onScrollBeginDrag={closeAllSwipeables} // Fermer les swipeables au scroll
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="notifications-off" size={64} color={colors.textSecondary} />
+              <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                {t('notifications.emptyTitle') || 'Aucune notification'}
+              </Text>
+              <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
+                {t('notifications.emptySubtitle') || 'Vous n\'avez aucune notification pour le moment'}
+              </Text>
+              <TouchableOpacity 
+                style={[styles.retryButton, { backgroundColor: colors.tint }]}
+                onPress={onRefresh}
+              >
+                <Text style={styles.retryButtonText}>
+                  {t('retry') || 'Réessayer'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -608,7 +732,10 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 16,
     borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 8,
   },
   statItem: {
@@ -641,11 +768,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  notificationCard: { 
-    marginBottom: 12, 
+  // NOUVEAUX STYLES POUR LE SWIPE
+  swipeableContainer: {
+    marginBottom: 12,
     borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 8,
+  },
+  notificationCard: { 
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   notificationContent: {
     padding: 16,
@@ -690,6 +825,23 @@ const styles = StyleSheet.create({
     fontSize: 12, 
     fontWeight: '500',
   },
+  // STYLES POUR L'ACTION DE SWIPE
+  deleteAction: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    borderRadius: 12,
+  },
+  deleteContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -712,7 +864,7 @@ const styles = StyleSheet.create({
   skeletonBox: {
     borderRadius: 6,
   },
-  // 🆕 NOUVEAUX STYLES POUR LE SYSTÈME INTELLIGENT
+  // NOUVEAUX STYLES POUR LE SYSTÈME INTELLIGENT
   syncBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -722,7 +874,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 12,
     borderRadius: 8,
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 4,
   },
   syncBannerText: {

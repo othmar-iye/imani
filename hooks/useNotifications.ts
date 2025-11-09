@@ -109,6 +109,40 @@ export const useNotifications = () => {
     }
   };
 
+  // 🆕 FONCTION POUR SUPPRIMER UNE NOTIFICATION
+  const deleteNotification = async (notificationId: string) => {
+    if (!user) return;
+
+    try {
+      // Supprimer de la base de données
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Erreur suppression notification:', error);
+        return false;
+      }
+
+      // Mettre à jour l'état local immédiatement
+      const notificationToDelete = notifications.find(n => n.id === notificationId);
+      
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      // Mettre à jour le compteur si la notification était non lue
+      if (notificationToDelete?.status === 'unread') {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erreur inattendue lors de la suppression:', error);
+      return false;
+    }
+  };
+
   // 🆕 REALTIME SUBSCRIPTION INTELLIGENTE
   useEffect(() => {
     if (!user) {
@@ -184,6 +218,7 @@ export const useNotifications = () => {
     loadNotifications,
     markAsRead,
     markAllAsRead,
+    deleteNotification, // 🆕 AJOUTÉ ICI - Fonction de suppression
     refresh: loadNotifications,
     syncNewData, // 🆕 Synchroniser les nouvelles données
     ignoreNewData // 🆕 Ignorer les nouvelles données
