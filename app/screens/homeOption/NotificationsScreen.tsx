@@ -6,63 +6,48 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  FlatList,
-  RefreshControl,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Alert,
+    FlatList,
+    RefreshControl,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withTiming
 } from 'react-native-reanimated';
 
 // Composant pour l'action de swipe (bouton de suppression)
+// Composant pour l'action de swipe (bouton de suppression)
 const RightActions = ({
-    progress,
-    dragX,
     onDelete,
     colors
 }: {
-    progress: any;
-    dragX: any;
     onDelete: () => void;
     colors: any;
 }) => {
-    const scale = useSharedValue(1);
-
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ scale: scale.value }],
-        };
-    });
-
+    const { t } = useTranslation();
     const handlePress = () => {
-        // Animation de pression
-        scale.value = withTiming(0.9, { duration: 100 }, () => {
-            scale.value = withTiming(1, { duration: 100 });
-        });
         onDelete();
     };
 
     return (
-        <TouchableOpacity
-            onPress={handlePress}
-            style={[styles.deleteAction, { backgroundColor: colors.error }]}
-        >
-            <Animated.View style={[styles.deleteContent, animatedStyle]}>
-                <Ionicons name="trash-outline" size={24} color="#FFF" />
-                <Text style={styles.deleteText}>Supprimer</Text>
-            </Animated.View>
-        </TouchableOpacity>
+        <View style={[styles.deleteAction, { backgroundColor: colors.error }]}>
+            <TouchableOpacity onPress={handlePress} style={styles.deleteTouchable}>
+                <View style={styles.deleteContent}>
+                    <Ionicons name="trash-outline" size={24} color="#FFF" />
+                    <Text style={styles.deleteText}>{t('delete')}</Text>
+                </View>
+            </TouchableOpacity>
+        </View>
     );
 };
 
@@ -337,7 +322,7 @@ export default function NotificationsScreen() {
       t('notifications.deleteMessage') || 'Êtes-vous sûr de vouloir supprimer cette notification ? Cette action est irréversible.',
       [
         {
-          text: t('cancel') || 'Annuler',
+          text: t('cancel'),
           style: 'cancel',
           onPress: () => {
             // Fermer le swipeable quand on annule
@@ -348,7 +333,7 @@ export default function NotificationsScreen() {
           }
         },
         {
-          text: t('delete') || 'Supprimer',
+          text: t('delete'),
           style: 'destructive',
           onPress: () => {
             deleteNotification(notificationId);
@@ -457,32 +442,30 @@ export default function NotificationsScreen() {
     
     return (
       <Swipeable
-        ref={(ref) => {
-          if (ref) {
-            swipeableRefs.set(item.id, ref);
-          } else {
-            swipeableRefs.delete(item.id);
-          }
-        }}
-        renderRightActions={(progress, dragX) => (
-          <RightActions
-            progress={progress}
-            dragX={dragX}
-            onDelete={() => handleDeleteNotification(item.id)}
-            colors={colors}
-          />
-        )}
-        rightThreshold={40}
-        onSwipeableWillOpen={() => {
-          // Fermer les autres swipeables quand on en ouvre un
-          swipeableRefs.forEach((swipeable, id) => {
-            if (id !== item.id && swipeable) {
-              swipeable.close();
-            }
-          });
-        }}
-        containerStyle={styles.swipeableContainer}
-      >
+            ref={(ref) => {
+                if (ref) {
+                    swipeableRefs.set(item.id, ref);
+                } else {
+                    swipeableRefs.delete(item.id);
+                }
+            }}
+            renderRightActions={() => (
+                <RightActions
+                    onDelete={() => handleDeleteNotification(item.id)}
+                    colors={colors}
+                />
+            )}
+            rightThreshold={40}
+            onSwipeableWillOpen={() => {
+                // Fermer les autres swipeables quand on en ouvre un
+                swipeableRefs.forEach((swipeable, id) => {
+                    if (id !== item.id && swipeable) {
+                        swipeable.close();
+                    }
+                });
+            }}
+            containerStyle={styles.swipeableContainer}
+        >
         <TouchableOpacity 
           style={[
             styles.notificationCard, 
@@ -732,11 +715,6 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 16,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
   },
   statItem: {
     flex: 1,
@@ -831,6 +809,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 80,
     borderRadius: 12,
+  },
+  deleteTouchable: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   deleteContent: {
     alignItems: 'center',

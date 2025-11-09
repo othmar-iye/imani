@@ -39,9 +39,13 @@ const resources = {
             phonePlaceholder: "+243 XX XXX XXXX",
             mobileConfirmation: "Vous recevrez une demande de confirmation sur votre mobile"
         },
-
+        delete: "Supprimer",
         // ===== NOUVELLES TRADUCTIONS NOTIFICATIONS =====
         notifications: {
+
+            deleteTitle: "Supprimer la notification",
+            deleteMessage: "Êtes-vous sûr de vouloir supprimer cette notification ? Cette action est irréversible.",
+            
 
             errorLoading: "Erreur lors du chargement des notifications",
             refreshError: "Impossible de rafraîchir les notifications",
@@ -919,9 +923,14 @@ const resources = {
             phonePlaceholder: "+243 XX XXX XXXX",
             mobileConfirmation: "You will receive a confirmation request on your mobile",
         },
-
+        delete: "Delete",
         // NOTIFICATIONS  =====
         notifications: {
+
+            deleteTitle: "Delete notification",
+            deleteMessage: "Are you sure you want to delete this notification? This action is irreversible.",
+            
+            cancel: "Cancel",
 
             errorLoading: "Error loading notifications",
             refreshError: "Unable to refresh notifications",
