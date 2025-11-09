@@ -80,7 +80,7 @@ const resources = {
             },
 
             title: "Notifications",
-            clearAll: "Tout effacer",
+            lireTout: "Lire tout",
             markAllRead: "Tout marquer comme lu",
             // Statistiques
             total: "Total",
@@ -969,7 +969,7 @@ const resources = {
             },
 
             title: "Notifications",
-            clearAll: "Clear all", 
+            lireTout: "Read all", 
             markAllRead: "Mark all as read",
             
             // Statistics

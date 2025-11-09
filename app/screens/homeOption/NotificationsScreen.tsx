@@ -599,7 +599,7 @@ export default function NotificationsScreen() {
           {unreadCount > 0 && (
             <TouchableOpacity onPress={markAllAsRead}>
               <Text style={[styles.clearAll, { color: colors.tint }]}>
-                {t('notifications.clearAll') || 'Tout marquer comme lu'}
+                {t('notifications.lireTout') || 'Lire tout'}
               </Text>
             </TouchableOpacity>
           )}
