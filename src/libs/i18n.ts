@@ -639,7 +639,21 @@ const resources = {
                 becomeSeller: "Devenir vendeur",
                 howItWorks: "Comment ça marche ?",
                 searchEmptyTitle: "Le marché est encore vide",
-                searchEmptySubtitle: "Soyez le premier à vendre quelque chose !"
+                searchEmptySubtitle: "Soyez le premier à vendre quelque chose !",
+
+                marketplaceEmpty: "Place de marché vide",
+                beTheFirstToSell: "Soyez le premier à vendre et démarrez la communauté !",
+                loginRequired: "Connexion requise",
+                loginToSell: "Veuillez vous connecter pour vendre des articles.",
+                login: "Se connecter",
+                verificationInfo: "La vérification de votre identité est nécessaire pour devenir vendeur sur Imani.",
+                verificationInProgress: "Vérification en cours",
+                verificationTimeMessage: "Votre demande de vérification est en cours de traitement. Cela peut prendre 24 à 48 heures.",
+                youWillBeNotified: "Vous serez notifié dès que votre profil sera vérifié",
+                verificationRejected: "Profil rejeté",
+                verificationRejectedMessage: "Votre demande de vérification a été rejetée. Veuillez vérifier vos documents et soumettre à nouveau votre profil.",
+                resubmitProfile: "Soumettre à nouveau",
+                startSellingToday: "Commencez à vendre dès aujourd'hui et développez votre business !",
             }
         },
 
@@ -1530,7 +1544,20 @@ const resources = {
                 becomeSeller: "Become a seller",
                 howItWorks: "How it works?",
                 searchEmptyTitle: "The market is still empty",
-                searchEmptySubtitle: "Be the first to sell something!"
+                searchEmptySubtitle: "Be the first to sell something!",
+                marketplaceEmpty: "Marketplace empty",
+                beTheFirstToSell: "Be the first to sell and start the community!",
+                loginRequired: "Login required",
+                loginToSell: "Please log in to sell items.",
+                login: "Log in",
+                verificationInfo: "Identity verification is required to become a seller on Imani.",
+                verificationInProgress: "Verification in progress",
+                verificationTimeMessage: "Your verification request is being processed. This may take 24 to 48 hours.",
+                youWillBeNotified: "You will be notified once your profile is verified",
+                verificationRejected: "Profile rejected",
+                verificationRejectedMessage: "Your verification request has been rejected. Please check your documents and resubmit your profile.",
+                resubmitProfile: "Resubmit",
+                startSellingToday: "Start selling today and grow your business!",
             }
         },
 

@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   notificationCard: { 
-    marginBottom: 12, 
+    marginBottom: 16, 
     borderRadius: 12,
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
     elevation: 8,

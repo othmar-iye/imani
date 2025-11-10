@@ -4,27 +4,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    Keyboard,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  Image,
+  Keyboard,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import React Query
 import { useQuery } from '@tanstack/react-query';
 
 // Import des données - CHANGE MANUELLEMENT POUR TESTER :
-import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
-// import { featuredProducts, Product } from '@/src/data/productEmpty'; // ❌ BASE VIDE
+// import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
+import { featuredProducts, Product } from '@/src/data/productEmpty'; // ❌ BASE VIDE
 
 // Import du composant SuggestionItem
 import SuggestionItem from '@/components/SuggestionItem';

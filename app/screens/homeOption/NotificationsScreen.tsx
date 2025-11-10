@@ -19,13 +19,13 @@ import {
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import Animated, {
     Easing,
+    runOnJS,
     useAnimatedStyle,
     useSharedValue,
     withRepeat,
     withTiming
 } from 'react-native-reanimated';
 
-// Composant pour l'action de swipe (bouton de suppression)
 // Composant pour l'action de swipe (bouton de suppression)
 const RightActions = ({
     onDelete,
@@ -48,6 +48,112 @@ const RightActions = ({
                 </View>
             </TouchableOpacity>
         </View>
+    );
+};
+
+// Composant Notification avec animation de sortie SEULEMENT
+const NotificationItem = ({ 
+    item, 
+    onDelete, 
+    colors, 
+    markAsRead, 
+    getNotificationIcon, 
+    getNavigationPath,
+    formatTime 
+}: any) => {
+    const icon = getNotificationIcon(item.type);
+    const isUnread = item.status === 'unread';
+    
+    // 🆕 Animations de sortie seulement
+    const opacity = useSharedValue(1);
+    const height = useSharedValue<number | undefined>(undefined);
+    const marginBottom = useSharedValue(10);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            opacity: opacity.value,
+            height: height.value,
+            marginBottom: marginBottom.value,
+        };
+    });
+
+    const handleDelete = () => {
+        // 🆕 Animation de suppression fluide
+        opacity.value = withTiming(0, { duration: 300 });
+        height.value = withTiming(0, { duration: 300 });
+        marginBottom.value = withTiming(0, { duration: 300 }, (finished) => {
+            if (finished) {
+                runOnJS(onDelete)(item.id);
+            }
+        });
+    };
+
+    return (
+        <Animated.View style={[styles.swipeableContainer, animatedStyle]}>
+            <Swipeable
+                renderRightActions={() => (
+                    <RightActions
+                        onDelete={handleDelete}
+                        colors={colors}
+                    />
+                )}
+                rightThreshold={40}
+                containerStyle={styles.swipeableContainer}
+            >
+                <TouchableOpacity 
+                    style={[
+                        styles.notificationCard, 
+                        { 
+                            backgroundColor: colors.card,
+                            borderLeftWidth: 4,
+                            borderLeftColor: isUnread ? icon.color : 'transparent',
+                        }
+                    ]}
+                    onPress={() => {
+                        if (isUnread) {
+                            markAsRead(item.id);
+                        }
+                        const navigationPath = getNavigationPath(item);
+                        router.push(navigationPath);
+                    }}
+                    activeOpacity={0.7}
+                >
+                    <View style={styles.notificationContent}>
+                        <View style={styles.notificationHeader}>
+                            <View style={styles.titleContainer}>
+                                <Ionicons 
+                                    name={icon.name as any} 
+                                    size={16} 
+                                    color={icon.color} 
+                                    style={styles.notificationIcon}
+                                />
+                                <Text style={[styles.notificationTitle, { color: colors.text }]}>
+                                    {item.title}
+                                </Text>
+                            </View>
+                            {isUnread && (
+                                <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
+                            )}
+                        </View>
+                        
+                        <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
+                            {item.message}
+                        </Text>
+                        
+                        <View style={styles.notificationFooter}>
+                            <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
+                                {formatTime(item.created_at)}
+                            </Text>
+                            <Ionicons 
+                                name="chevron-forward" 
+                                size={16} 
+                                color={colors.textSecondary} 
+                            />
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            </Swipeable>
+        </Animated.View>
     );
 };
 
@@ -118,7 +224,7 @@ const NotificationsSkeleton = ({ colors }: { colors: any }) => {
   };
 
   const renderNotificationSkeleton = () => (
-    <View style={[styles.notificationCard, { backgroundColor: colors.card }]}>
+    <View style={[styles.notificationCard, { backgroundColor: colors.card, marginBottom:12 }]}>
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>
           <View style={styles.titleContainer}>
@@ -287,7 +393,7 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const swipeableRefs = new Map(); // Pour gérer les références des swipeables
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set()); // 🆕 IDs en cours de suppression
 
   // Utilisation du hook modifié
   const { 
@@ -295,7 +401,7 @@ export default function NotificationsScreen() {
     unreadCount, 
     markAsRead, 
     markAllAsRead,
-    deleteNotification, // ✅ Maintenant disponible
+    deleteNotification,
     isLoading,
     hasNewData,
     refresh,
@@ -324,35 +430,28 @@ export default function NotificationsScreen() {
         {
           text: t('cancel'),
           style: 'cancel',
-          onPress: () => {
-            // Fermer le swipeable quand on annule
-            const swipeable = swipeableRefs.get(notificationId);
-            if (swipeable) {
-              swipeable.close();
-            }
-          }
         },
         {
           text: t('delete'),
           style: 'destructive',
           onPress: () => {
-            deleteNotification(notificationId);
-            // Retirer la référence
-            swipeableRefs.delete(notificationId);
+            // 🆕 Marquer comme en cours de suppression
+            setDeletingIds(prev => new Set(prev).add(notificationId));
           }
         }
       ]
     );
   };
 
-  // Fermer tous les swipeables ouverts
-  const closeAllSwipeables = () => {
-    swipeableRefs.forEach((swipeable) => {
-      if (swipeable) {
-        swipeable.close();
-      }
+  // 🆕 Fonction pour finaliser la suppression après l'animation
+  const finalizeDelete = useCallback(async (notificationId: string) => {
+    await deleteNotification(notificationId);
+    setDeletingIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(notificationId);
+      return newSet;
     });
-  };
+  }, [deleteNotification]);
 
   // SYNCHRONISATION INTELLIGENTE des nouvelles données
   const handleSyncNewData = async () => {
@@ -437,88 +536,21 @@ export default function NotificationsScreen() {
   };
 
   const renderNotification = ({ item }: { item: any }) => {
-    const icon = getNotificationIcon(item.type);
-    const isUnread = item.status === 'unread';
-    
+    // 🆕 Ne pas rendre les notifications en cours de suppression
+    if (deletingIds.has(item.id)) {
+      return null;
+    }
+
     return (
-      <Swipeable
-            ref={(ref) => {
-                if (ref) {
-                    swipeableRefs.set(item.id, ref);
-                } else {
-                    swipeableRefs.delete(item.id);
-                }
-            }}
-            renderRightActions={() => (
-                <RightActions
-                    onDelete={() => handleDeleteNotification(item.id)}
-                    colors={colors}
-                />
-            )}
-            rightThreshold={40}
-            onSwipeableWillOpen={() => {
-                // Fermer les autres swipeables quand on en ouvre un
-                swipeableRefs.forEach((swipeable, id) => {
-                    if (id !== item.id && swipeable) {
-                        swipeable.close();
-                    }
-                });
-            }}
-            containerStyle={styles.swipeableContainer}
-        >
-        <TouchableOpacity 
-          style={[
-            styles.notificationCard, 
-            { 
-              backgroundColor: colors.card,
-              borderLeftWidth: 4,
-              borderLeftColor: isUnread ? icon.color : 'transparent',
-            }
-          ]}
-          onPress={() => {
-            if (isUnread) {
-              markAsRead(item.id);
-            }
-            const navigationPath = getNavigationPath(item);
-            router.push(navigationPath);
-          }}
-          activeOpacity={0.7}
-        >
-          <View style={styles.notificationContent}>
-            <View style={styles.notificationHeader}>
-              <View style={styles.titleContainer}>
-                <Ionicons 
-                  name={icon.name as any} 
-                  size={16} 
-                  color={icon.color} 
-                  style={styles.notificationIcon}
-                />
-                <Text style={[styles.notificationTitle, { color: colors.text }]}>
-                  {item.title}
-                </Text>
-              </View>
-              {isUnread && (
-                <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
-              )}
-            </View>
-            
-            <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
-              {item.message}
-            </Text>
-            
-            <View style={styles.notificationFooter}>
-              <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
-                {formatTime(item.created_at)}
-              </Text>
-              <Ionicons 
-                name="chevron-forward" 
-                size={16} 
-                color={colors.textSecondary} 
-              />
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Swipeable>
+      <NotificationItem
+        item={item}
+        onDelete={finalizeDelete}
+        colors={colors}
+        markAsRead={markAsRead}
+        getNotificationIcon={getNotificationIcon}
+        getNavigationPath={getNavigationPath}
+        formatTime={formatTime}
+      />
     );
   };
 
@@ -584,10 +616,7 @@ export default function NotificationsScreen() {
           <View style={styles.headerLeft}>
             <TouchableOpacity 
               style={styles.backButton}
-              onPress={() => {
-                closeAllSwipeables();
-                router.back();
-              }}
+              onPress={() => router.back()}
             >
               <Ionicons name="chevron-back" size={24} color={colors.tint} />
             </TouchableOpacity>
@@ -638,7 +667,7 @@ export default function NotificationsScreen() {
 
         {/* Liste des notifications avec Pull-to-Refresh */}
         <FlatList
-          data={notifications}
+          data={notifications.filter(item => !deletingIds.has(item.id))}
           renderItem={renderNotification}
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
@@ -655,7 +684,6 @@ export default function NotificationsScreen() {
               colors={[colors.tint]}
             />
           }
-          onScrollBeginDrag={closeAllSwipeables} // Fermer les swipeables au scroll
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="notifications-off" size={64} color={colors.textSecondary} />
@@ -746,15 +774,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  // NOUVEAUX STYLES POUR LE SWIPE
+  // STYLES POUR LE SWIPE (inchangés)
   swipeableContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
   },
   notificationCard: { 
     borderRadius: 12,
@@ -803,7 +826,7 @@ const styles = StyleSheet.create({
     fontSize: 12, 
     fontWeight: '500',
   },
-  // STYLES POUR L'ACTION DE SWIPE
+  // STYLES POUR L'ACTION DE SWIPE (inchangés)
   deleteAction: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -848,7 +871,7 @@ const styles = StyleSheet.create({
   skeletonBox: {
     borderRadius: 6,
   },
-  // NOUVEAUX STYLES POUR LE SYSTÈME INTELLIGENT
+  // STYLES POUR LE SYSTÈME INTELLIGENT (inchangés)
   syncBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -858,11 +881,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 12,
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
   },
   syncBannerText: {
     color: '#FFF',
