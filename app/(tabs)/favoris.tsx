@@ -26,13 +26,52 @@ import ProductCard from '@/components/ProductCard';
 
 // Import i18n
 import CustomButton from '@/components/CustomButton';
+import { useAuth } from '@/src/context/AuthContext';
+import { supabase } from '@/supabase';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
-// SIMULATION : Statut utilisateur
-const userStatus = {
-  isVerified: false, // Change à true pour tester les deux cas
+type SellerStatus = 'member' | 'pending' | 'verified' | 'rejected';
+
+// Fonction pour récupérer le statut vendeur depuis la base de données
+const fetchSellerStatus = async (user: any): Promise<SellerStatus> => {
+  if (!user) {
+    return 'member';
+  }
+
+  try {
+    // Récupérer le profil utilisateur depuis la table user_profiles
+    const { data: userProfile, error } = await supabase
+      .from('user_profiles')
+      .select('verification_status')
+      .eq('id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Erreur chargement statut vendeur:', error);
+    }
+
+    // Mapper le statut de vérification au statut vendeur
+    return getSellerStatus(userProfile?.verification_status);
+  } catch (error) {
+    console.error('Erreur lors du chargement du statut vendeur:', error);
+    return 'member';
+  }
+};
+
+// Fonction pour mapper le statut de vérification
+const getSellerStatus = (verificationStatus: string | undefined): SellerStatus => {
+  switch (verificationStatus) {
+    case 'verified':
+      return 'verified';
+    case 'pending_review':
+      return 'pending';
+    case 'rejected':
+      return 'rejected';
+    default:
+      return 'member';
+  }
 };
 
 // Fonction API simulée pour les favoris
@@ -51,6 +90,7 @@ export default function FavoritesScreen() {
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
   const isDark = colorScheme === 'dark';
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const colors = {
       background: isDark ? Theme.dark.background : Theme.light.background,
@@ -65,7 +105,7 @@ export default function FavoritesScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Utilisation de React Query comme dans la Home
+  // Utilisation de React Query pour les favoris
   const { 
     data: favoriteProducts = [], 
     isLoading: favoritesLoading, 
@@ -74,6 +114,16 @@ export default function FavoritesScreen() {
   } = useQuery({
     queryKey: ['favorite-products'],
     queryFn: fetchFavoriteProducts,
+  });
+
+  // ✅ RÉCUPÉRATION DU STATUT VENDEUR DEPUIS LA BASE DE DONNÉES
+  const { 
+    data: sellerStatus, 
+    isLoading: statusLoading 
+  } = useQuery({
+    queryKey: ['seller-status', user?.id],
+    queryFn: () => fetchSellerStatus(user),
+    enabled: !!user,
   });
 
   useEffect(() => {
@@ -104,6 +154,28 @@ export default function FavoritesScreen() {
   const renderProductItem = ({ item }: { item: Product }) => (
     <ProductCardWithLocation product={item} />
   );
+
+  // Fonction pour déterminer si on affiche le bouton et lequel
+  const getEmptyDatabaseButton = () => {
+    // Si le statut est encore en chargement, on n'affiche rien
+    if (statusLoading) return null;
+    
+    // ✅ Seul le statut "verified" affiche le bouton
+    if (sellerStatus === 'verified') {
+      return (
+        <CustomButton
+          title={t('favorites.emptyDatabase.sellFirstItem')}
+          onPress={() => router.push('/(tabs)/sell')}
+          variant="primary"
+          size="large"
+          backgroundColor={theme.tint}
+        />
+      );
+    }
+    
+    // ❌ Tous les autres statuts : pas de bouton
+    return null;
+  };
 
   // États de chargement - AVEC SKELETON ADAPTATIF
   if (favoritesLoading) {
@@ -151,29 +223,9 @@ export default function FavoritesScreen() {
             {t('favorites.emptyDatabase.subtitle')}
           </Text>
           
-          {/* CTA selon statut utilisateur */}
+          {/* CTA selon statut utilisateur - NOUVELLE LOGIQUE */}
           <View style={styles.ctaContainer}>
-            {userStatus.isVerified ? (
-              // ✅ Utilisateur vérifié - Peut vendre directement
-              <TouchableOpacity 
-                style={[styles.primaryButton, { backgroundColor: theme.tint }]}
-                onPress={() => router.push('/(tabs)/sell')}
-              >
-                <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                <Text style={styles.primaryButtonText}>
-                  {t('favorites.emptyDatabase.sellFirstItem')}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              // ❌ Utilisateur non vérifié - Doit devenir vendeur
-              <CustomButton
-                  title={t('home.emptyDatabase.becomeSeller')}
-                  onPress={() => router.push('/screens/ProfileSettingsScreen')}
-                  variant="primary"
-                  size="large"
-                  backgroundColor={theme.tint}
-                />
-            )}
+            {getEmptyDatabaseButton()}
           </View>
         </View>
       ) : (

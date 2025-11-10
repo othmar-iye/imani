@@ -4,27 +4,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  Keyboard,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  useColorScheme,
-  View
+    Dimensions,
+    FlatList,
+    Image,
+    Keyboard,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Import React Query
 import { useQuery } from '@tanstack/react-query';
 
 // Import des données - CHANGE MANUELLEMENT POUR TESTER :
-// import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
-import { featuredProducts, Product } from '@/src/data/productEmpty'; // ❌ BASE VIDE
+import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
+// import { featuredProducts, Product } from '@/src/data/productEmpty'; // ❌ BASE VIDE
 
 // Import du composant SuggestionItem
 import SuggestionItem from '@/components/SuggestionItem';
@@ -40,6 +40,8 @@ import { categories as categoriesData } from '@/src/data/categories';
 
 // Import i18n
 import { NotificationIcon } from '@/components/NotificationIcon';
+import { useAuth } from '@/src/context/AuthContext';
+import { supabase } from '@/supabase';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
@@ -58,6 +60,48 @@ interface SearchSuggestion {
   subtitle?: string;
   icon?: string;
 }
+
+type SellerStatus = 'member' | 'pending' | 'verified' | 'rejected';
+
+// Fonction pour récupérer le statut vendeur depuis la base de données
+const fetchSellerStatus = async (user: any): Promise<SellerStatus> => {
+  if (!user) {
+    return 'member';
+  }
+
+  try {
+    // Récupérer le profil utilisateur depuis la table user_profiles
+    const { data: userProfile, error } = await supabase
+      .from('user_profiles')
+      .select('verification_status')
+      .eq('id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Erreur chargement statut vendeur:', error);
+    }
+
+    // Mapper le statut de vérification au statut vendeur (identique à ProfileScreen)
+    return getSellerStatus(userProfile?.verification_status);
+  } catch (error) {
+    console.error('Erreur lors du chargement du statut vendeur:', error);
+    return 'member';
+  }
+};
+
+// Fonction pour mapper le statut de vérification (identique à ProfileScreen)
+const getSellerStatus = (verificationStatus: string | undefined): SellerStatus => {
+  switch (verificationStatus) {
+    case 'verified':
+      return 'verified';
+    case 'pending_review':
+      return 'pending';
+    case 'rejected':
+      return 'rejected';
+    default:
+      return 'member';
+  }
+};
 
 // Composant ProductCard
 const ProductCard = ({ product }: { product: Product }) => {
@@ -174,15 +218,11 @@ const fetchCategories = async (): Promise<Category[]> => {
   });
 };
 
-// SIMULATION : Statut utilisateur
-const userStatus = {
-  isVerified: false, // Change à true pour tester les deux cas
-};
-
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   // États simples
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -205,6 +245,16 @@ export default function HomeScreen() {
   } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
+  });
+
+  // ✅ RÉCUPÉRATION DU STATUT VENDEUR DEPUIS LA BASE DE DONNÉES
+  const { 
+    data: sellerStatus, 
+    isLoading: statusLoading 
+  } = useQuery({
+    queryKey: ['seller-status', user?.id],
+    queryFn: () => fetchSellerStatus(user),
+    enabled: !!user,
   });
 
   // ✅ CONDITION PRINCIPALE : Base de données vide ou non
@@ -279,6 +329,28 @@ export default function HomeScreen() {
     <ProductCard product={item} />
   );
 
+  // Fonction pour déterminer si on affiche le bouton et lequel
+  const getEmptyDatabaseButton = () => {
+    // Si le statut est encore en chargement, on n'affiche rien
+    if (statusLoading) return null;
+    
+    // ✅ Seul le statut "verified" affiche le bouton
+    if (sellerStatus === 'verified') {
+      return (
+        <CustomButton
+          title={t('home.emptyDatabase.sellFirstItem')}
+          onPress={() => router.push('/(tabs)/sell')}
+          variant="primary"
+          size="large"
+          backgroundColor={theme.tint}
+        />
+      );
+    }
+    
+    // ❌ Tous les autres statuts : pas de bouton
+    return null;
+  };
+
   // État de chargement - AVEC SKELETON ADAPTATIF
   if (productsLoading || categoriesLoading) {
     return <HomeSkeleton 
@@ -348,27 +420,9 @@ export default function HomeScreen() {
               {t('home.emptyDatabase.subtitle')}
             </Text>
 
-            {/* CTA selon statut utilisateur */}
+            {/* CTA selon statut utilisateur - LOGIQUE DYNAMIQUE */}
             <View style={styles.ctaContainer}>
-              {userStatus.isVerified ? (
-                // ✅ Utilisateur vérifié - Peut vendre directement
-                <CustomButton
-                  title={t('home.emptyDatabase.sellFirstItem')}
-                  onPress={() => router.push('/(tabs)/sell')}
-                  variant="primary"
-                  size="large"
-                  backgroundColor={theme.tint}
-                />
-              ) : (
-                // ❌ Utilisateur non vérifié - Doit devenir vendeur
-                <CustomButton
-                  title={t('home.emptyDatabase.becomeSeller')}
-                  onPress={() => router.push('/screens/ProfileSettingsScreen')}
-                  variant="primary"
-                  size="large"
-                  backgroundColor={theme.tint}
-                />
-              )}
+              {getEmptyDatabaseButton()}
             </View>
           </View>
         ) : (
