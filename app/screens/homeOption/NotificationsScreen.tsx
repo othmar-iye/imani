@@ -26,6 +26,57 @@ import Animated, {
     withTiming
 } from 'react-native-reanimated';
 
+// 🆕 COMPOSANT POUR LA BARRE D'ACTIONS DE SÉLECTION
+const SelectionActionBar = ({ 
+  selectedCount, 
+  onDeleteSelected, 
+  onSelectAll, 
+  onCancelSelection,
+  colors,
+  t,
+  totalCount 
+}: { 
+  selectedCount: number;
+  onDeleteSelected: () => void;
+  onSelectAll: () => void;
+  onCancelSelection: () => void;
+  colors: any;
+  t: any;
+  totalCount: number;
+}) => {
+  const isAllSelected = selectedCount === totalCount;
+
+  return (
+    <View style={[styles.selectionBar, { backgroundColor: colors.tint }]}>
+      <View style={styles.selectionLeft}>
+        <TouchableOpacity onPress={onCancelSelection} style={styles.selectionButton}>
+          <Ionicons name="close" size={20} color="#FFF" />
+        </TouchableOpacity>
+        <Text style={styles.selectionCount}>
+          {t('notifications.selected', { count: selectedCount }) || `${selectedCount} sélectionné(s)`}
+        </Text>
+      </View>
+      
+      <View style={styles.selectionRight}>
+        <TouchableOpacity onPress={onSelectAll} style={styles.selectionButton}>
+          <Text style={styles.selectionActionText}>
+            {isAllSelected 
+              ? t('notifications.unselectAll') || 'Tout désélectionner'
+              : t('notifications.selectAll') || 'Tout sélectionner'
+            }
+          </Text>
+        </TouchableOpacity>
+        
+        {selectedCount > 0 && (
+          <TouchableOpacity onPress={onDeleteSelected} style={styles.selectionButton}>
+            <Ionicons name="trash-outline" size={20} color="#FFF" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
 // Composant pour l'action de swipe (bouton de suppression)
 const RightActions = ({
     onDelete,
@@ -51,7 +102,7 @@ const RightActions = ({
     );
 };
 
-// Composant Notification avec animation de sortie SEULEMENT
+// 🆕 MODIFICATION DU COMPOSANT NOTIFICATIONITEM POUR AJOUTER LA SÉLECTION
 const NotificationItem = ({ 
     item, 
     onDelete, 
@@ -59,15 +110,18 @@ const NotificationItem = ({
     markAsRead, 
     getNotificationIcon, 
     getNavigationPath,
-    formatTime 
+    formatTime,
+    isSelected, // 🆕 Nouvelle prop
+    onToggleSelection, // 🆕 Nouvelle prop
+    selectionMode // 🆕 Nouvelle prop
 }: any) => {
     const icon = getNotificationIcon(item.type);
     const isUnread = item.status === 'unread';
     
-    // 🆕 Animations de sortie seulement
+    // Animations de sortie seulement
     const opacity = useSharedValue(1);
     const height = useSharedValue<number | undefined>(undefined);
-    const marginBottom = useSharedValue(10);
+    const marginBottom = useSharedValue(8);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
@@ -78,7 +132,6 @@ const NotificationItem = ({
     });
 
     const handleDelete = () => {
-        // 🆕 Animation de suppression fluide
         opacity.value = withTiming(0, { duration: 300 });
         height.value = withTiming(0, { duration: 300 });
         marginBottom.value = withTiming(0, { duration: 300 }, (finished) => {
@@ -88,17 +141,39 @@ const NotificationItem = ({
         });
     };
 
+    const handlePress = () => {
+        if (selectionMode) {
+          // 🆕 En mode sélection, toggle la sélection
+          onToggleSelection(item.id);
+        } else {
+          // Comportement normal
+          if (isUnread) {
+              markAsRead(item.id);
+          }
+          const navigationPath = getNavigationPath(item);
+          router.push(navigationPath);
+        }
+    };
+
+    const handleLongPress = () => {
+        if (!selectionMode) {
+          // 🆕 Active le mode sélection au long press
+          onToggleSelection(item.id);
+        }
+    };
+
     return (
         <Animated.View style={[styles.swipeableContainer, animatedStyle]}>
             <Swipeable
-                renderRightActions={() => (
+                renderRightActions={() => !selectionMode ? ( // 🆕 Désactive le swipe en mode sélection
                     <RightActions
                         onDelete={handleDelete}
                         colors={colors}
                     />
-                )}
+                ) : undefined}
                 rightThreshold={40}
                 containerStyle={styles.swipeableContainer}
+                enabled={!selectionMode} // 🆕 Désactive le swipe en mode sélection
             >
                 <TouchableOpacity 
                     style={[
@@ -109,46 +184,67 @@ const NotificationItem = ({
                             borderLeftColor: isUnread ? icon.color : 'transparent',
                         }
                     ]}
-                    onPress={() => {
-                        if (isUnread) {
-                            markAsRead(item.id);
-                        }
-                        const navigationPath = getNavigationPath(item);
-                        router.push(navigationPath);
-                    }}
-                    activeOpacity={0.7}
+                    onPress={handlePress}
+                    onLongPress={handleLongPress}
+                    activeOpacity={selectionMode ? 0.6 : 0.7} // 🆕 Feedback différent en mode sélection
+                    delayLongPress={500} // 🆕 Délai pour le long press
                 >
                     <View style={styles.notificationContent}>
-                        <View style={styles.notificationHeader}>
-                            <View style={styles.titleContainer}>
-                                <Ionicons 
-                                    name={icon.name as any} 
-                                    size={16} 
-                                    color={icon.color} 
-                                    style={styles.notificationIcon}
-                                />
-                                <Text style={[styles.notificationTitle, { color: colors.text }]}>
-                                    {item.title}
-                                </Text>
-                            </View>
-                            {isUnread && (
-                                <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
+                        {/* 🆕 AJOUT DE LA CASE À COCHER */}
+                        {selectionMode && (
+                          <TouchableOpacity 
+                            style={[
+                              styles.checkbox,
+                              { 
+                                borderColor: colors.tint,
+                                backgroundColor: isSelected ? colors.tint : 'transparent'
+                              }
+                            ]}
+                            onPress={() => onToggleSelection(item.id)}
+                          >
+                            {isSelected && (
+                              <Ionicons name="checkmark" size={16} color="#FFF" />
                             )}
-                        </View>
+                          </TouchableOpacity>
+                        )}
                         
-                        <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
-                            {item.message}
-                        </Text>
-                        
-                        <View style={styles.notificationFooter}>
-                            <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
-                                {formatTime(item.created_at)}
-                            </Text>
-                            <Ionicons 
-                                name="chevron-forward" 
-                                size={16} 
-                                color={colors.textSecondary} 
-                            />
+                        <View style={[
+                          styles.notificationMainContent,
+                          { marginLeft: selectionMode ? 12 : 0 } // 🆕 Ajustement de l'espacement
+                        ]}>
+                          <View style={styles.notificationHeader}>
+                              <View style={styles.titleContainer}>
+                                  <Ionicons 
+                                      name={icon.name as any} 
+                                      size={16} 
+                                      color={icon.color} 
+                                      style={styles.notificationIcon}
+                                  />
+                                  <Text style={[styles.notificationTitle, { color: colors.text }]}>
+                                      {item.title}
+                                  </Text>
+                              </View>
+                              {isUnread && !selectionMode && ( // 🆕 Cache le point en mode sélection
+                                  <View style={[styles.unreadDot, { backgroundColor: colors.tint }]} />
+                              )}
+                          </View>
+                          
+                          <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
+                              {item.message}
+                          </Text>
+                          
+                          <View style={styles.notificationFooter}>
+                              <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
+                                  {formatTime(item.created_at)}
+                              </Text>
+                              {!selectionMode && ( // 🆕 Cache la flèche en mode sélection
+                                <Ionicons 
+                                    name="chevron-forward" 
+                                    size={16} 
+                                    color={colors.textSecondary} 
+                                />
+                              )}
+                          </View>
                         </View>
                     </View>
                 </TouchableOpacity>
@@ -224,7 +320,7 @@ const NotificationsSkeleton = ({ colors }: { colors: any }) => {
   };
 
   const renderNotificationSkeleton = () => (
-    <View style={[styles.notificationCard, { backgroundColor: colors.card, marginBottom:12 }]}>
+    <View style={[styles.notificationCard, { backgroundColor: colors.card, marginBottom:10 }]}>
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>
           <View style={styles.titleContainer}>
@@ -393,7 +489,11 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set()); // 🆕 IDs en cours de suppression
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  // 🆕 ÉTATS POUR LA SÉLECTION MULTIPLE
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
 
   // Utilisation du hook modifié
   const { 
@@ -421,7 +521,78 @@ export default function NotificationsScreen() {
     error: isDark ? '#FF453A' : '#FF3B30',
   };
 
-  // FONCTION DE SUPPRESSION
+  // 🆕 FONCTIONS POUR LA GESTION DE LA SÉLECTION
+  const toggleSelection = useCallback((notificationId: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(notificationId)) {
+        newSet.delete(notificationId);
+        // Si plus aucune sélection, on quitte le mode sélection
+        if (newSet.size === 0) {
+          setSelectionMode(false);
+        }
+      } else {
+        newSet.add(notificationId);
+        // Active le mode sélection au premier élément sélectionné
+        if (!selectionMode) {
+          setSelectionMode(true);
+        }
+      }
+      return newSet;
+    });
+  }, [selectionMode]);
+
+  const selectAll = useCallback(() => {
+    if (selectedIds.size === notifications.length) {
+      // Tout désélectionner
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+    } else {
+      // Tout sélectionner
+      const allIds = new Set(notifications.map(item => item.id));
+      setSelectedIds(allIds);
+      setSelectionMode(true);
+    }
+  }, [notifications, selectedIds.size]);
+
+  const cancelSelection = useCallback(() => {
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  }, []);
+
+  // 🆕 SUPPRESSION DES NOTIFICATIONS SÉLECTIONNÉES
+  const deleteSelectedNotifications = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+
+    Alert.alert(
+      t('notifications.deleteMultipleTitle') || 'Supprimer les notifications',
+      t('notifications.deleteMultipleMessage', { count: selectedIds.size }) || 
+        `Êtes-vous sûr de vouloir supprimer ${selectedIds.size} notification(s) ? Cette action est irréversible.`,
+      [
+        {
+          text: t('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            // Marquer toutes les notifications sélectionnées comme en cours de suppression
+            setDeletingIds(prev => new Set([...prev, ...selectedIds]));
+            
+            // Supprimer chaque notification sélectionnée
+            const deletePromises = Array.from(selectedIds).map(id => deleteNotification(id));
+            await Promise.all(deletePromises);
+            
+            // Réinitialiser la sélection
+            cancelSelection();
+          }
+        }
+      ]
+    );
+  }, [selectedIds, deleteNotification, cancelSelection, t]);
+
+  // FONCTION DE SUPPRESSION (existante)
   const handleDeleteNotification = (notificationId: string) => {
     Alert.alert(
       t('notifications.deleteTitle') || 'Supprimer la notification',
@@ -435,7 +606,6 @@ export default function NotificationsScreen() {
           text: t('delete'),
           style: 'destructive',
           onPress: () => {
-            // 🆕 Marquer comme en cours de suppression
             setDeletingIds(prev => new Set(prev).add(notificationId));
           }
         }
@@ -443,13 +613,26 @@ export default function NotificationsScreen() {
     );
   };
 
-  // 🆕 Fonction pour finaliser la suppression après l'animation
+  // 🆕 Finaliser la suppression avec gestion de la sélection
   const finalizeDelete = useCallback(async (notificationId: string) => {
     await deleteNotification(notificationId);
     setDeletingIds(prev => {
       const newSet = new Set(prev);
       newSet.delete(notificationId);
       return newSet;
+    });
+    
+    // Retirer aussi de la sélection si nécessaire
+    setSelectedIds(prev => {
+      if (prev.has(notificationId)) {
+        const newSet = new Set(prev);
+        newSet.delete(notificationId);
+        if (newSet.size === 0) {
+          setSelectionMode(false);
+        }
+        return newSet;
+      }
+      return prev;
     });
   }, [deleteNotification]);
 
@@ -536,7 +719,7 @@ export default function NotificationsScreen() {
   };
 
   const renderNotification = ({ item }: { item: any }) => {
-    // 🆕 Ne pas rendre les notifications en cours de suppression
+    // Ne pas rendre les notifications en cours de suppression
     if (deletingIds.has(item.id)) {
       return null;
     }
@@ -550,6 +733,10 @@ export default function NotificationsScreen() {
         getNotificationIcon={getNotificationIcon}
         getNavigationPath={getNavigationPath}
         formatTime={formatTime}
+        // 🆕 NOUVELLES PROPS POUR LA SÉLECTION
+        isSelected={selectedIds.has(item.id)}
+        onToggleSelection={toggleSelection}
+        selectionMode={selectionMode}
       />
     );
   };
@@ -611,6 +798,19 @@ export default function NotificationsScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         
+        {/* 🆕 BARRE D'ACTIONS DE SÉLECTION */}
+        {selectionMode && (
+          <SelectionActionBar
+            selectedCount={selectedIds.size}
+            onDeleteSelected={deleteSelectedNotifications}
+            onSelectAll={selectAll}
+            onCancelSelection={cancelSelection}
+            colors={colors}
+            t={t}
+            totalCount={notifications.length}
+          />
+        )}
+        
         {/* Header avec back button */}
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <View style={styles.headerLeft}>
@@ -625,7 +825,7 @@ export default function NotificationsScreen() {
             </Text>
           </View>
           
-          {unreadCount > 0 && (
+          {unreadCount > 0 && !selectionMode && ( // 🆕 Cache "Lire tout" en mode sélection
             <TouchableOpacity onPress={markAllAsRead}>
               <Text style={[styles.clearAll, { color: colors.tint }]}>
                 {t('notifications.lireTout') || 'Lire tout'}
@@ -634,29 +834,36 @@ export default function NotificationsScreen() {
           )}
         </View>
 
-        {/* Statistiques rapides avec vraies données */}
-        <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text }]}>
-              {notifications.length}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('notifications.total') || 'Total'}
-            </Text>
+        {/* Statistiques rapides (cachées en mode sélection) */}
+        {!selectionMode && (
+          <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.text }]}>
+                {notifications.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                {t('notifications.total') || 'Total'}
+              </Text>
+            </View>
+            <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.tint }]}>
+                {unreadCount}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                {t('notifications.unread') || 'Non lues'}
+              </Text>
+            </View>
           </View>
-          <View style={[styles.statSeparator, { backgroundColor: colors.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.tint }]}>
-              {unreadCount}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('notifications.unread') || 'Non lues'}
-            </Text>
-          </View>
-        </View>
+        )}
 
-        {/* BANNER DE SYNCHRONISATION - S'affiche seulement quand il y a de nouvelles données */}
-        {hasNewData && (
+        {/* 🆕 AJOUTER UN ESPACE CONDITIONNEL QUAND EN MODE SÉLECTION */}
+        {selectionMode && (
+          <View style={styles.selectionSpacing} />
+        )}
+
+        {/* BANNER DE SYNCHRONISATION (caché en mode sélection) */}
+        {hasNewData && !selectionMode && (
           <SyncBanner 
             onSync={handleSyncNewData}
             onIgnore={handleIgnoreNewData}
@@ -665,7 +872,7 @@ export default function NotificationsScreen() {
           />
         )}
 
-        {/* Liste des notifications avec Pull-to-Refresh */}
+        {/* Liste des notifications */}
         <FlatList
           data={notifications.filter(item => !deletingIds.has(item.id))}
           renderItem={renderNotification}
@@ -774,9 +981,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  // STYLES POUR LE SWIPE (inchangés)
+  // STYLES POUR LE SWIPE
   swipeableContainer: {
-    marginBottom: 10,
+    marginBottom: 8,
     borderRadius: 12,
   },
   notificationCard: { 
@@ -785,6 +992,11 @@ const styles = StyleSheet.create({
   },
   notificationContent: {
     padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  notificationMainContent: {
+    flex: 1,
   },
   notificationHeader: { 
     flexDirection: 'row', 
@@ -826,7 +1038,7 @@ const styles = StyleSheet.create({
     fontSize: 12, 
     fontWeight: '500',
   },
-  // STYLES POUR L'ACTION DE SWIPE (inchangés)
+  // STYLES POUR L'ACTION DE SWIPE
   deleteAction: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -871,7 +1083,7 @@ const styles = StyleSheet.create({
   skeletonBox: {
     borderRadius: 6,
   },
-  // STYLES POUR LE SYSTÈME INTELLIGENT (inchangés)
+  // STYLES POUR LE SYSTÈME INTELLIGENT
   syncBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -879,7 +1091,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginHorizontal: 20,
-    marginBottom: 12,
+    marginBottom: 10,
     borderRadius: 8,
   },
   syncBannerText: {
@@ -947,5 +1159,50 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // 🆕 NOUVEAUX STYLES POUR LA SÉLECTION
+  selectionBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: 40, // Pour éviter le chevauchement avec la status bar
+  },
+  selectionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectionButton: {
+    padding: 8,
+    marginHorizontal: 4,
+  },
+  selectionCount: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  selectionActionText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  // 🆕 NOUVEAU STYLE POUR L'ESPACEMENT EN MODE SÉLECTION
+  selectionSpacing: {
+    height: 20, // ← Ajuste cette valeur selon l'espace que tu veux
   },
 });

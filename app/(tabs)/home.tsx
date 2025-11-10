@@ -2,7 +2,7 @@ import { HomeSkeleton } from '@/components/HomeSkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     Dimensions,
     FlatList,
@@ -20,7 +20,7 @@ import {
 } from 'react-native';
 
 // Import React Query
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 // Import des données - CHANGE MANUELLEMENT POUR TESTER :
 import { featuredProducts, Product } from '@/src/data/products'; // ✅ BASE PLEINE
@@ -195,12 +195,33 @@ const generateSearchSuggestions = (products: Product[], limit: number = 10): Sea
   }));
 };
 
-// Fonctions API simulées
-const fetchFeaturedProducts = async (): Promise<Product[]> => {
+// Fonction API paginée pour l'Infinite Scroll
+const fetchPaginatedProducts = async ({ pageParam = 0 }): Promise<{
+  products: Product[];
+  nextPage: number | null;
+  hasMore: boolean;
+}> => {
+  const PAGE_SIZE = 6; // Chargement initial
+  const LOAD_MORE_SIZE = 4; // Chargement suivant
+  
+  const limit = pageParam === 0 ? PAGE_SIZE : LOAD_MORE_SIZE;
+  const offset = pageParam === 0 ? 0 : PAGE_SIZE + (pageParam - 1) * LOAD_MORE_SIZE;
+
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(featuredProducts); // Retourne selon l'import choisi
-    }, 1000);
+      const startIndex = offset;
+      const endIndex = startIndex + limit;
+      const paginatedProducts = featuredProducts.slice(startIndex, endIndex);
+      
+      const hasMore = endIndex < featuredProducts.length;
+      const nextPage = hasMore ? pageParam + 1 : null;
+
+      resolve({
+        products: paginatedProducts,
+        nextPage,
+        hasMore
+      });
+    }, 800); // Simulation délai réseau
   });
 };
 
@@ -218,6 +239,27 @@ const fetchCategories = async (): Promise<Category[]> => {
   });
 };
 
+// Composant Skeleton pour le chargement Infinite Scroll
+const LoadingSkeleton = () => {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
+
+  return (
+    <View style={styles.loadingSkeletonContainer}>
+      {[1, 2].map((item) => (
+        <View key={item} style={[styles.skeletonProductCard, { backgroundColor: theme.card }]}>
+          <View style={[styles.skeletonImage, { backgroundColor: theme.border }]} />
+          <View style={styles.skeletonContent}>
+            <View style={[styles.skeletonText, { backgroundColor: theme.border }]} />
+            <View style={[styles.skeletonTitle, { backgroundColor: theme.border }]} />
+            <View style={[styles.skeletonPrice, { backgroundColor: theme.border }]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
@@ -228,14 +270,19 @@ export default function HomeScreen() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Utilisation de React Query pour les produits
-  const { 
-    data: products = [], 
-    isLoading: productsLoading, 
-    error: productsError 
-  } = useQuery({
-    queryKey: ['featured-products'],
-    queryFn: fetchFeaturedProducts,
+  // Utilisation de React Query Infinite pour les produits
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useInfiniteQuery({
+    queryKey: ['featured-products-infinite'],
+    queryFn: fetchPaginatedProducts,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
   });
 
   // Utilisation de React Query pour les catégories
@@ -257,14 +304,26 @@ export default function HomeScreen() {
     enabled: !!user,
   });
 
+  // Extraire tous les produits des pages
+  const allProducts = React.useMemo(() => {
+    return data?.pages.flatMap(page => page.products) || [];
+  }, [data]);
+
   // ✅ CONDITION PRINCIPALE : Base de données vide ou non
-  const isEmptyDatabase = !productsLoading && products.length === 0;
+  const isEmptyDatabase = !productsLoading && allProducts.length === 0 && !hasNextPage;
 
   // Génération des suggestions (vide si base vide)
   const searchSuggestions = React.useMemo(() => {
     if (isEmptyDatabase) return [];
-    return generateSearchSuggestions(products, 10);
-  }, [products, isEmptyDatabase]);
+    return generateSearchSuggestions(allProducts, 10);
+  }, [allProducts, isEmptyDatabase]);
+
+  // Gestion de l'Infinite Scroll
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Gestion de la recherche
   const handleSearchFocus = () => setIsSearchFocused(true);
@@ -329,6 +388,13 @@ export default function HomeScreen() {
     <ProductCard product={item} />
   );
 
+  // Footer avec indicateur de chargement
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    
+    return <LoadingSkeleton />;
+  };
+
   // Fonction pour déterminer si on affiche le bouton et lequel
   const getEmptyDatabaseButton = () => {
     // Si le statut est encore en chargement, on n'affiche rien
@@ -351,8 +417,8 @@ export default function HomeScreen() {
     return null;
   };
 
-  // État de chargement - AVEC SKELETON ADAPTATIF
-  if (productsLoading || categoriesLoading) {
+  // État de chargement initial - AVEC SKELETON ADAPTATIF
+  if (productsLoading && allProducts.length === 0) {
     return <HomeSkeleton 
       colors={{
         background: theme.background,
@@ -490,13 +556,16 @@ export default function HomeScreen() {
               </View>
               
               <FlatList
-                data={products}
+                data={allProducts}
                 renderItem={renderProductItem}
                 keyExtractor={item => item.id}
                 numColumns={2}
                 scrollEnabled={false}
                 contentContainerStyle={styles.productsGrid}
                 columnWrapperStyle={styles.productsRow}
+                ListFooterComponent={renderFooter}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
               />
             </View>
 
@@ -615,6 +684,48 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 16,
     marginBottom: 40,
+  },
+  // Styles pour le skeleton de chargement Infinite Scroll
+  loadingSkeletonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  skeletonProductCard: {
+    width: (width - 60) / 2,
+    borderRadius: 20,
+    marginBottom: 20,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 20,
+  },
+  skeletonContent: {
+    padding: 16,
+  },
+  skeletonText: {
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 8,
+    width: '60%',
+  },
+  skeletonTitle: {
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: '90%',
+  },
+  skeletonPrice: {
+    height: 14,
+    borderRadius: 7,
+    width: '40%',
   },
   primaryButton: {
     flexDirection: 'row',

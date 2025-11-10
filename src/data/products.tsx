@@ -591,5 +591,125 @@ export const featuredProducts: Product[] = [
       'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop',
       'https://images.unsplash.com/photo-1622434641406-a158123450f9?w=400&h=400&fit=crop'
     ]
-  }
+  },
+  {
+    id: '19',
+    name: 'Réfrigérateur Samsung Side-by-Side',
+    category: 'Maison & Déco',
+    subCategory: 'Électroménager',
+    price: 1299.99,
+    originalPrice: 1699.99,
+    discount: 24,
+    image: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Réfrigérateur Samsung Side-by-Side 615L, technologie Twin Cooling Plus, distributeur d\'eau et de glace.',
+    condition: 'Neuf',
+    location: 'Kinshasa',
+    views: 67,
+    createdAt: '2025-01-22',
+    seller: {
+      id: 'SEL_0081',
+      name: 'Electro Home',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      rating: 4.7,
+      verified: true,
+      responseRate: '96%',
+      responseTime: '2h',
+      itemsSold: 81
+    },
+    images: [
+      'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '20',
+    name: 'Chaise Gaming Ergonomique',
+    category: 'Maison & Déco',
+    subCategory: 'Meubles & Rangement',
+    price: 249.99,
+    originalPrice: 349.99,
+    discount: 29,
+    image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Chaise gaming ergonomique avec support lombaire, accoudoirs 4D, revêtement en cuir synthétique et base métallique robuste.',
+    condition: 'Excellent état',
+    location: 'Lubumbashi',
+    views: 145,
+    createdAt: '2025-01-18',
+    seller: {
+      id: 'SEL_0018',
+      name: 'Luc le bon',
+      photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
+      rating: 4.4,
+      verified: true,
+      responseRate: '88%',
+      responseTime: '5h',
+      itemsSold: 18
+    },
+    images: [
+      'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '21',
+    name: 'Appareil de Musculation Multi-fonctions',
+    category: 'Sports & Loisirs',
+    subCategory: 'Fitness & Musculation',
+    price: 499.99,
+    originalPrice: 699.99,
+    discount: 29,
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop',
+    isFavorite: false,
+    description: 'Station de musculation complète avec banc de développé, station pour jambes, poulies et accessoires inclus.',
+    condition: 'Très bon état',
+    location: 'Kolwezi',
+    views: 89,
+    createdAt: '2025-01-16',
+    seller: {
+      id: 'SEL_0034',
+      name: 'Fit Pro',
+      photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
+      rating: 4.6,
+      verified: true,
+      responseRate: '93%',
+      responseTime: '4h',
+      itemsSold: 34
+    },
+    images: [
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=400&fit=crop'
+    ]
+  },
+  {
+    id: '22',
+    name: 'Table à Manger en Verre 8 Places',
+    category: 'Maison & Déco',
+    subCategory: 'Meubles & Rangement',
+    price: 599.99,
+    originalPrice: 799.99,
+    discount: 25,
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop',
+    isFavorite: true,
+    description: 'Table à manger design en verre trempé avec piétement chromé, 8 places. Élégante et moderne pour salle à manger.',
+    condition: 'Comme neuf',
+    location: 'Kinshasa',
+    views: 112,
+    createdAt: '2025-01-19',
+    seller: {
+      id: 'SEL_0067',
+      name: 'Robert M',
+      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+      rating: 4.6,
+      verified: true,
+      responseRate: '93%',
+      responseTime: '2h',
+      itemsSold: 67
+    },
+    images: [
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1494526585095-c41746248156?w=400&h=400&fit=crop'
+    ]
+  },
 ];

@@ -43,10 +43,15 @@ const resources = {
         // ===== NOUVELLES TRADUCTIONS NOTIFICATIONS =====
         notifications: {
 
+            selected: "{{count}} sélectionné(s)",
+            selectAll: "Tout sélectionner",
+            unselectAll: "Tout désélectionner",
+            deleteMultipleTitle: "Supprimer les notifications",
+            deleteMultipleMessage: "Êtes-vous sûr de vouloir supprimer {{count}} notification(s) ? Cette action est irréversible.",
+
             deleteTitle: "Supprimer la notification",
             deleteMessage: "Êtes-vous sûr de vouloir supprimer cette notification ? Cette action est irréversible.",
             
-
             errorLoading: "Erreur lors du chargement des notifications",
             refreshError: "Impossible de rafraîchir les notifications",
             
@@ -944,6 +949,12 @@ const resources = {
         delete: "Delete",
         // NOTIFICATIONS  =====
         notifications: {
+
+            selected: "{{count}} selected",
+            selectAll: "Select all", 
+            unselectAll: "Unselect all",
+            deleteMultipleTitle: "Delete notifications",
+            deleteMultipleMessage: "Are you sure you want to delete {{count}} notification(s)? This action is irreversible.",
 
             deleteTitle: "Delete notification",
             deleteMessage: "Are you sure you want to delete this notification? This action is irreversible.",
