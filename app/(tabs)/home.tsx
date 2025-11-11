@@ -4,19 +4,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    Keyboard,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  Image,
+  Keyboard,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import React Query
@@ -548,7 +548,7 @@ export default function HomeScreen() {
                 <Text style={[styles.sectionTitle, { color: theme.text }]}>
                   {t('home.popularProducts')}
                 </Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() =>router.push('/screens/homeOption/AllProductsScreen')}>
                   <Text style={[styles.seeAllText, { color: theme.tint }]}>
                     {t('home.seeAll')}
                   </Text>

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 
 // Import React Query
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
 // Import des données - CHANGE MANUELLEMENT POUR TESTER :
@@ -74,15 +74,58 @@ const getSellerStatus = (verificationStatus: string | undefined): SellerStatus =
   }
 };
 
-// Fonction API simulée pour les favoris
-const fetchFavoriteProducts = async (): Promise<Product[]> => {
+// FONCTION AVEC PAGINATION POUR L'INFINITE SCROLL
+const fetchFavoriteProductsPaginated = async ({ pageParam = 0 }): Promise<{
+  products: Product[];
+  nextPage: number | null;
+  hasMore: boolean;
+}> => {
+  const PAGE_SIZE = 6; // Chargement initial
+  const LOAD_MORE_SIZE = 4; // Chargement suivant
+  
+  const limit = pageParam === 0 ? PAGE_SIZE : LOAD_MORE_SIZE;
+  const offset = pageParam === 0 ? 0 : PAGE_SIZE + (pageParam - 1) * LOAD_MORE_SIZE;
+
   return new Promise((resolve) => {
     setTimeout(() => {
       // Filtrer seulement les produits favoris
-      const favorites = featuredProducts.filter(product => product.isFavorite);
-      resolve(favorites);
+      const allFavorites = featuredProducts.filter(product => product.isFavorite);
+      
+      const startIndex = offset;
+      const endIndex = startIndex + limit;
+      const paginatedFavorites = allFavorites.slice(startIndex, endIndex);
+      
+      const hasMore = endIndex < allFavorites.length;
+      const nextPage = hasMore ? pageParam + 1 : null;
+
+      resolve({
+        products: paginatedFavorites,
+        nextPage,
+        hasMore
+      });
     }, 800);
   });
+};
+
+// Composant Skeleton pour le chargement Infinite Scroll
+const LoadingSkeleton = () => {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? Theme.dark : Theme.light;
+
+  return (
+    <View style={styles.loadingSkeletonContainer}>
+      {[1, 2].map((item) => (
+        <View key={item} style={[styles.skeletonProductCard, { backgroundColor: theme.card }]}>
+          <View style={[styles.skeletonImage, { backgroundColor: theme.border }]} />
+          <View style={styles.skeletonContent}>
+            <View style={[styles.skeletonText, { backgroundColor: theme.border }]} />
+            <View style={[styles.skeletonTitle, { backgroundColor: theme.border }]} />
+            <View style={[styles.skeletonPrice, { backgroundColor: theme.border }]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
 };
 
 export default function FavoritesScreen() {
@@ -105,15 +148,20 @@ export default function FavoritesScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Utilisation de React Query pour les favoris
-  const { 
-    data: favoriteProducts = [], 
-    isLoading: favoritesLoading, 
+  // ✅ UTILISATION DE REACT QUERY INFINITE POUR LES FAVORIS
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: favoritesLoading,
     error: favoritesError,
     refetch
-  } = useQuery({
-    queryKey: ['favorite-products'],
-    queryFn: fetchFavoriteProducts,
+  } = useInfiniteQuery({
+    queryKey: ['favorite-products-infinite'],
+    queryFn: fetchFavoriteProductsPaginated,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
   });
 
   // ✅ RÉCUPÉRATION DU STATUT VENDEUR DEPUIS LA BASE DE DONNÉES
@@ -134,9 +182,28 @@ export default function FavoritesScreen() {
     }).start();
   }, []);
 
-  // ✅ CONDITION PRINCIPALE : Base de données vide ou pas de favoris
+  // Extraire tous les favoris des pages
+  const allFavoriteProducts = React.useMemo(() => {
+    return data?.pages.flatMap(page => page.products) || [];
+  }, [data]);
+
+  // ✅ CONDITIONS PRINCIPALES
   const isEmptyDatabase = !favoritesLoading && featuredProducts.length === 0;
-  const hasNoFavorites = !favoritesLoading && favoriteProducts.length === 0 && featuredProducts.length > 0;
+  const hasNoFavorites = !favoritesLoading && allFavoriteProducts.length === 0 && featuredProducts.length > 0;
+
+  // ✅ GESTION DE L'INFINITE SCROLL
+  const handleLoadMore = React.useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // ✅ FOOTER AVEC INDICATEUR DE CHARGEMENT
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    
+    return <LoadingSkeleton />;
+  };
 
   const toggleFavorite = (productId: string) => {
     // Ici tu pourrais implémenter la logique pour retirer des favoris
@@ -178,7 +245,7 @@ export default function FavoritesScreen() {
   };
 
   // États de chargement - AVEC SKELETON ADAPTATIF
-  if (favoritesLoading) {
+  if (favoritesLoading && allFavoriteProducts.length === 0) {
     return <FavoritesSkeleton colors={{
       background: theme.background,
       card: theme.card,
@@ -271,7 +338,7 @@ export default function FavoritesScreen() {
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               {isEmptyDatabase ? 
                 t('favorites.emptyDatabase.title') : 
-                t('favorites.count', { count: favoriteProducts.length })
+                t('favorites.count', { count: allFavoriteProducts.length })
               }
             </Text>
           </View>
@@ -282,9 +349,9 @@ export default function FavoritesScreen() {
       {isEmptyDatabase || hasNoFavorites ? (
         <EmptyState />
       ) : (
-        // ✅ MODE NORMAL - Avec des favoris
+        // ✅ MODE NORMAL - Avec des favoris + INFINITE SCROLL
         <FlatList
-          data={favoriteProducts}
+          data={allFavoriteProducts}
           renderItem={renderProductItem}
           keyExtractor={item => item.id}
           numColumns={2}
@@ -293,6 +360,9 @@ export default function FavoritesScreen() {
           columnWrapperStyle={styles.productsRow}
           showsVerticalScrollIndicator={false}
           style={styles.flatList}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
         />
       )}
     </Animated.View>
@@ -416,6 +486,48 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  // NOUVEAUX STYLES POUR L'INFINITE SCROLL
+  loadingSkeletonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  skeletonProductCard: {
+    width: (width - 60) / 2,
+    borderRadius: 20,
+    marginBottom: 20,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 20,
+  },
+  skeletonContent: {
+    padding: 16,
+  },
+  skeletonText: {
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 8,
+    width: '60%',
+  },
+  skeletonTitle: {
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: '90%',
+  },
+  skeletonPrice: {
+    height: 14,
+    borderRadius: 7,
+    width: '40%',
   },
   loadingContainer: {
     flex: 1,

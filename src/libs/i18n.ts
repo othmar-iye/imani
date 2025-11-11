@@ -8,6 +8,17 @@ const resources = {
   fr: {
     translation: {
 
+        allProducts: {
+            title: "Tous les produits",
+            exploreAll: "Explorez tous les produits",
+            description: "Découvrez notre collection complète de produits exceptionnels",
+            productCount: "{{count}} produit",
+            productCount_plural: "{{count}} produits",
+            noProducts: "Aucun produit disponible",
+            errorLoading: "Erreur lors du chargement des produits",
+            loadingMore: "Chargement de plus de produits...",
+        },
+
         // Checkout
         checkout: {
             title: "Paiement",
@@ -914,6 +925,17 @@ const resources = {
 
   en: {
     translation: {
+
+        allProducts: {
+            title: "All Products",
+            exploreAll: "Explore All Products",
+            description: "Discover our complete collection of amazing products",
+            productCount: "{{count}} product",
+            productCount_plural: "{{count}} products",
+            noProducts: "No products available",
+            errorLoading: "Error loading products",
+            loadingMore: "Loading more products...",
+        },
 
         // CHECKOUT
         checkout: {
