@@ -145,7 +145,7 @@ export default function SearchResultsScreen() {
       product={item}
       variant="search"
       showLocation={false}
-      showSavings={true}
+      showSavings={false}
       showStatus={false}
       showStats={false}
     />
