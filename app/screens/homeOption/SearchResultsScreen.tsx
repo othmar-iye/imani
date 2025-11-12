@@ -1,17 +1,15 @@
 // screens/SearchResultsScreen.tsx
 import { Header } from '@/components/Header';
+import ProductCard from '@/components/ProductCard';
 import { SearchResultsSkeleton } from '@/components/SearchResultsSkeleton';
 import { Theme } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
     Dimensions,
     FlatList,
-    Image,
     StyleSheet,
     Text,
-    TouchableOpacity,
     useColorScheme,
     View
 } from 'react-native';
@@ -143,110 +141,19 @@ export default function SearchResultsScreen() {
   };
 
   const renderProductItem = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
-      style={[
-        styles.productCard, 
-        { 
-          backgroundColor: colors.card,
-          shadowColor: colorScheme === 'dark' ? '#000' : '#8E8E93',
-        }
-      ]}
-      activeOpacity={0.9}
-      onPress={() => router.push({
-        pathname: '/screens/ProductDetailScreen',
-        params: { productId: item.id }
-      })}
-    >
-      {/* Image container avec overlay gradient */}
-      <View style={styles.productImageContainer}>
-        <Image 
-          source={{ uri: item.image }} 
-          style={styles.productImage}
-          resizeMode="cover"
-        />
-        
-        {/* Overlay gradient pour un effet moderne */}
-        <View style={[
-          styles.imageOverlay,
-          { 
-            backgroundColor: colorScheme === 'dark' 
-              ? 'rgba(0,0,0,0.3)' 
-              : 'rgba(255,255,255,0.1)'
-          }
-        ]} />
-        
-        {/* Badge de promotion */}
-        {item.discount > 0 && (
-          <View style={[styles.discountBadge, { backgroundColor: colors.tint }]}>
-            <Text style={styles.discountText}>-{item.discount}%</Text>
-          </View>
-        )}
-        
-        {/* Bouton favoris positionné absolument */}
-        <TouchableOpacity 
-          style={[
-            styles.favoriteButton, 
-            { 
-              backgroundColor: colorScheme === 'dark' 
-                ? 'rgba(255,255,255,0.9)' 
-                : 'rgba(255,255,255,0.9)',
-            }
-          ]}
-        >
-          <Ionicons 
-            name={item.isFavorite ? "heart" : "heart-outline"} 
-            size={16} 
-            color={item.isFavorite ? colors.tint : '#8E8E93'} 
-          />
-        </TouchableOpacity>
-      </View>
-      
-      {/* Contenu texte */}
-      <View style={styles.productContent}>
-        {/* Catégorie */}
-        <Text style={[styles.productCategory, { color: colors.textSecondary }]} numberOfLines={1}>
-          {item.category}
-        </Text>
-        
-        {/* Nom du produit */}
-        <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
-          {item.name}
-        </Text>
-        
-        {/* Prix et rating */}
-        <View style={styles.priceRatingContainer}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.currentPrice, { color: colors.tint }]}>
-              ${item.price}
-            </Text>
-            {item.originalPrice > item.price && (
-              <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                ${item.originalPrice}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Économie réalisée */}
-        {item.discount > 0 && (
-          <View style={styles.savingsContainer}>
-            <Text style={[styles.savingsText, { color: colors.tint }]}>
-              {t('filters.savings')}: ${(item.originalPrice - item.price).toFixed(2)}
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
+    <ProductCard
+      product={item}
+      variant="search"
+      showLocation={false}
+      showSavings={true}
+      showStatus={false}
+      showStats={false}
+    />
   );
 
   // Composant pour l'état vide
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Ionicons 
-        name="search-outline" 
-        size={64} 
-        color={colors.textSecondary} 
-      />
       <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
         {t('filters.noProductsFound')}
       </Text>
@@ -279,16 +186,12 @@ export default function SearchResultsScreen() {
           customPaddingTop={60}
         />
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
           <Text style={[styles.errorText, { color: colors.text }]}>
             Erreur lors de la recherche
           </Text>
-          <TouchableOpacity 
-            style={[styles.retryButton, { backgroundColor: colors.tint }]}
-            onPress={() => refetch()}
-          >
-            <Text style={styles.retryButtonText}>Réessayer</Text>
-          </TouchableOpacity>
+          <Text style={[styles.retryButton, { backgroundColor: colors.tint }]}>
+            Réessayer
+          </Text>
         </View>
       </View>
     );
@@ -396,99 +299,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
   },
-  productCard: { 
-    width: (width - 60) / 2,
-    borderRadius: 20,
-    marginBottom: 16,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  productImageContainer: {
-    position: 'relative',
-    height: 200,
-  },
-  productImage: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    zIndex: 3,
-  },
-  discountBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    zIndex: 3,
-  },
-  discountText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  productContent: {
-    padding: 16,
-  },
-  productCategory: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  productName: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  priceRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  currentPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  originalPrice: {
-    fontSize: 12,
-    fontWeight: '500',
-    textDecorationLine: 'line-through',
-  },
-  savingsContainer: {
-    marginBottom: 12,
-  },
-  savingsText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -519,11 +329,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   // NOUVEAUX STYLES POUR L'INFINITE SCROLL
   loadingSkeletonContainer: {
