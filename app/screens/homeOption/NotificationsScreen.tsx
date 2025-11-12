@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics'; // AJOUT DE LA VIBRATION
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, RefreshControl, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
@@ -178,6 +179,7 @@ export default function NotificationsScreen() {
     }
   }, [refresh, t]);
 
+  // AJOUT DE LA VIBRATION LORS DU PASSAGE EN MODE SÉLECTION
   const toggleSelection = useCallback((notificationId: string) => {
     setSelectedIds(prev => {
       const newSet = new Set(prev);
@@ -190,6 +192,8 @@ export default function NotificationsScreen() {
         newSet.add(notificationId);
         if (!selectionMode) {
           setSelectionMode(true);
+          // VIBRATION LORSQU'ON PASSE EN MODE SÉLECTION
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
       }
       return newSet;
@@ -204,12 +208,16 @@ export default function NotificationsScreen() {
       const allIds = new Set(displayedNotifications.map(item => item.id));
       setSelectedIds(allIds);
       setSelectionMode(true);
+      // VIBRATION LORSQU'ON SÉLECTIONNE TOUT
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
   }, [displayedNotifications, selectedIds.size]);
 
   const cancelSelection = useCallback(() => {
     setSelectedIds(new Set());
     setSelectionMode(false);
+    // VIBRATION LÉGÈRE LORSQU'ON ANNULE LA SÉLECTION
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
   const deleteSelectedNotifications = useCallback(async () => {
