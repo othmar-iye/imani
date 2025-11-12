@@ -1,7 +1,7 @@
 // screens/SearchResultsScreen.tsx
 import { Header } from '@/components/Header';
 import ProductCard from '@/components/ProductCard';
-import { SearchResultsSkeleton } from '@/components/SearchResultsSkeleton';
+import { SearchResultsSkeleton } from '@/components/search/SearchResultsSkeleton';
 import { Theme } from '@/constants/theme';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useCallback } from 'react';
