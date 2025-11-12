@@ -20,8 +20,8 @@ export interface Notification {
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasNewData, setHasNewData] = useState(false); // 🆕 Flag pour nouvelles données
+  const [isLoading, setIsLoading] = useState(true); // 🆕 COMMENCE À true
+  const [hasNewData, setHasNewData] = useState(false);
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -37,11 +37,15 @@ export const useNotifications = () => {
   };
 
   const loadNotifications = async () => {
+    // 🆕 CORRECTION : Toujours gérer l'état loading même si pas d'user
     if (!user) {
-      setIsLoading(false);
+      setNotifications([]);
+      setUnreadCount(0);
+      setIsLoading(false); // ← IMPORTANT : Toujours mettre à false
       return;
     }
     
+    // 🆕 CORRECTION : S'assurer que isLoading reste true pendant le chargement
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -52,6 +56,9 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Erreur chargement notifications:', error);
+        // 🆕 CORRECTION : Même en cas d'erreur, on arrête le loading
+        setNotifications([]);
+        setUnreadCount(0);
         return;
       }
 
@@ -75,7 +82,11 @@ export const useNotifications = () => {
       
     } catch (error) {
       console.error('Erreur inattendue:', error);
+      // 🆕 CORRECTION : Gestion d'erreur robuste
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
+      // 🆕 CORRECTION : Garantir que isLoading devient false dans tous les cas
       setIsLoading(false);
     }
   };
@@ -192,9 +203,21 @@ export const useNotifications = () => {
     }
   }, [t]);
 
-  // Chargement initial
+  // 🆕 CORRECTION : Chargement initial - S'assurer que isLoading reste true
   useEffect(() => {
-    loadNotifications();
+    let isMounted = true;
+    
+    const loadInitialData = async () => {
+      if (isMounted) {
+        await loadNotifications();
+      }
+    };
+
+    loadInitialData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   // 🆕 Fonction pour synchroniser et récupérer les nouvelles données

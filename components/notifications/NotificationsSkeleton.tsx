@@ -1,4 +1,3 @@
-// components/NotificationsSkeleton.tsx
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { StyleSheet, useColorScheme, View } from 'react-native';
@@ -19,12 +18,15 @@ interface NotificationsSkeletonProps {
     border: string;
     tint: string;
   };
+  variant?: 'initial' | 'loading';
 }
 
-export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ colors }) => {
+export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ 
+  colors, 
+  variant = 'initial' 
+}) => {
   const isDark = useColorScheme() === 'dark';
   
-  // Animation cohérente avec votre style
   const opacity = useSharedValue(0.4);
 
   useEffect(() => {
@@ -44,7 +46,6 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
     };
   });
 
-  // Composant skeleton réutilisable
   const AnimatedSkeletonBox = ({ 
     width, 
     height, 
@@ -88,21 +89,17 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
     );
   };
 
-  // Skeleton pour une notification individuelle
   const renderNotificationSkeleton = () => (
-    <View style={[styles.notificationCard, { backgroundColor: colors.card }]}>
+    <View style={[styles.notificationCard, { backgroundColor: colors.card, marginBottom:10 }]}>
       <View style={styles.notificationContent}>
-        {/* En-tête avec icône et titre */}
         <View style={styles.notificationHeader}>
           <View style={styles.titleContainer}>
-            {/* Icône */}
             <AnimatedSkeletonBox 
               width={16} 
               height={16} 
               borderRadius={8}
               variant="strong"
             />
-            {/* Titre */}
             <AnimatedSkeletonBox 
               width="70%" 
               height={16} 
@@ -111,7 +108,6 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
               variant="strong"
             />
           </View>
-          {/* Point non-lu */}
           <AnimatedSkeletonBox 
             width={8} 
             height={8} 
@@ -120,7 +116,6 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
           />
         </View>
         
-        {/* Message */}
         <AnimatedSkeletonBox 
           width="100%" 
           height={14} 
@@ -136,7 +131,6 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
           variant="default"
         />
         
-        {/* Pied avec date et flèche */}
         <View style={styles.notificationFooter}>
           <AnimatedSkeletonBox 
             width={80} 
@@ -155,10 +149,22 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
     </View>
   );
 
+  if (variant === 'loading') {
+    return (
+      <View style={styles.loadingSkeletonContainer}>
+        {[1, 2, 3].map((item) => (
+          <View key={item}>
+            {renderNotificationSkeleton()}
+          </View>
+        ))}
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header INSTANTANÉ - comme votre style */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      {/* Header Skeleton */}
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: 60 }]}>
         <View style={styles.headerLeft}>
           <Ionicons name="chevron-back" size={24} color={colors.tint} />
           <AnimatedSkeletonBox 
@@ -169,7 +175,6 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
             variant="strong"
           />
         </View>
-        {/* Bouton "Tout effacer" */}
         <AnimatedSkeletonBox 
           width={80} 
           height={16} 
@@ -178,7 +183,7 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
         />
       </View>
 
-      {/* Statistiques SKELETON */}
+      {/* Statistiques Skeleton */}
       <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
         <View style={styles.statItem}>
           <AnimatedSkeletonBox 
@@ -213,7 +218,7 @@ export const NotificationsSkeleton: React.FC<NotificationsSkeletonProps> = ({ co
         </View>
       </View>
 
-      {/* Liste des notifications SKELETON */}
+      {/* Liste des notifications Skeleton */}
       <View style={styles.notificationsList}>
         {[1, 2, 3, 4, 5].map((item) => (
           <View key={item}>
@@ -235,7 +240,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 60,
     borderBottomWidth: 1,
   },
   headerLeft: {
@@ -247,8 +251,6 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 16,
     borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8,
   },
   statItem: {
     flex: 1,
@@ -265,13 +267,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   notificationCard: { 
-    marginBottom: 16, 
     borderRadius: 12,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    elevation: 8,
+    overflow: 'hidden',
   },
   notificationContent: {
     padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   notificationHeader: { 
     flexDirection: 'row', 
@@ -291,5 +293,9 @@ const styles = StyleSheet.create({
   },
   skeletonBox: {
     borderRadius: 6,
+  },
+  loadingSkeletonContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
 });
