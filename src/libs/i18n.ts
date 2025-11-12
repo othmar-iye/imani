@@ -532,7 +532,7 @@ const resources = {
         sales: {
             title: "Soldes",
             discountTitle: "Économisez jusqu'à 50%",
-            description: "Découvrez nos meilleures offres et promotions exclusives. Des réductions exceptionnelles sur des produits de qualité.",
+            description: "Découvrez nos meilleures offres et promotions exclusives. Des réductions exceptionnelles.",
             productCount: "{{count}} produit en promotion",
             productCount_plural: "{{count}} produits en promotion",
         },
@@ -1457,7 +1457,7 @@ const resources = {
         sales: {
             title: "Sales", 
             discountTitle: "Save up to 50%",
-            description: "Discover our best offers and exclusive promotions. Exceptional discounts on quality products.",
+            description: "Discover our best offers and exclusive promotions. Exceptional discounts.",
             productCount: "{{count}} product on sale",
             productCount_plural: "{{count}} products on sale"
         },

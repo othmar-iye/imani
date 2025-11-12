@@ -1,22 +1,22 @@
 // screens/CategoryScreen.tsx
-import { CategorySkeleton } from '@/components/CategorySkeleton';
+import { Header } from '@/components/Header';
+import ProductCard from '@/components/ProductCard';
+import { CategorySkeleton } from '@/components/category/CategorySkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useCallback } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import React Query
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 // Import des données réelles
 import { featuredProducts, Product } from '@/src/data/products';
@@ -26,23 +26,77 @@ import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
-// Fonction API simulée pour les produits par catégorie
-const fetchProductsByCategory = async (categoryName: string): Promise<Product[]> => {
+// FONCTION AVEC PAGINATION POUR L'INFINITE SCROLL
+const fetchProductsByCategoryPaginated = async ({ 
+  pageParam = 0,
+  categoryName = 'Tous'
+}: { 
+  pageParam?: number;
+  categoryName?: string;
+}): Promise<{
+  products: Product[];
+  nextPage: number | null;
+  hasMore: boolean;
+}> => {
+  const PAGE_SIZE = 6; // Chargement initial
+  const LOAD_MORE_SIZE = 4; // Chargement suivant
+  
+  const limit = pageParam === 0 ? PAGE_SIZE : LOAD_MORE_SIZE;
+  const offset = pageParam === 0 ? 0 : PAGE_SIZE + (pageParam - 1) * LOAD_MORE_SIZE;
+
   return new Promise((resolve) => {
     setTimeout(() => {
       // Si c'est "Tous", retourner tous les produits
+      let allProducts;
       if (categoryName === 'Tous' || categoryName === 'all' || categoryName === 'All') {
-        resolve(featuredProducts);
+        allProducts = featuredProducts;
       } else {
         // Filtrer par catégorie
-        const filtered = featuredProducts.filter(product => 
+        allProducts = featuredProducts.filter(product => 
           product.category === categoryName || 
           product.subCategory === categoryName
         );
-        resolve(filtered);
       }
+      
+      const startIndex = offset;
+      const endIndex = startIndex + limit;
+      const paginatedResults = allProducts.slice(startIndex, endIndex);
+      
+      const hasMore = endIndex < allProducts.length;
+      const nextPage = hasMore ? pageParam + 1 : null;
+
+      resolve({
+        products: paginatedResults,
+        nextPage,
+        hasMore
+      });
     }, 800);
   });
+};
+
+// Composant Skeleton pour le chargement Infinite Scroll
+const LoadingSkeleton = ({ colors }: { colors: any }) => {
+  return (
+    <View style={styles.loadingSkeletonContainer}>
+      {[1, 2].map((item) => (
+        <View key={item} style={[styles.skeletonProductCard, { backgroundColor: colors.card }]}>
+          <View style={[styles.skeletonImage, { backgroundColor: colors.border }]} />
+          <View style={styles.skeletonContent}>
+            <View style={[styles.skeletonText, { backgroundColor: colors.border }]} />
+            <View style={[styles.skeletonTitle, { backgroundColor: colors.border }]} />
+            <View style={[styles.skeletonPrice, { backgroundColor: colors.border }]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// Fonction pour déterminer le nom d'affichage de la catégorie
+const getDisplayCategoryName = (categoryName: string, t: any) => {
+  return categoryName === 'Tous' || categoryName === 'all' || categoryName === 'All' 
+    ? t('category.allProducts') 
+    : categoryName;
 };
 
 export default function CategoryScreen() {
@@ -64,114 +118,57 @@ export default function CategoryScreen() {
     tint: isDark ? Theme.dark.tint : Theme.light.tint,
   };
 
-  // Utilisation de React Query pour les produits de la catégorie
-  const { 
-    data: categoryProducts = [], 
-    isLoading: categoryLoading, 
-    error: categoryError 
-  } = useQuery({
-    queryKey: ['category-products', categoryName],
-    queryFn: () => fetchProductsByCategory(categoryName),
+  // ✅ UTILISATION DE REACT QUERY INFINITE POUR LES PRODUITS DE CATÉGORIE
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: categoryLoading,
+    error: categoryError,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['category-products-infinite', categoryName],
+    queryFn: ({ pageParam = 0 }) => fetchProductsByCategoryPaginated({ 
+      pageParam,
+      categoryName
+    }),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
   });
 
-  const renderProductItem = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
-      style={[
-        styles.productCard, 
-        { 
-          backgroundColor: colors.card,
-          shadowColor: colorScheme === 'dark' ? '#000' : '#8E8E93',
-        }
-      ]}
-      activeOpacity={0.9}
-      onPress={() => router.push({
-        pathname: '/screens/ProductDetailScreen',
-        params: { productId: item.id }
-      })}
-    >
-      {/* Image container avec overlay gradient */}
-      <View style={styles.productImageContainer}>
-        <Image 
-          source={{ uri: item.image }} 
-          style={styles.productImage}
-          resizeMode="cover"
-        />
-        
-        {/* Overlay gradient pour un effet moderne */}
-        <View style={[
-          styles.imageOverlay,
-          { 
-            backgroundColor: colorScheme === 'dark' 
-              ? 'rgba(0,0,0,0.3)' 
-              : 'rgba(255,255,255,0.1)'
-          }
-        ]} />
-        
-        {/* Badge de promotion si applicable */}
-        {item.discount > 0 && (
-          <View style={[styles.discountBadge, { backgroundColor: colors.tint }]}>
-            <Text style={styles.discountText}>-{item.discount}%</Text>
-          </View>
-        )}
-        
-        {/* Bouton favoris positionné absolument */}
-        <TouchableOpacity 
-          style={[
-            styles.favoriteButton, 
-            { 
-              backgroundColor: colorScheme === 'dark' 
-                ? 'rgba(255,255,255,0.9)' 
-                : 'rgba(255,255,255,0.9)',
-            }
-          ]}
-        >
-          <Ionicons 
-            name={item.isFavorite ? "heart" : "heart-outline"} 
-            size={16} 
-            color={item.isFavorite ? colors.tint : '#8E8E93'} 
-          />
-        </TouchableOpacity>
-      </View>
-      
-      {/* Contenu texte */}
-      <View style={styles.productContent}>
-        {/* Catégorie */}
-        <Text style={[styles.productCategory, { color: colors.textSecondary }]} numberOfLines={1}>
-          {item.category}
-        </Text>
-        
-        {/* Nom du produit */}
-        <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
-          {item.name}
-        </Text>
-        
-        {/* Prix et rating */}
-        <View style={styles.priceRatingContainer}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.currentPrice, { color: colors.tint }]}>
-              ${item.price}
-            </Text>
-            {item.originalPrice > item.price && (
-              <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                ${item.originalPrice}
-              </Text>
-            )}
-          </View>
-        </View>
+  // Extraire tous les produits des pages
+  const allCategoryProducts = React.useMemo(() => {
+    return data?.pages.flatMap(page => page.products) || [];
+  }, [data]);
 
-        {/* Localisation */}
-        <View style={styles.locationContainer}>
-          <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
-          <Text style={[styles.locationText, { color: colors.textSecondary }]}>
-            {item.location}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+  // ✅ GESTION DE L'INFINITE SCROLL
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // ✅ FOOTER AVEC INDICATEUR DE CHARGEMENT
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    
+    return <LoadingSkeleton colors={colors} />;
+  };
+
+  const renderProductItem = ({ item }: { item: Product }) => (
+    <ProductCard
+      product={item}
+      variant="category"
+      showLocation={true}
+      showSavings={false}
+      showStatus={false}
+      showStats={false}
+    />
   );
 
   // État de chargement - AVEC SKELETON
-  if (categoryLoading) {
+  if (categoryLoading && allCategoryProducts.length === 0) {
     return <CategorySkeleton colors={{
       background: colors.background,
       card: colors.card,
@@ -186,19 +183,12 @@ export default function CategoryScreen() {
   if (categoryError) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={24} color={colors.tint} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>
-              {categoryName}
-            </Text>
-          </View>
-        </View>
+        <Header
+          colors={colors}
+          title={getDisplayCategoryName(categoryName, t)}
+          showBackButton={true}
+          customPaddingTop={60}
+        />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
           <Text style={[styles.errorText, { color: colors.text }]}>
@@ -209,31 +199,27 @@ export default function CategoryScreen() {
     );
   }
 
-  // Déterminer le titre de la catégorie affiché
-  const displayCategoryName = categoryName === 'Tous' || categoryName === 'all' || categoryName === 'All' 
-    ? t('category.allProducts') 
-    : categoryName;
+  const displayCategoryName = getDisplayCategoryName(categoryName, t);
+
+  // Composant pour l'état vide
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="cube-outline" size={64} color={colors.textSecondary} />
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+        {t('category.noProducts')}
+      </Text>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header avec back button */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons 
-              name="chevron-back" 
-              size={24} 
-              color={colors.tint} 
-            />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {displayCategoryName}
-          </Text>
-        </View>
-      </View>
+      <Header
+        colors={colors}
+        title={displayCategoryName}
+        showBackButton={true}
+        customPaddingTop={60}
+      />
 
       {/* En-tête avec description */}
       <View style={styles.infoSection}>
@@ -243,7 +229,7 @@ export default function CategoryScreen() {
         <Text style={[styles.infoSubtitle, { color: colors.textSecondary }]}>
           {t('category.description', { 
             category: displayCategoryName, 
-            count: categoryProducts.length 
+            count: allCategoryProducts.length 
           })}
         </Text>
       </View>
@@ -251,35 +237,31 @@ export default function CategoryScreen() {
       {/* Compteur des produits */}
       <View style={styles.counterContainer}>
         <Text style={[styles.counterText, { color: colors.textSecondary }]}>
-          {categoryProducts.length === 1 
-            ? t('category.productCount', { count: categoryProducts.length })
-            : t('category.productCount_plural', { count: categoryProducts.length })
+          {allCategoryProducts.length === 1 
+            ? t('category.productCount', { count: allCategoryProducts.length })
+            : t('category.productCount_plural', { count: allCategoryProducts.length })
           }
         </Text>
       </View>
 
-      {/* Grid des produits */}
+      {/* Grid des produits AVEC INFINITE SCROLL */}
       <FlatList
-        data={categoryProducts}
+        data={allCategoryProducts}
         renderItem={renderProductItem}
         keyExtractor={item => item.id}
         numColumns={2}
         scrollEnabled={true}
         contentContainerStyle={[
           styles.productsGrid,
-          categoryProducts.length === 0 && styles.emptyProductsGrid
+          allCategoryProducts.length === 0 && styles.emptyProductsGrid
         ]}
         columnWrapperStyle={styles.productsRow}
         showsVerticalScrollIndicator={false}
         style={styles.flatList}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="cube-outline" size={64} color={colors.textSecondary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {t('category.noProducts')}
-            </Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );
@@ -288,27 +270,6 @@ export default function CategoryScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
-  },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-  },
-  headerTitle: { 
-    fontSize: 24, 
-    fontWeight: '700' 
   },
   infoSection: {
     paddingHorizontal: 20,
@@ -350,101 +311,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
   },
-  productCard: { 
-    width: (width - 60) / 2,
-    borderRadius: 20,
-    marginBottom: 16,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  productImageContainer: {
-    position: 'relative',
-    height: 200,
-  },
-  productImage: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    zIndex: 3,
-  },
-  discountBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    zIndex: 3,
-  },
-  discountText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  productContent: {
-    padding: 16,
-  },
-  productCategory: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  productName: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  priceRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  currentPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  originalPrice: {
-    fontSize: 12,
-    fontWeight: '500',
-    textDecorationLine: 'line-through',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  locationText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -468,5 +334,47 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 16,
     textAlign: 'center',
+  },
+  // NOUVEAUX STYLES POUR L'INFINITE SCROLL
+  loadingSkeletonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  skeletonProductCard: {
+    width: (width - 60) / 2,
+    borderRadius: 20,
+    marginBottom: 20,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 20,
+  },
+  skeletonContent: {
+    padding: 16,
+  },
+  skeletonText: {
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 8,
+    width: '60%',
+  },
+  skeletonTitle: {
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: '90%',
+  },
+  skeletonPrice: {
+    height: 14,
+    borderRadius: 7,
+    width: '40%',
   },
 });
