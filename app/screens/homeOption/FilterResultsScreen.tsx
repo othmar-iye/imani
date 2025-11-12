@@ -1,29 +1,179 @@
 // screens/FilterResultsScreen.tsx
+import { Header } from '@/components/Header';
+import ProductCard from '@/components/ProductCard';
+import { FilterResultsSkeleton } from '@/components/filter/FilterResultsSkeleton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Dimensions,
+    FlatList,
+    StyleSheet,
+    Text,
+    useColorScheme,
+    View
 } from 'react-native';
+
+// Import React Query
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 // Import des données réelles
 import { featuredProducts, Product } from '@/src/data/products';
 
 const { width } = Dimensions.get('window');
 
+// FONCTION AVEC PAGINATION POUR L'INFINITE SCROLL
+const fetchFilteredProductsPaginated = async ({ 
+  pageParam = 0,
+  categories = [],
+  minPrice = 0,
+  maxPrice = 1000,
+  city = '',
+  condition = '',
+  sort = 'popular'
+}: { 
+  pageParam?: number;
+  categories?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  city?: string;
+  condition?: string;
+  sort?: string;
+}): Promise<{
+  products: Product[];
+  nextPage: number | null;
+  hasMore: boolean;
+}> => {
+  const PAGE_SIZE = 6; // Chargement initial
+  const LOAD_MORE_SIZE = 4; // Chargement suivant
+  
+  const limit = pageParam === 0 ? PAGE_SIZE : LOAD_MORE_SIZE;
+  const offset = pageParam === 0 ? 0 : PAGE_SIZE + (pageParam - 1) * LOAD_MORE_SIZE;
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Fonction pour mapper les noms de catégories
+      const mapCategoryToProductCategory = (receivedCategory: string): string => {
+        const categoryMap: { [key: string]: string } = {
+          'Électronique': 'Électronique',
+          'Habillement': 'Habillement',
+          'Maison & Déco': 'Maison & Déco',
+          'Sports & Loisirs': 'Sports & Loisirs',
+          'Livres & Médias': 'Livres & Médias',
+          'Autres': 'Autres',
+          'Electronics': 'Électronique',
+          'Clothing': 'Habillement',
+          'Home & Decor': 'Maison & Déco',
+          'Sports & Leisure': 'Sports & Loisirs',
+          'Books & Media': 'Livres & Médias',
+          'Others': 'Autres',
+        };
+        return categoryMap[receivedCategory] || receivedCategory;
+      };
+
+      // Fonction pour mapper les conditions
+      const mapConditionToProductCondition = (receivedCondition: string): string => {
+        const conditionMap: { [key: string]: string } = {
+          'new': 'Neuf',
+          'like-new': 'Comme neuf', 
+          'good': 'Très bon état',
+          'fair': 'Excellent état'
+        };
+        return conditionMap[receivedCondition] || receivedCondition;
+      };
+
+      // Filtrer tous les produits selon les critères
+      let allFiltered = featuredProducts.filter(product => {
+        // Filtre par catégorie
+        if (categories.length > 0) {
+          const mappedCategories = categories.map(mapCategoryToProductCategory);
+          if (!mappedCategories.includes(product.category)) {
+            return false;
+          }
+        }
+
+        // Filtre par prix
+        if (product.price < minPrice || product.price > maxPrice) {
+          return false;
+        }
+
+        // Filtre par ville
+        if (city && product.location && !product.location.includes(city)) {
+          return false;
+        }
+
+        // Filtre par condition
+        if (condition) {
+          const mappedCondition = mapConditionToProductCondition(condition);
+          if (product.condition !== mappedCondition) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // Trier les résultats
+      switch (sort) {
+        case 'newest':
+          allFiltered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          break;
+        case 'price-low':
+          allFiltered.sort((a, b) => a.price - b.price);
+          break;
+        case 'price-high':
+          allFiltered.sort((a, b) => b.price - a.price);
+          break;
+        case 'popular':
+        default:
+          allFiltered.sort((a, b) => b.views - a.views);
+          break;
+      }
+
+      // Pagination
+      const startIndex = offset;
+      const endIndex = startIndex + limit;
+      const paginatedResults = allFiltered.slice(startIndex, endIndex);
+      
+      const hasMore = endIndex < allFiltered.length;
+      const nextPage = hasMore ? pageParam + 1 : null;
+
+      resolve({
+        products: paginatedResults,
+        nextPage,
+        hasMore
+      });
+    }, 800);
+  });
+};
+
+// Composant Skeleton pour le chargement Infinite Scroll
+const LoadingSkeleton = ({ colors }: { colors: any }) => {
+  return (
+    <View style={styles.loadingSkeletonContainer}>
+      {[1, 2].map((item) => (
+        <View key={item} style={[styles.skeletonProductCard, { backgroundColor: colors.card }]}>
+          <View style={[styles.skeletonImage, { backgroundColor: colors.border }]} />
+          <View style={styles.skeletonContent}>
+            <View style={[styles.skeletonText, { backgroundColor: colors.border }]} />
+            <View style={[styles.skeletonTitle, { backgroundColor: colors.border }]} />
+            <View style={[styles.skeletonPrice, { backgroundColor: colors.border }]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
 export default function FilterResultsScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const params = useLocalSearchParams();
+  
+  // État de chargement initial
+  const [isLoading, setIsLoading] = useState(true);
 
   const colors = {
     background: colorScheme === 'dark' ? Theme.dark.background : Theme.light.background,
@@ -42,107 +192,89 @@ export default function FilterResultsScreen() {
   const condition = params.condition as string || '';
   const sort = params.sort as string || 'popular';
 
-  // CORRECTION : Fonction pour mapper les noms de catégories reçus vers les catégories des produits
-  const mapCategoryToProductCategory = (receivedCategory: string): string => {
-    const categoryMap: { [key: string]: string } = {
-      // Français
-      'Électronique': 'Électronique',
-      'Habillement': 'Habillement',
-      'Maison & Déco': 'Maison & Déco',
-      'Sports & Loisirs': 'Sports & Loisirs',
-      'Livres & Médias': 'Livres & Médias',
-      'Autres': 'Autres',
+  // Simuler le chargement initial
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
 
-      // English
-      'Electronics': 'Électronique',
-      'Clothing': 'Habillement',
-      'Home & Decor': 'Maison & Déco',
-      'Sports & Leisure': 'Sports & Loisirs',
-      'Books & Media': 'Livres & Médias',
-      'Others': 'Autres',
-    };
-    
-    return categoryMap[receivedCategory] || receivedCategory;
-  };
+    return () => clearTimeout(timer);
+  }, []);
 
-  // CORRECTION : Fonction pour mapper les IDs de condition vers les conditions des produits
-  const mapConditionToProductCondition = (receivedCondition: string): string => {
-    const conditionMap: { [key: string]: string } = {
-      // IDs des filtres vers conditions des produits
-      'new': 'Neuf',
-      'like-new': 'Comme neuf', 
-      'good': 'Très bon état',
-      'fair': 'Excellent état'
-    };
-    
-    return conditionMap[receivedCondition] || receivedCondition;
-  };
+  // ✅ UTILISATION DE REACT QUERY INFINITE POUR LES RÉSULTATS FILTRÉS
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: queryLoading,
+    error: queryError,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['filtered-products-infinite', categories, minPrice, maxPrice, city, condition, sort],
+    queryFn: ({ pageParam = 0 }) => fetchFilteredProductsPaginated({ 
+      pageParam,
+      categories,
+      minPrice,
+      maxPrice,
+      city,
+      condition,
+      sort
+    }),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
+    enabled: !isLoading, // Ne s'exécute que après le chargement initial
+  });
 
-  // CORRECTION : Fonction pour filtrer les produits
-  const getFilteredProducts = (): Product[] => {
-    let filtered = featuredProducts.filter(product => {
-      // CORRECTION : Filtre par catégorie avec mapping pour catégories multiples
-      if (categories.length > 0) {
-        // Convertir chaque catégorie reçue en catégorie de produit
-        const mappedCategories = categories.map(mapCategoryToProductCategory);
-        
-        // Vérifier si la catégorie du produit est dans la liste des catégories sélectionnées
-        if (!mappedCategories.includes(product.category)) {
-          return false;
-        }
-      }
+  // Extraire tous les résultats des pages
+  const allFilteredProducts = React.useMemo(() => {
+    return data?.pages.flatMap(page => page.products) || [];
+  }, [data]);
 
-      // Filtre par prix
-      if (product.price < minPrice || product.price > maxPrice) {
-        return false;
-      }
-
-      // Filtre par ville (si la propriété existe dans vos données)
-      if (city && product.location && !product.location.includes(city)) {
-        return false;
-      }
-
-      // CORRECTION : Filtre par condition avec mapping
-      if (condition) {
-        const mappedCondition = mapConditionToProductCondition(condition);
-        if (product.condition !== mappedCondition) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    // CORRECTION : Trier les résultats avec gestion de la date
-    switch (sort) {
-      case 'newest':
-        // Trier par date de création (plus récent en premier)
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'popular':
-      default:
-        // Trier par vues ou par popularité
-        filtered.sort((a, b) => b.views - a.views);
-        break;
+  // ✅ GESTION DE L'INFINITE SCROLL
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    return filtered;
+  // ✅ FOOTER AVEC INDICATEUR DE CHARGEMENT
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    
+    return <LoadingSkeleton colors={colors} />;
   };
 
-  const filteredProducts = getFilteredProducts();
+  // Afficher le skeleton pendant le chargement initial
+  if (isLoading) {
+    return <FilterResultsSkeleton colors={colors} />;
+  }
+
+  // Gestion d'erreur
+  if (queryError) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Header
+          colors={colors}
+          title={t('filters.results', 'Résultats des filtres')}
+          showBackButton={true}
+          customPaddingTop={60}
+        />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.tint} />
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            Erreur lors du chargement des résultats
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   // CORRECTION : Fonction pour générer le titre basé sur les filtres
   const getFilterTitle = (): string => {
     const parts = [];
     
     if (categories.length > 0) {
-      // Afficher les noms des catégories tels quels (déjà traduits)
       parts.push(categories.join(', '));
     }
     
@@ -168,117 +300,21 @@ export default function FilterResultsScreen() {
   };
 
   const renderProductItem = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
-      style={[
-        styles.productCard, 
-        { 
-          backgroundColor: colors.card,
-          shadowColor: colorScheme === 'dark' ? '#000' : '#8E8E93',
-        }
-      ]}
-      activeOpacity={0.9}
-      onPress={() => router.push({
-        pathname: '/screens/ProductDetailScreen',
-        params: { productId: item.id }
-      })}
-    >
-      {/* Image container avec overlay gradient */}
-      <View style={styles.productImageContainer}>
-        <Image 
-          source={{ uri: item.image }} 
-          style={styles.productImage}
-          resizeMode="cover"
-        />
-        
-        {/* Overlay gradient pour un effet moderne */}
-        <View style={[
-          styles.imageOverlay,
-          { 
-            backgroundColor: colorScheme === 'dark' 
-              ? 'rgba(0,0,0,0.3)' 
-              : 'rgba(255,255,255,0.1)'
-          }
-        ]} />
-        
-        {/* Badge de promotion */}
-        {item.discount > 0 && (
-          <View style={[styles.discountBadge, { backgroundColor: colors.tint }]}>
-            <Text style={styles.discountText}>-{item.discount}%</Text>
-          </View>
-        )}
-        
-        {/* Bouton favoris positionné absolument */}
-        <TouchableOpacity 
-          style={[
-            styles.favoriteButton, 
-            { 
-              backgroundColor: colorScheme === 'dark' 
-                ? 'rgba(255,255,255,0.9)' 
-                : 'rgba(255,255,255,0.9)',
-            }
-          ]}
-        >
-          <Ionicons 
-            name={item.isFavorite ? "heart" : "heart-outline"} 
-            size={16} 
-            color={item.isFavorite ? colors.tint : '#8E8E93'} 
-          />
-        </TouchableOpacity>
-      </View>
-      
-      {/* Contenu texte */}
-      <View style={styles.productContent}>
-        {/* Catégorie */}
-        <Text style={[styles.productCategory, { color: colors.textSecondary }]} numberOfLines={1}>
-          {item.category}
-        </Text>
-        
-        {/* Nom du produit */}
-        <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
-          {item.name}
-        </Text>
-        
-        {/* Prix et rating */}
-        <View style={styles.priceRatingContainer}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.currentPrice, { color: colors.tint }]}>
-              ${item.price}
-            </Text>
-            {item.originalPrice > item.price && (
-              <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                ${item.originalPrice}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Économie réalisée */}
-        {item.discount > 0 && (
-          <View style={styles.savingsContainer}>
-            <Text style={[styles.savingsText, { color: colors.tint }]}>
-              {t('filters.savings', 'Économie')}: ${(item.originalPrice - item.price).toFixed(2)}
-            </Text>
-          </View>
-        )}
-
-        {/* Date de publication */}
-        <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-          Publié le {new Date(item.createdAt).toLocaleDateString('fr-FR')}
-        </Text>
-
-        {/* Localisation */}
-        <Text style={[styles.locationText, { color: colors.textSecondary }]}>
-          {item.location}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    <ProductCard
+      product={item}
+      variant="search"
+      showLocation={false}
+      showSavings={false}
+      showStatus={false}
+      showStats={false}
+    />
   );
 
   // Composant pour l'état vide
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Ionicons 
-        name="filter-outline" 
+        name="search-outline" 
         size={64} 
         color={colors.textSecondary} 
       />
@@ -288,48 +324,22 @@ export default function FilterResultsScreen() {
       <Text style={[styles.emptyStateSubtitle, { color: colors.textSecondary }]}>
         {t('filters.noProductsMatch', 'Aucun produit ne correspond à vos critères de filtrage')}
       </Text>
-      <TouchableOpacity 
-        style={[styles.emptyStateButton, { backgroundColor: colors.tint }]}
-        onPress={() => router.push('/screens/homeOption/FiltersScreen')}
-      >
-        <Text style={styles.emptyStateButtonText}>
-          {t('filters.modifyFilters', 'Modifier les filtres')}
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header avec back button */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons 
-              name="chevron-back" 
-              size={24} 
-              color={colors.tint} 
-            />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {t('filters.results', 'Résultats des filtres')}
-          </Text>
-        </View>
-
-        {/* Bouton pour modifier les filtres */}
-        <TouchableOpacity 
-          style={styles.editFiltersButton}
-          onPress={() => router.push('/screens/homeOption/FiltersScreen')}
-        >
-          <Ionicons name="options-outline" size={20} color={colors.tint} />
-          <Text style={[styles.editFiltersText, { color: colors.tint }]}>
-            {t('filters.modify', 'Modifier')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <Header
+        colors={colors}
+        title={t('filters.results', 'Résultats des filtres')}
+        showBackButton={true}
+        rightAction={{
+          label: t('filters.modify', 'Modifier'),
+          onPress: () => router.push('/screens/homeOption/FiltersScreen')
+        }}
+        customPaddingTop={60}
+      />
 
       {/* En-tête avec les filtres appliqués */}
       <View style={styles.infoSection}>
@@ -337,7 +347,7 @@ export default function FilterResultsScreen() {
           {getFilterTitle()}
         </Text>
         <Text style={[styles.infoSubtitle, { color: colors.textSecondary }]}>
-          {filteredProducts.length > 0 
+          {allFilteredProducts.length > 0 
             ? t('filters.productsMatch', 'Produits correspondant à vos critères')
             : t('filters.noProductsMatchFilters', 'Aucun produit ne correspond à vos filtres')
           }
@@ -345,72 +355,40 @@ export default function FilterResultsScreen() {
       </View>
 
       {/* Compteur des produits */}
-      {filteredProducts.length > 0 && (
+      {allFilteredProducts.length > 0 && (
         <View style={styles.counterContainer}>
           <Text style={[styles.counterText, { color: colors.textSecondary }]}>
-            {filteredProducts.length} {t('filters.productsFound', 'produit(s) trouvé(s)')}
+            {allFilteredProducts.length} {t('filters.productsFound', 'produit(s) trouvé(s)')}
           </Text>
         </View>
       )}
 
-      {/* Grid des produits ou état vide */}
+      {/* Grid des produits ou état vide AVEC INFINITE SCROLL */}
       <FlatList
-        data={filteredProducts}
+        data={allFilteredProducts}
         renderItem={renderProductItem}
         keyExtractor={item => item.id}
         numColumns={2}
         scrollEnabled={true}
         contentContainerStyle={[
           styles.productsGrid,
-          filteredProducts.length === 0 && styles.emptyContainer
+          allFilteredProducts.length === 0 && styles.emptyContainer
         ]}
-        columnWrapperStyle={filteredProducts.length > 0 ? styles.productsRow : undefined}
+        columnWrapperStyle={allFilteredProducts.length > 0 ? styles.productsRow : undefined}
         showsVerticalScrollIndicator={false}
         style={styles.flatList}
         ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );
 }
 
-// Ajout du style pour la date
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
-  },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-  },
-  headerTitle: { 
-    fontSize: 24, 
-    fontWeight: '700' 
-  },
-  editFiltersButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  editFiltersText: {
-    fontSize: 14,
-    fontWeight: '600',
   },
   infoSection: {
     paddingHorizontal: 20,
@@ -454,110 +432,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
   },
-  productCard: { 
-    width: (width - 60) / 2,
-    borderRadius: 20,
-    marginBottom: 16,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  productImageContainer: {
-    position: 'relative',
-    height: 200,
-  },
-  productImage: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    zIndex: 3,
-  },
-  discountBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    zIndex: 3,
-  },
-  discountText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  productContent: {
-    padding: 16,
-  },
-  productCategory: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  productName: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  priceRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  currentPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  originalPrice: {
-    fontSize: 12,
-    fontWeight: '500',
-    textDecorationLine: 'line-through',
-  },
-  savingsContainer: {
-    marginBottom: 8,
-  },
-  savingsText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  dateText: {
-    fontSize: 10,
-    fontWeight: '500',
-    marginBottom: 4,
-    fontStyle: 'italic',
-  },
-  locationText: {
-    fontSize: 11,
-    fontWeight: '500',
-    fontStyle: 'italic',
-  },
   // Styles pour l'état vide
   emptyState: {
     alignItems: 'center',
@@ -578,14 +452,58 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 30,
   },
-  emptyStateButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  emptyStateButtonText: {
-    color: '#fff',
+  errorText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  // NOUVEAUX STYLES POUR L'INFINITE SCROLL
+  loadingSkeletonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  skeletonProductCard: {
+    width: (width - 60) / 2,
+    borderRadius: 20,
+    marginBottom: 20,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 20,
+  },
+  skeletonContent: {
+    padding: 16,
+  },
+  skeletonText: {
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 8,
+    width: '60%',
+  },
+  skeletonTitle: {
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: '90%',
+  },
+  skeletonPrice: {
+    height: 14,
+    borderRadius: 7,
+    width: '40%',
   },
 });

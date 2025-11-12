@@ -1,6 +1,8 @@
 import CustomButton from '@/components/CustomButton';
+import { Header } from '@/components/Header';
 import { Theme } from '@/constants/theme';
 import { categories } from '@/src/data/categories';
+import { allCities as allCitiesRDC, majorCities } from '@/src/data/cities';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -81,14 +83,6 @@ export default function FiltersScreen() {
     error: isDark ? '#FF453A' : '#FF3B30',
   };
 
-  // Villes du Haut-Katanga, RD Congo
-  const allCities = [
-    'Lubumbashi', 'Likasi', 'Kipushi', 'Kambove', 'Kakanda', 'Kinshasa',
-    'Kasumbalesa', 'Mutoshi', 'Panda', 'Ruwe', 'Shinkolobwe', 'Goma',
-    'Sakania', 'Ankoro', 'Bukama', 'Kamina', 'Malemba Nkulu', 'Matadi',
-    'Nyunzu', 'Kabondo Dianda', 'Kazembe', 'Moba', 'Mwana Muyombo', 'Pweto'
-  ];
-
   // Conditions des produits
   const conditions = [
     { id: 'new', label: t('filters.condition.new'), icon: 'sparkles' },
@@ -112,7 +106,7 @@ export default function FiltersScreen() {
   ];
 
   // Filtrer les villes basé sur la recherche
-  const filteredCities = allCities.filter(city =>
+  const filteredCities = allCitiesRDC.filter((city: string) =>
     city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -201,31 +195,17 @@ export default function FiltersScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header avec back button */}
-      <View style={[styles.header, { borderBottomColor: Theme.light.borderInput }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons 
-              name="chevron-back" 
-              size={24} 
-              color={Theme.light.tint} 
-            />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {t('filters.title')}
-          </Text>
-        </View>
-        
-        <TouchableOpacity onPress={resetFilters}>
-          <Text style={[styles.clearAll, { color: Theme.light.tint }]}>
-            {t('filters.reset')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
+      {/* Header avec back button - SANS customPaddingTop */}
+      <Header
+        colors={colors}
+        title={t('filters.title')}
+        showBackButton={true}
+        rightAction={{
+          label: t('filters.reset'),
+          onPress: resetFilters
+        }}
+      />
 
       <ScrollView 
         style={styles.scrollView}
@@ -297,7 +277,7 @@ export default function FiltersScreen() {
                 nestedScrollEnabled={true}
                 showsVerticalScrollIndicator={true}
               >
-                {filteredCities.map(city => (
+                {filteredCities.map((city: string) => (
                   <TouchableOpacity
                     key={city}
                     style={[
@@ -347,7 +327,7 @@ export default function FiltersScreen() {
                 {t('filters.location.popularCities')}
               </Text>
               <View style={styles.popularCitiesContainer}>
-                {['Lubumbashi', 'Likasi', 'Kipushi', 'Kamina', 'Kolwezi'].map(city => (
+                {majorCities.slice(0, 6).map((city: string) => (
                   <TouchableOpacity
                     key={city}
                     style={[
@@ -539,35 +519,9 @@ export default function FiltersScreen() {
   );
 }
 
-
-// Les styles restent identiques...
 const styles = StyleSheet.create({
   container: { 
     flex: 1 
-  },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-  },
-  headerTitle: { 
-    fontSize: 24, 
-    fontWeight: '700' 
-  },
-  clearAll: { 
-    fontSize: 16, 
-    fontWeight: '500' 
   },
   scrollView: { 
     flex: 1, 

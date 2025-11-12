@@ -6,12 +6,12 @@ import { Theme } from '@/constants/theme';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    StyleSheet,
-    Text,
-    useColorScheme,
-    View
+  Dimensions,
+  FlatList,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Import React Query
@@ -21,6 +21,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { featuredProducts, Product } from '@/src/data/products';
 
 // Import i18n
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
@@ -154,6 +155,11 @@ export default function SearchResultsScreen() {
   // Composant pour l'état vide
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
+      <Ionicons 
+        name="search-outline" 
+        size={64} 
+        color={colors.textSecondary} 
+      />
       <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
         {t('filters.noProductsFound')}
       </Text>
@@ -190,7 +196,7 @@ export default function SearchResultsScreen() {
             Erreur lors de la recherche
           </Text>
           <Text style={[styles.retryButton, { backgroundColor: colors.tint }]}>
-            Réessayer
+            title={t('home.retry')}
           </Text>
         </View>
       </View>
