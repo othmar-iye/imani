@@ -569,9 +569,11 @@ const resources = {
             results: "Résultats de recherche",
             noResults: "Aucun résultat trouvé",
             noResultsFor: 'Aucun produit ne correspond à "{{query}}"',
+            noResultsForText: 'Aucun produit ne correspond à votre recherche',
             modifySearch: "Modifier la recherche",
             productsFound: "produit(s) trouvé(s)",
-            resultsFor: 'Résultats pour "{{query}}"'
+            resultsFor: 'Résultats pour "{{query}}"',
+            searchMatch: "Produits correspondant à vos recherches",
         },
 
         // FILTER SCREEN
@@ -1492,9 +1494,11 @@ const resources = {
             results: "Search Results", 
             noResults: "No results found",
             noResultsFor: 'No products match "{{query}}"',
+            noResultsForText: 'No products match your search',
             modifySearch: "Modify search",
             productsFound: "product(s) found",
             resultsFor: 'Results for "{{query}}"',
+            searchMatch: "Products matching your search",
         },
 
         // FILTER SCREEN

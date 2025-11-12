@@ -2,7 +2,7 @@
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
 import NetInfo from '@react-native-community/netinfo';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export interface Notification {
@@ -23,7 +23,12 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasNewData, setHasNewData] = useState(false);
-  const [networkError, setNetworkError] = useState<string | null>(null); // 🆕 Erreur réseau spécifique
+  const [networkError, setNetworkError] = useState<string | null>(null);
+  
+  // 🆕 CRITIQUE : Utiliser useRef pour éviter les re-renders
+  const userActionInProgress = useRef(false);
+  const lastActionTimestamp = useRef<number>(0);
+  
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -74,7 +79,7 @@ export const useNotifications = () => {
     }
     
     setIsLoading(true);
-    setNetworkError(null); // 🆕 Reset l'erreur réseau
+    setNetworkError(null);
     
     try {
       const { data, error } = await supabase
@@ -83,16 +88,14 @@ export const useNotifications = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      // 🆕 Gestion spécifique des erreurs réseau Supabase
       if (error) {
         console.error('Erreur chargement notifications:', error);
         
-        // Détection des erreurs réseau
         if (error.message?.includes('Network') || 
             error.message?.includes('fetch') ||
             error.message?.includes('connection') ||
-            error.code === 'PGRST116' || // Timeout Supabase
-            error.code === 'PGRST301') { // Gateway error
+            error.code === 'PGRST116' ||
+            error.code === 'PGRST301') {
           setNetworkError('network.gatewayError');
         } else {
           setNetworkError('network.unknownError');
@@ -103,31 +106,25 @@ export const useNotifications = () => {
         return;
       }
 
-      // 🆕 VALIDATION DES DONNÉES
       const validData = data || [];
       
-      // S'assurer que chaque notification a un statut valide
       const validatedData = validData.map(notification => ({
         ...notification,
         status: notification.status === 'read' ? 'read' : 'unread'
       }));
 
-      // Traduire toutes les notifications
       const translatedNotifications = validatedData.map(translateNotification);
       
       setNotifications(translatedNotifications);
       
-      // 🆕 CALCUL EXPLICITE ET VALIDÉ
       const calculatedUnreadCount = validatedData.filter(n => n.status === 'unread').length;
       setUnreadCount(calculatedUnreadCount);
       
-      // 🆕 Reset l'erreur en cas de succès
       setNetworkError(null);
       
     } catch (error: any) {
       console.error('Erreur inattendue:', error);
       
-      // 🆕 Gestion des erreurs réseau dans le catch
       if (error.message?.includes('Network') || 
           error.message?.includes('fetch') ||
           error.name === 'TypeError') {
@@ -143,10 +140,26 @@ export const useNotifications = () => {
     }
   };
 
+  // 🆕 Fonction pour démarrer une action utilisateur
+  const startUserAction = () => {
+    userActionInProgress.current = true;
+    lastActionTimestamp.current = Date.now();
+  };
+
+  // 🆕 Fonction pour terminer une action utilisateur
+  const endUserAction = () => {
+    // Petit délai pour s'assurer que tous les événements realtime sont passés
+    setTimeout(() => {
+      userActionInProgress.current = false;
+    }, 1000);
+  };
+
   const markAsRead = async (notificationId: string) => {
-    // 🆕 Vérifier la connexion avant l'action
     const isConnected = await checkNetworkConnection();
     if (!isConnected) return;
+
+    // 🆕 CRITIQUE : Marquer le début de l'action
+    startUserAction();
 
     const { error } = await supabase
       .from('notifications')
@@ -159,19 +172,23 @@ export const useNotifications = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } else {
-      // 🆕 Gestion erreur réseau pour markAsRead
       if (error.message?.includes('Network')) {
         setNetworkError('network.gatewayError');
       }
     }
+
+    // 🆕 CRITIQUE : Marquer la fin de l'action
+    endUserAction();
   };
 
   const markAllAsRead = async () => {
     if (!user) return;
 
-    // 🆕 Vérifier la connexion avant l'action
     const isConnected = await checkNetworkConnection();
     if (!isConnected) return;
+
+    // 🆕 CRITIQUE : Marquer le début de l'action
+    startUserAction();
 
     const { error } = await supabase
       .from('notifications')
@@ -183,20 +200,23 @@ export const useNotifications = () => {
       setNotifications(prev => prev.map(n => ({ ...n, status: 'read' })));
       setUnreadCount(0);
     } else {
-      // 🆕 Gestion erreur réseau pour markAllAsRead
       if (error.message?.includes('Network')) {
         setNetworkError('network.gatewayError');
       }
     }
+
+    // 🆕 CRITIQUE : Marquer la fin de l'action
+    endUserAction();
   };
 
-  // 🆕 FONCTION POUR SUPPRIMER UNE NOTIFICATION
   const deleteNotification = async (notificationId: string) => {
     if (!user) return false;
 
-    // 🆕 Vérifier la connexion avant l'action
     const isConnected = await checkNetworkConnection();
     if (!isConnected) return false;
+
+    // 🆕 CRITIQUE : Marquer le début de l'action
+    startUserAction();
 
     try {
       const { error } = await supabase
@@ -208,7 +228,6 @@ export const useNotifications = () => {
       if (error) {
         console.error('Erreur suppression notification:', error);
         
-        // 🆕 Gestion erreur réseau pour delete
         if (error.message?.includes('Network')) {
           setNetworkError('network.gatewayError');
         }
@@ -216,7 +235,6 @@ export const useNotifications = () => {
         return false;
       }
 
-      // Mettre à jour l'état local
       const notificationToDelete = notifications.find(n => n.id === notificationId);
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
@@ -228,22 +246,23 @@ export const useNotifications = () => {
     } catch (error: any) {
       console.error('Erreur inattendue lors de la suppression:', error);
       
-      // 🆕 Gestion erreur réseau
       if (error.message?.includes('Network')) {
         setNetworkError('network.connectionLost');
       }
       
       return false;
+    } finally {
+      // 🆕 CRITIQUE : Marquer la fin de l'action
+      endUserAction();
     }
   };
 
-  // 🆕 REALTIME SUBSCRIPTION INTELLIGENTE avec gestion réseau
+  // 🆕 REALTIME SUBSCRIPTION - FILTRER SEULEMENT LES INSERT
   useEffect(() => {
     if (!user) {
       return;
     }
 
-    // 🆕 Vérifier la connexion avant de démarrer la subscription
     checkNetworkConnection().then(isConnected => {
       if (!isConnected) {
         console.log('🔴 Subscription realtime annulée: pas de connexion réseau');
@@ -257,32 +276,36 @@ export const useNotifications = () => {
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: '*', // 🆕 CRITIQUE : SEULEMENT les nouvelles insertions
             schema: 'public',
             table: 'notifications',
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('🎯 REALTIME EVENT REÇU:', {
-              event: payload.eventType,
-              table: payload.table,
-              new: payload.new,
-              old: payload.old
-            });
+            console.log('🎯 NOUVELLE NOTIFICATION REÇUE:', payload.new);
             
+            // 🆕 CRITIQUE : Vérifier si c'est une action utilisateur
+            const now = Date.now();
+            const timeSinceLastAction = now - lastActionTimestamp.current;
+            
+            // Si une action utilisateur s'est produite récemment, ignorer
+            if (userActionInProgress.current || timeSinceLastAction < 2000) {
+              console.log('🔕 Notification ignorée - Action utilisateur récente');
+              return;
+            }
+            
+            console.log('🔔 NOUVELLE NOTIFICATION EN TEMPS RÉEL - Banner affiché');
             setHasNewData(true);
           }
         )
         .subscribe((status) => {
           console.log('🔔 📡 STATUT SUBSCRIPTION:', status);
           
-          // 🆕 Gestion des erreurs de subscription réseau
           if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             setNetworkError('network.gatewayError');
           }
         });
 
-      // Nettoyage
       return () => {
         subscription.unsubscribe();
       };
@@ -338,7 +361,7 @@ export const useNotifications = () => {
     unreadCount,
     isLoading,
     hasNewData,
-    networkError, // 🆕 Ajout de l'erreur réseau dans le retour
+    networkError,
     loadNotifications,
     markAsRead,
     markAllAsRead,
@@ -346,6 +369,6 @@ export const useNotifications = () => {
     refresh: loadNotifications,
     syncNewData,
     ignoreNewData,
-    retryConnection // 🆕 Fonction pour retenter
+    retryConnection
   };
 };

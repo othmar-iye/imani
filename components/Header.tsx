@@ -1,50 +1,57 @@
+// components/Header.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-interface NotificationHeaderProps {
+interface HeaderProps {
   colors: {
     border: string;
     tint: string;
     text: string;
   };
-  t: any;
-  unreadCount: number;
-  markAllAsRead: () => void;
-  selectionMode: boolean;
+  title: string;
+  showBackButton?: boolean;
+  rightAction?: {
+    label: string;
+    onPress: () => void;
+    showCondition?: boolean;
+  };
+  customPaddingTop?: number;
 }
 
-export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
+export const Header: React.FC<HeaderProps> = ({
   colors,
-  t,
-  unreadCount,
-  markAllAsRead,
-  selectionMode
+  title,
+  showBackButton = true,
+  rightAction,
+  customPaddingTop
 }) => (
   <View style={[
     styles.header, 
     { 
       borderBottomColor: colors.border,
-      paddingTop: selectionMode ? 15 : 60
+      paddingTop: customPaddingTop !== undefined ? customPaddingTop : 60
     }
   ]}>
     <View style={styles.headerLeft}>
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
-        <Ionicons name="chevron-back" size={24} color={colors.tint} />
-      </TouchableOpacity>
+      {showBackButton && (
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.tint} />
+        </TouchableOpacity>
+      )}
       <Text style={[styles.headerTitle, { color: colors.text }]}>
-        {t('notifications.title')}
+        {title}
       </Text>
     </View>
     
-    {unreadCount > 0 && !selectionMode && (
-      <TouchableOpacity onPress={markAllAsRead}>
-        <Text style={[styles.clearAll, { color: colors.tint }]}>
-          {t('notifications.lireTout') || 'Lire tout'}
+    {rightAction && (rightAction.showCondition === undefined || rightAction.showCondition) && (
+      <TouchableOpacity onPress={rightAction.onPress}>
+        <Text style={[styles.rightAction, { color: colors.tint }]}>
+          {rightAction.label}
         </Text>
       </TouchableOpacity>
     )}
@@ -72,7 +79,7 @@ const styles = StyleSheet.create({
     fontSize: 24, 
     fontWeight: '700' 
   },
-  clearAll: { 
+  rightAction: { 
     fontSize: 16, 
     fontWeight: '500' 
   },

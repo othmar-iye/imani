@@ -7,9 +7,9 @@ import { Theme } from '@/constants/theme';
 import { useNotifications } from '@/hooks/useNotifications';
 
 // Import des composants
+import { Header } from '@/components/Header';
 import { EmptyNotifications } from '@/components/notifications/EmptyNotifications';
 import { ErrorState } from '@/components/notifications/ErrorState';
-import { NotificationHeader } from '@/components/notifications/NotificationHeader';
 import { NotificationItem } from '@/components/notifications/NotificationItem';
 import { NotificationsSkeleton } from '@/components/notifications/NotificationsSkeleton';
 import { NotificationStats } from '@/components/notifications/NotificationStats';
@@ -32,6 +32,9 @@ export default function NotificationsScreen() {
   const [displayedNotifications, setDisplayedNotifications] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  // État local pour contrôler l'affichage du banner
+  const [showSyncBanner, setShowSyncBanner] = useState(false);
 
   const { 
     notifications, 
@@ -45,6 +48,11 @@ export default function NotificationsScreen() {
     syncNewData,
     ignoreNewData
   } = useNotifications();
+
+  // Synchroniser showSyncBanner avec hasNewData
+  useEffect(() => {
+    setShowSyncBanner(hasNewData);
+  }, [hasNewData]);
 
   const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
@@ -60,6 +68,49 @@ export default function NotificationsScreen() {
 
   const PAGE_SIZE = 10;
   const LOAD_MORE_SIZE = 10;
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      // Cacher immédiatement le banner
+      setShowSyncBanner(false);
+      
+      // Si il y a de nouvelles données non synchronisées
+      if (hasNewData) {
+        // Synchroniser puis tout marquer comme lu
+        await syncNewData(); // Récupère les nouvelles notifications
+        await markAllAsRead(); // Marque tout (anciennes + nouvelles)
+        ignoreNewData(); // Cache le banner côté hook
+      } else {
+        // Pas de nouvelles données, juste marquer tout comme lu
+        await markAllAsRead();
+      }
+    } catch (error) {
+      console.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
+      // En cas d'erreur, remettre le banner si nécessaire
+      if (hasNewData) {
+        setShowSyncBanner(true);
+      }
+    }
+  };
+
+  const handleSyncNewData = async () => {
+    setIsSyncing(true);
+    setShowSyncBanner(false); // Cacher immédiatement
+    try {
+      await syncNewData();
+    } catch (err) {
+      setError(t('notifications.syncStates.error') || 'Erreur de synchronisation');
+      // En cas d'erreur, remettre le banner
+      setShowSyncBanner(true);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleIgnoreNewData = () => {
+    setShowSyncBanner(false); // Cacher immédiatement
+    ignoreNewData();
+  };
 
   // Gestion du chargement initial
   useEffect(() => {
@@ -228,21 +279,6 @@ export default function NotificationsScreen() {
     });
   }, [deleteNotification]);
 
-  const handleSyncNewData = async () => {
-    setIsSyncing(true);
-    try {
-      await syncNewData();
-    } catch (err) {
-      setError(t('notifications.syncStates.error') || 'Erreur de synchronisation');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleIgnoreNewData = () => {
-    ignoreNewData();
-  };
-
   const formatTime = (createdAt: string) => {
     const now = new Date();
     const created = new Date(createdAt);
@@ -360,12 +396,20 @@ export default function NotificationsScreen() {
           />
         )}
         
-        <NotificationHeader
-          colors={colors}
-          t={t}
-          unreadCount={unreadCount}
-          markAllAsRead={markAllAsRead}
-          selectionMode={selectionMode}
+        <Header
+            colors={colors}
+            title={t('notifications.title')}
+            showBackButton={true}
+            customPaddingTop={selectionMode ? 15 : 60}
+            rightAction={
+                unreadCount > 0 && !selectionMode 
+                ? {
+                    label: t('notifications.lireTout') || 'Lire tout',
+                    onPress: handleMarkAllAsRead,
+                    showCondition: true
+                    }
+                : undefined
+            }
         />
 
         {!selectionMode && (
@@ -381,7 +425,8 @@ export default function NotificationsScreen() {
           <View style={styles.selectionSpacing} />
         )}
 
-        {hasNewData && !selectionMode && (
+        {/* MODIFIÉ : Utiliser showSyncBanner au lieu de hasNewData */}
+        {showSyncBanner && !selectionMode && (
           <SyncBanner 
             onSync={handleSyncNewData}
             onIgnore={handleIgnoreNewData}
