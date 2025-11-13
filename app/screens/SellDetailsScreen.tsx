@@ -1,5 +1,6 @@
 // screens/SellDetailsScreen.tsx
 import CustomButton from '@/components/CustomButton';
+import { Header } from '@/components/Header';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { categories, Category } from '@/src/data/categories';
@@ -26,7 +27,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Import des nouveaux composants
-import { CategorySelectorModal } from '@/components/CategorySelectorModal';
 import { FormInputGroup } from '@/components/FormInputGroup';
 import { ImageGalleryPreview } from '@/components/ImageGalleryPreview';
 import { PriceInput } from '@/components/PriceInput';
@@ -193,6 +193,73 @@ const uploadImageToSupabase = async (
   }
 };
 
+// Composant Modal Item Typographique
+const TypographicModalItem = ({ 
+  item, 
+  isSelected, 
+  onPress, 
+  colors 
+}: { 
+  item: { label: string; value: string };
+  isSelected: boolean;
+  onPress: () => void;
+  colors: any;
+}) => (
+  <TouchableOpacity
+    style={[
+      styles.modalItem,
+      { 
+        borderBottomColor: colors.border,
+        backgroundColor: isSelected ? colors.tint + '15' : 'transparent'
+      }
+    ]}
+    onPress={onPress}
+  >
+    <View style={styles.modalItemContent}>
+      <Text style={[
+        styles.modalItemText,
+        { 
+          color: isSelected ? colors.tint : colors.text,
+          fontWeight: isSelected ? '700' : '400'
+        }
+      ]}>
+        {item.label}
+      </Text>
+      {isSelected && (
+        <View style={[styles.selectionIndicator, { backgroundColor: colors.tint }]} />
+      )}
+    </View>
+  </TouchableOpacity>
+);
+
+// Composant Modal Header Typographique
+const TypographicModalHeader = ({ 
+  title, 
+  onClose, 
+  colors 
+}: { 
+  title: string; 
+  onClose: () => void; 
+  colors: any;
+}) => (
+  <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+    <View style={styles.modalHeaderContent}>
+      <Text style={[styles.modalTitle, { color: colors.text }]}>
+        {title}
+      </Text>
+      <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+        Sélectionnez une option
+      </Text>
+    </View>
+    <TouchableOpacity 
+      style={styles.closeButton}
+      onPress={onClose}
+    >
+      <Ionicons name="close" size={24} color={colors.text} />
+    </TouchableOpacity>
+  </View>
+);
+
 export default function SellDetailsScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -244,7 +311,7 @@ export default function SellDetailsScreen() {
   const handleCategorySelect = (category: Category) => {
     handleInputChange('category', category.name);
     setShowCategoryModal(false);
-    setShowSubCategoryModal(true);
+    // NE PAS ouvrir automatiquement la sous-catégorie
   };
 
   const handleSubCategorySelect = (subCategory: string) => {
@@ -432,37 +499,40 @@ export default function SellDetailsScreen() {
     setSelectedImageIndex(index);
   };
 
+  const renderCategoryItem = ({ item }: { item: Category }) => (
+    <TypographicModalItem
+      item={{ label: item.name, value: item.name }}
+      isSelected={formData.category === item.name}
+      onPress={() => handleCategorySelect(item)}
+      colors={colors}
+    />
+  );
+
   const renderSubCategoryItem = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={[styles.modalItem, { borderBottomColor: colors.border }]}
+    <TypographicModalItem
+      item={{ label: item, value: item }}
+      isSelected={formData.subCategory === item}
       onPress={() => handleSubCategorySelect(item)}
-    >
-      <Text style={[styles.modalItemText, { color: colors.text }]}>{item}</Text>
-    </TouchableOpacity>
+      colors={colors}
+    />
   );
 
   const renderConditionItem = ({ item }: { item: { id: string; label: string; value: string } }) => (
-    <TouchableOpacity
-      style={[styles.modalItem, { borderBottomColor: colors.border }]}
+    <TypographicModalItem
+      item={{ label: item.label, value: item.value }}
+      isSelected={formData.condition === item.value}
       onPress={() => handleConditionSelect(item)}
-    >
-      <Text style={[styles.modalItemText, { color: colors.text }]}>{item.label}</Text>
-      {formData.condition === item.value && (
-        <Ionicons name="checkmark" size={20} color={colors.tint} />
-      )}
-    </TouchableOpacity>
+      colors={colors}
+    />
   );
 
   const renderLocationItem = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={[styles.modalItem, { borderBottomColor: colors.border }]}
+    <TypographicModalItem
+      item={{ label: item, value: item }}
+      isSelected={formData.location === item}
       onPress={() => handleLocationSelect(item)}
-    >
-      <Text style={[styles.modalItemText, { color: colors.text }]}>{item}</Text>
-      {formData.location === item && (
-        <Ionicons name="checkmark" size={20} color={colors.tint} />
-      )}
-    </TouchableOpacity>
+      colors={colors}
+    />
   );
 
   return (
@@ -471,25 +541,13 @@ export default function SellDetailsScreen() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.back()}
-              disabled={isSubmitting}
-            >
-              <Ionicons 
-                name="chevron-back" 
-                size={24} 
-                color={colors.tint} 
-              />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>
-              {t('sell.detailsTitle', 'Détails de l\'annonce')}
-            </Text>
-          </View>
-        </View>
+        {/* Header avec composant réutilisable */}
+        <Header
+          colors={colors}
+          title={t('sell.detailsTitle', 'Détails de l\'annonce')}
+          showBackButton={true}
+          customPaddingTop={Platform.OS === 'ios' ? 0 : 60}
+        />
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
@@ -516,42 +574,41 @@ export default function SellDetailsScreen() {
                 colors={colors}
               />
 
-              {/* Catégorie et Sous-catégorie */}
-              <View style={styles.rowInputs}>
-                <View style={[styles.inputGroup, styles.halfInput]}>
-                  <View style={styles.labelContainer}>
-                    <Text style={[styles.label, { color: colors.text }]}>
-                      {t('sell.category', 'Catégorie')}
-                    </Text>
-                    <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
-                  </View>
-                  <SelectField
-                    label="Catégorie"
-                    value={formData.category}
-                    placeholder={t('sell.chooseCategory', 'Choisir une catégorie')}
-                    onPress={() => setShowCategoryModal(true)}
-                    required={true}
-                    colors={colors}
-                  />
+              {/* Catégorie */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    {t('sell.category', 'Catégorie')}
+                  </Text>
+                  <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                 </View>
+                <SelectField
+                  label="Catégorie"
+                  value={formData.category}
+                  placeholder={t('sell.chooseCategory', 'Choisir une catégorie')}
+                  onPress={() => setShowCategoryModal(true)}
+                  required={true}
+                  colors={colors}
+                />
+              </View>
 
-                <View style={[styles.inputGroup, styles.halfInput]}>
-                  <View style={styles.labelContainer}>
-                    <Text style={[styles.label, { color: colors.text }]}>
-                      {t('sell.subCategory', 'Sous-catégorie')}
-                    </Text>
-                    <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
-                  </View>
-                  <SelectField
-                    label="Sous-catégorie"
-                    value={formData.subCategory}
-                    placeholder={t('sell.chooseSubCategory', 'Sous-catégorie')}
-                    onPress={() => formData.category && setShowSubCategoryModal(true)}
-                    disabled={!formData.category}
-                    required={true}
-                    colors={colors}
-                  />
+              {/* Sous-catégorie - Maintenant indépendante */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    {t('sell.subCategory', 'Sous-catégorie')}
+                  </Text>
+                  <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                 </View>
+                <SelectField
+                  label="Sous-catégorie"
+                  value={formData.subCategory}
+                  placeholder={t('sell.chooseSubCategory', 'Sous-catégorie')}
+                  onPress={() => formData.category && setShowSubCategoryModal(true)}
+                  disabled={!formData.category}
+                  required={true}
+                  colors={colors}
+                />
               </View>
 
               {/* Prix */}
@@ -588,40 +645,40 @@ export default function SellDetailsScreen() {
 
             {/* Section État et Localisation */}
             <ProductFormSection title={t('sell.conditionAndLocation', 'État et localisation')} colors={colors}>
-              <View style={styles.rowInputs}>
-                <View style={[styles.inputGroup, styles.halfInput]}>
-                  <View style={styles.labelContainer}>
-                    <Text style={[styles.label, { color: colors.text }]}>
-                      {t('sell.productCondition', 'État du produit')}
-                    </Text>
-                    <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
-                  </View>
-                  <SelectField
-                    label="État du produit"
-                    value={formData.condition ? getConditionLabel(formData.condition) : ''}
-                    placeholder={t('sell.chooseCondition', 'État du produit')}
-                    onPress={() => setShowConditionModal(true)}
-                    required={true}
-                    colors={colors}
-                  />
+              {/* État du produit */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    {t('sell.productCondition', 'État du produit')}
+                  </Text>
+                  <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                 </View>
+                <SelectField
+                  label="État du produit"
+                  value={formData.condition ? getConditionLabel(formData.condition) : ''}
+                  placeholder={t('sell.chooseCondition', 'État du produit')}
+                  onPress={() => setShowConditionModal(true)}
+                  required={true}
+                  colors={colors}
+                />
+              </View>
 
-                <View style={[styles.inputGroup, styles.halfInput]}>
-                  <View style={styles.labelContainer}>
-                    <Text style={[styles.label, { color: colors.text }]}>
-                      {t('sell.location', 'Localisation')}
-                    </Text>
-                    <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
-                  </View>
-                  <SelectField
-                    label="Localisation"
-                    value={formData.location}
-                    placeholder={t('sell.chooseLocation', 'Ville')}
-                    onPress={() => setShowLocationModal(true)}
-                    required={true}
-                    colors={colors}
-                  />
+              {/* Localisation */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    {t('sell.location', 'Localisation')}
+                  </Text>
+                  <Text style={[styles.requiredStar, { color: colors.tint }]}>*</Text>
                 </View>
+                <SelectField
+                  label="Localisation"
+                  value={formData.location}
+                  placeholder={t('sell.chooseLocation', 'Ville')}
+                  onPress={() => setShowLocationModal(true)}
+                  required={true}
+                  colors={colors}
+                />
               </View>
             </ProductFormSection>
 
@@ -645,29 +702,39 @@ export default function SellDetailsScreen() {
           </View>
         </ScrollView>
 
-        {/* Modals */}
-        <CategorySelectorModal
+        {/* Modal Catégorie - NOUVEAU DESIGN */}
+        <Modal
           visible={showCategoryModal}
-          onClose={() => setShowCategoryModal(false)}
-          categories={categories}
-          onSelectCategory={handleCategorySelect}
-          colors={colors}
-        />
+          animationType="slide"
+          presentationStyle="pageSheet"
+        >
+          <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+            <TypographicModalHeader
+              title="Catégories"
+              onClose={() => setShowCategoryModal(false)}
+              colors={colors}
+            />
+            <FlatList
+              data={categories}
+              renderItem={renderCategoryItem}
+              keyExtractor={item => item.id}
+              style={styles.modalList}
+            />
+          </View>
+        </Modal>
 
+        {/* Modal Sous-catégorie - NOUVEAU DESIGN */}
         <Modal
           visible={showSubCategoryModal}
           animationType="slide"
           presentationStyle="pageSheet"
         >
           <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {formData.category} - {t('sell.subCategories', 'Sous-catégories')}
-              </Text>
-              <TouchableOpacity onPress={() => setShowSubCategoryModal(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+            <TypographicModalHeader
+              title={`${formData.category} - Sous-catégories`}
+              onClose={() => setShowSubCategoryModal(false)}
+              colors={colors}
+            />
             <FlatList
               data={subCategories}
               renderItem={renderSubCategoryItem}
@@ -677,20 +744,18 @@ export default function SellDetailsScreen() {
           </View>
         </Modal>
 
+        {/* Modal Condition - NOUVEAU DESIGN */}
         <Modal
           visible={showConditionModal}
           animationType="slide"
           presentationStyle="pageSheet"
         >
           <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {t('sell.productCondition', 'État du produit')}
-              </Text>
-              <TouchableOpacity onPress={() => setShowConditionModal(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+            <TypographicModalHeader
+              title="État du produit"
+              onClose={() => setShowConditionModal(false)}
+              colors={colors}
+            />
             <FlatList
               data={CONDITIONS}
               renderItem={renderConditionItem}
@@ -700,20 +765,18 @@ export default function SellDetailsScreen() {
           </View>
         </Modal>
 
+        {/* Modal Localisation - NOUVEAU DESIGN */}
         <Modal
           visible={showLocationModal}
           animationType="slide"
           presentationStyle="pageSheet"
         >
           <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {t('sell.location', 'Localisation')}
-              </Text>
-              <TouchableOpacity onPress={() => setShowLocationModal(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+            <TypographicModalHeader
+              title="Localisation"
+              onClose={() => setShowLocationModal(false)}
+              colors={colors}
+            />
             <FlatList
               data={LOCATIONS}
               renderItem={renderLocationItem}
@@ -730,26 +793,6 @@ export default function SellDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
@@ -775,13 +818,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  rowInputs: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  halfInput: {
-    flex: 1,
-  },
   publishButton: {
     marginTop: 8,
   },
@@ -790,6 +826,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
+  // NOUVEAUX STYLES TYPOGRAPHIQUES
   modalContainer: {
     flex: 1,
     paddingTop: 60,
@@ -797,28 +834,50 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    alignItems: 'flex-start',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
     borderBottomWidth: 1,
   },
+  modalHeaderContent: {
+    flex: 1,
+  },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '700',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  closeButton: {
+    padding: 4,
   },
   modalList: {
     flex: 1,
   },
   modalItem: {
+    borderBottomWidth: 1,
+    minHeight: 60,
+    justifyContent: 'center',
+  },
+  modalItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    gap: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   modalItemText: {
+    fontSize: 17,
+    letterSpacing: -0.2,
     flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
+  },
+  selectionIndicator: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+    marginLeft: 12,
   },
 });

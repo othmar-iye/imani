@@ -21,12 +21,12 @@ import {
 } from 'react-native';
 
 // Import des composants
-import { EmptyPhotoState } from '@/components/EmptyPhotoState';
-import { ExitConfirmationModal } from '@/components/ExitConfirmationModal';
-import { ImageGridComponent } from '@/components/ImageGridComponent';
-import { ImagePickerModal } from '@/components/ImagePickerModal';
-import { SellerStatusCard } from '@/components/SellerStatusCard';
-import { SellSkeleton } from '@/components/SellSkeleton';
+import { EmptyPhotoState } from '@/components/sell/EmptyPhotoState';
+import { ExitConfirmationModal } from '@/components/sell/ExitConfirmationModal';
+import { ImageGridComponent } from '@/components/sell/ImageGridComponent';
+import { ImagePickerModal } from '@/components/sell/ImagePickerModal';
+import { SellerStatusCard } from '@/components/sell/SellerStatusCard';
+import { SellSkeleton } from '@/components/sell/SellSkeleton';
 
 interface SelectedImage {
     uri: string;
