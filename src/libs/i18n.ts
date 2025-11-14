@@ -683,8 +683,6 @@ const resources = {
         },
 
         // Profile Settings
-        photoRequired: "Photo de profil requise",
-        photoRequiredMessage: "Veuillez ajouter une photo de profil",
         saveError: "Erreur lors de la sauvegarde",
         profileUpdated: "Profil mis à jour avec succès",
         imageNotLoaded: "Image non chargée",
@@ -834,8 +832,6 @@ const resources = {
       identityNumber: "Numéro de la pièce",
       enterIdentityNumber: "Numéro de la pièce",
       uploadIdentityDocument: "Photo de la pièce d'identité",
-      uploadProfilePicture: "Photo de profil",
-      profilePicture: "Photo de profil",
       
       // Sélecteurs
       selectCity: "Choisir une ville",
@@ -1610,8 +1606,6 @@ const resources = {
         },
 
         // Profile Settings
-        photoRequired: "Profile Photo Required",
-        photoRequiredMessage: "Please add a profile photo",
         saveError: "Error saving profile",
         profileUpdated: "Profile updated successfully",
         imageNotLoaded: "Image not loaded",
@@ -1761,8 +1755,6 @@ const resources = {
       identityNumber: "Document Number",
       enterIdentityNumber: "Document number",
       uploadIdentityDocument: "Identity Document Photo",
-      uploadProfilePicture: "Profile Picture",
-      profilePicture: "Profile Picture",
       
       // Selectors
       selectCity: "Select City",

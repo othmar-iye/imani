@@ -1,10 +1,10 @@
 // app/(tabs)/profile.tsx
 import CustomButton from '@/components/CustomButton';
-import { MenuItem } from '@/components/MenuItem';
-import { MenuSection } from '@/components/MenuSection';
+import { MenuItem } from '@/components/profile/MenuItem';
+import { MenuSection } from '@/components/profile/MenuSection';
+import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileImagePickerModal } from '@/components/profile/ProfileImagePickerModal';
-import { ProfileHeader } from '@/components/ProfileHeader';
-import { ProfileSkeleton } from '@/components/ProfileSkeleton';
+import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
@@ -129,7 +129,7 @@ const getSellerStatus = (verificationStatus: string | undefined): 'member' | 'pe
     case 'rejected':
       return 'rejected';
     default:
-      return 'member';
+      return 'member'; // 'not_submitted' et autres valeurs retournent 'member'
   }
 };
 
@@ -391,7 +391,7 @@ export default function ProfileScreen() {
       case 'rejected':
         return t('verificationRejected', 'Profil rejeté');
       default:
-        return t('member');
+        return t('member'); // 'member' pour 'not_submitted' et autres statuts
     }
   };
 
@@ -404,7 +404,7 @@ export default function ProfileScreen() {
       case 'rejected':
         return 'close-circle-outline';
       default:
-        return 'person-outline';
+        return 'person-outline'; // 'member' pour 'not_submitted' et autres statuts
     }
   };
 
@@ -417,18 +417,18 @@ export default function ProfileScreen() {
       case 'rejected':
         return '#FF3B30';
       default:
-        return colors.textSecondary;
+        return colors.textSecondary; // 'member' pour 'not_submitted' et autres statuts
     }
   };
 
   // Rediriger vers l'écran de paramètres du profil
   const setProfile = () => {
-    router.push('/screens/ProfileSettingsScreen')
+    router.push('/screens/BecomeSellerScreen')
   };
 
   // Rediriger vers l'écran de vérification ou de demande de vendeur
   const handleBecomeSeller = () => {
-    router.push('/screens/ProfileSettingsScreen')    
+    router.push('/screens/BecomeSellerScreen')   
   };
 
   const handleLogout = () => {

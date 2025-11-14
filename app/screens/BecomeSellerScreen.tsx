@@ -4,14 +4,12 @@ import { EditFieldModal } from '@/components/EditFieldModal';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ProfileFormItem } from '@/components/ProfileFormItem';
 import { ProfileFormSection } from '@/components/ProfileFormSection';
-import { ProfilePictureSection } from '@/components/ProfilePictureSection';
 import { ProfileSettingsSkeleton } from '@/components/ProfileSettingsSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import {
     compressImage,
-    uploadImageToStorage,
-    uploadProfilePictureWithThumbnail
+    uploadImageToStorage
 } from '@/src/services/ImageService';
 import { NotificationService } from '@/src/services/notificationService';
 import { formatDate, formatPhoneNumber, isValidDate, isValidPhoneNumber } from '@/src/utils/ValidationUtils';
@@ -44,8 +42,6 @@ interface UserProfile {
   identity_type: 'voter_card' | 'passport' | 'driving_license' | null;
   identity_number: string;
   identity_document_url: string | null;
-  profile_picture_url: string | null;
-  profile_picture_thumbnail_url: string | null;
   verification_status: string;
   updated_at: string;
 }
@@ -58,8 +54,6 @@ interface ProfileFormData {
   identityType: 'voter_card' | 'passport' | 'driving_license' | null;
   identityNumber: string;
   identityDocument: string | null;
-  profilePicture: string | null;
-  profilePictureThumbnail: string | null;
 }
 
 export default function ProfileSettingsScreen() {
@@ -80,7 +74,6 @@ export default function ProfileSettingsScreen() {
 
   // États pour les documents
   const [identityDocument, setIdentityDocument] = useState<string | null>(null);
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   // État local pour gérer les modifications du formulaire
   const [localProfileData, setLocalProfileData] = useState<ProfileFormData>({
@@ -91,8 +84,6 @@ export default function ProfileSettingsScreen() {
     identityType: null,
     identityNumber: '',
     identityDocument: null,
-    profilePicture: null,
-    profilePictureThumbnail: null,
   });
 
   // États pour l'édition des champs
@@ -149,7 +140,6 @@ export default function ProfileSettingsScreen() {
   // Initialiser les états avec les données du profil
   useEffect(() => {
     if (userProfile) {
-        setProfilePicture(userProfile.profile_picture_url);
         setIdentityDocument(userProfile.identity_document_url);
         
         // Initialiser les données locales avec les données du profil
@@ -169,11 +159,9 @@ export default function ProfileSettingsScreen() {
             identityType: userProfile.identity_type || null,
             identityNumber: userProfile.identity_number || '',
             identityDocument: userProfile.identity_document_url,
-            profilePicture: userProfile.profile_picture_url,
-            profilePictureThumbnail: userProfile.profile_picture_thumbnail_url,
         });
     }
-    }, [userProfile]);
+  }, [userProfile]);
 
   // Fonction pour sauvegarder le profil
   const saveProfileData = async (formData: ProfileFormData): Promise<boolean> => {
@@ -185,23 +173,9 @@ export default function ProfileSettingsScreen() {
     }
 
     try {
-      let profilePictureUrl = formData.profilePicture;
-      let profilePictureThumbnailUrl = formData.profilePictureThumbnail; // NOUVEAU
       let identityDocumentUrl = formData.identityDocument;
 
-      // UPLOAD PHOTO PROFIL AVEC THUMBNAIL (MODIFIÉ)
-      if (formData.profilePicture && !formData.profilePicture.includes('supabase.co')) {
-        console.log('🟡 Upload photo profil avec thumbnail...');
-        const { originalUrl, thumbnailUrl } = await uploadProfilePictureWithThumbnail(
-          formData.profilePicture, 
-          user.id
-        );
-        profilePictureUrl = originalUrl;
-        profilePictureThumbnailUrl = thumbnailUrl; // SAUVEGARDER LA THUMBNAIL
-        console.log('✅ Photo profil uploadée - Original:', profilePictureUrl, 'Thumbnail:', profilePictureThumbnailUrl);
-      }
-
-      // Upload document identité (inchangé)
+      // Upload document identité
       if (formData.identityDocument && !formData.identityDocument.includes('supabase.co')) {
         console.log('🟡 Upload document identité...');
         identityDocumentUrl = await uploadImageToStorage(formData.identityDocument, `identities/${user.id}`);
@@ -230,7 +204,6 @@ export default function ProfileSettingsScreen() {
         ? 'pending_review' 
         : 'not_submitted';
 
-      // MIS À JOUR : Ajouter la thumbnail dans les données
       const profileData = {
         id: user.id,
         phone_number: formData.phoneNumber,
@@ -240,8 +213,6 @@ export default function ProfileSettingsScreen() {
         identity_type: formData.identityType,
         identity_number: formData.identityNumber,
         identity_document_url: identityDocumentUrl,
-        profile_picture_url: profilePictureUrl,
-        profile_picture_thumbnail_url: profilePictureThumbnailUrl, // NOUVEAU
         verification_status: verificationStatus,
         updated_at: new Date().toISOString(),
       };
@@ -427,7 +398,7 @@ export default function ProfileSettingsScreen() {
   };
 
   // Fonctions pour les images
-  const takePhoto = async (type: 'profile' | 'identity') => {
+  const takePhoto = async (type: 'identity') => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       
@@ -443,22 +414,14 @@ export default function ProfileSettingsScreen() {
         mediaTypes: 'images',
         quality: 0.7,
         allowsEditing: true,
-        aspect: type === 'profile' ? [1, 1] : [4, 3],
+        aspect: [4, 3],
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const compressedUri = await compressImage(result.assets[0].uri, 0.6);
         
-        switch (type) {
-          case 'profile':
-            setProfilePicture(compressedUri);
-            setLocalProfileData(prev => ({ ...prev, profilePicture: compressedUri, profilePictureThumbnail: null }));
-            break;
-          case 'identity':
-            setIdentityDocument(compressedUri);
-            setLocalProfileData(prev => ({ ...prev, identityDocument: compressedUri }));
-            break;
-        }
+        setIdentityDocument(compressedUri);
+        setLocalProfileData(prev => ({ ...prev, identityDocument: compressedUri }));
       }
     } catch (error) {
       console.error('Erreur caméra:', error);
@@ -469,7 +432,7 @@ export default function ProfileSettingsScreen() {
     }
   };
 
-  const chooseFromGallery = async (type: 'profile' | 'identity') => {
+  const chooseFromGallery = async (type: 'identity') => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
@@ -486,22 +449,14 @@ export default function ProfileSettingsScreen() {
         allowsMultipleSelection: false,
         quality: 0.7,
         allowsEditing: true,
-        aspect: type === 'profile' ? [1, 1] : [4, 3],
+        aspect: [4, 3],
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const compressedUri = await compressImage(result.assets[0].uri, 0.6);
         
-        switch (type) {
-          case 'profile':
-            setProfilePicture(compressedUri);
-            setLocalProfileData(prev => ({ ...prev, profilePicture: compressedUri, profilePictureThumbnail: null }));
-            break;
-          case 'identity':
-            setIdentityDocument(compressedUri);
-            setLocalProfileData(prev => ({ ...prev, identityDocument: compressedUri }));
-            break;
-        }
+        setIdentityDocument(compressedUri);
+        setLocalProfileData(prev => ({ ...prev, identityDocument: compressedUri }));
       }
     } catch (error) {
       console.error('Erreur sélection photo:', error);
@@ -512,7 +467,7 @@ export default function ProfileSettingsScreen() {
     }
   };
 
-  const openImagePicker = (type: 'profile' | 'identity') => {
+  const openImagePicker = (type: 'identity') => {
     Alert.alert(
       t('addPhoto'),
       t('chooseSource'),
@@ -534,11 +489,6 @@ export default function ProfileSettingsScreen() {
   };
 
   // Handlers pour la suppression d'images
-  const handleRemoveProfilePicture = () => {
-    setProfilePicture(null);
-    setLocalProfileData(prev => ({ ...prev, profilePicture: null, profilePictureThumbnail: null  }));
-  };
-
   const handleRemoveIdentityDocument = () => {
     setIdentityDocument(null);
     setLocalProfileData(prev => ({ ...prev, identityDocument: null }));
@@ -684,9 +634,7 @@ export default function ProfileSettingsScreen() {
             : '') ||
         localProfileData.identityType !== (userProfile?.identity_type || null) ||
         localProfileData.identityNumber !== (userProfile?.identity_number || '') ||
-        localProfileData.identityDocument !== (userProfile?.identity_document_url || null) ||
-        localProfileData.profilePicture !== (userProfile?.profile_picture_url || null) ||
-        localProfileData.profilePictureThumbnail !== (userProfile?.profile_picture_thumbnail_url || null);
+        localProfileData.identityDocument !== (userProfile?.identity_document_url || null);
 
     if (!hasChanges) {
       Alert.alert(
@@ -697,10 +645,9 @@ export default function ProfileSettingsScreen() {
       return;
     }
 
-    // Champs réellement obligatoires
+    // Champs obligatoires
     const requiredFields = {
       [t('phoneNumber')]: localProfileData.phoneNumber,
-      [t('profilePicture')]: localProfileData.profilePicture,
     };
 
     const missingFields = Object.entries(requiredFields)
@@ -867,16 +814,7 @@ export default function ProfileSettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Section Photo de profil avec le nouveau composant */}
-        <ProfilePictureSection
-          profilePicture={localProfileData.profilePicture}
-          onImagePicker={() => openImagePicker('profile')}
-          onRemovePicture={handleRemoveProfilePicture}
-          colors={colors}
-          t={t}
-        />
-
-        {/* Sections du profil */}
+        {/* Sections du profil - PLUS DE PHOTO DE PROFIL */}
         {profileSections.map((section, sectionIndex) => (
           <ProfileFormSection
             key={sectionIndex}
