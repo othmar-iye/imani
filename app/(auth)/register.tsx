@@ -7,17 +7,17 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // AJOUT : Import du service de notifications
@@ -111,6 +111,30 @@ const RegisterScreen = () => {
             [{ text: t('login.loginButton'), onPress: () => router.replace('/(auth)/login') }]
         );
         return;
+        }
+
+        // ✅ NOUVEAU : Créer l'entrée dans user_profiles
+        if (data.user) {
+          try {
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .insert([
+                {
+                  id: data.user.id,
+                }
+              ]);
+
+            if (profileError) {
+              console.error('❌ Erreur création profil:', profileError);
+              // On continue quand même - l'user est créé dans auth
+              // Le profil pourra être créé plus tard quand il voudra modifier sa photo
+            } else {
+              console.log('✅ Profil utilisateur créé avec succès');
+            }
+          } catch (profileError) {
+            console.error('❌ Exception création profil:', profileError);
+            // On continue quand même
+          }
         }
 
         // ✅ AJOUT : Créer la notification de bienvenue
