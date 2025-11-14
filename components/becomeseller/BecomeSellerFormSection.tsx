@@ -1,4 +1,4 @@
-// components/ProfileFormSection.tsx
+// components/BecomeSellerFormSection.tsx
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 

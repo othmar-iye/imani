@@ -559,7 +559,7 @@ export default function ProfileScreen() {
           colors={colors}
           editButtonText={t('editProfile')}
           becomeSellerText={t('becomeSeller', 'Devenir vendeur')}
-          showBecomeSellerButton={profileData?.sellerStatus === 'member'}
+          sellerStatus={profileData?.sellerStatus}
         />
 
         {/* Message d'information - pour les statuts "pending" et "rejected" */}

@@ -3,6 +3,7 @@ import CustomButton from '@/components/CustomButton';
 import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ProfileHeaderProps {
@@ -18,7 +19,7 @@ interface ProfileHeaderProps {
   isRefetching?: boolean;
   onEditProfile: () => void;
   onBecomeSeller: () => void;
-  onEditPhoto: () => void; // NOUVELLE PROP pour ouvrir la modal photo
+  onEditPhoto: () => void;
   colors: {
     card: string;
     text: string;
@@ -28,7 +29,7 @@ interface ProfileHeaderProps {
   };
   editButtonText: string;
   becomeSellerText: string;
-  showBecomeSellerButton?: boolean;
+  sellerStatus?: 'member' | 'pending' | 'verified' | 'rejected';
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -44,12 +45,45 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isRefetching = false,
   onEditProfile,
   onBecomeSeller,
-  onEditPhoto, // NOUVELLE PROP
+  onEditPhoto,
   colors,
   editButtonText,
   becomeSellerText,
-  showBecomeSellerButton = true,
+  sellerStatus = 'member',
 }) => {
+  const { t } = useTranslation();
+
+  // Déterminer quel bouton afficher selon le statut
+  const getSellerButtonConfig = () => {
+    switch (sellerStatus) {
+      case 'verified':
+        return {
+          show: true,
+          title: t('sellerSettings'), // ✅ Utilisation de la traduction
+          onPress: onBecomeSeller,
+          variant: "primary" as const
+        };
+      case 'member':
+      case 'rejected':
+        return {
+          show: true,
+          title: becomeSellerText, // "Devenir vendeur" (déjà traduit)
+          onPress: onBecomeSeller,
+          variant: "primary" as const
+        };
+      case 'pending':
+      default:
+        return {
+          show: false,
+          title: "",
+          onPress: () => {},
+          variant: "primary" as const
+        };
+    }
+  };
+
+  const sellerButtonConfig = getSellerButtonConfig();
+
   return (
     <View style={[styles.header, { backgroundColor: colors.card }]}>
       {/* Section principale avec avatar à gauche et infos à droite */}
@@ -58,7 +92,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <View style={styles.avatarSection}>
           <TouchableOpacity 
             style={styles.avatarContainer}
-            onPress={onEditPhoto} // Ouvre la modal photo au clic
+            onPress={onEditPhoto}
             activeOpacity={0.7}
           >
             <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
@@ -126,11 +160,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           style={styles.editButton}
         />
         
-        {showBecomeSellerButton && (
+        {/* Bouton conditionnel selon le statut */}
+        {sellerButtonConfig.show && (
           <CustomButton
-            title={becomeSellerText}
-            onPress={onBecomeSeller}
-            variant="primary"
+            title={sellerButtonConfig.title}
+            onPress={sellerButtonConfig.onPress}
+            variant={sellerButtonConfig.variant}
             size="medium"
             style={styles.becomeSellerButton}
           />
@@ -181,28 +216,27 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  // NOUVEAU STYLE : Icône d'édition
   editIconContainer: {
-  position: 'absolute',
-  bottom: 6,
-  right: 6,
-  width: 36,
-  height: 36,
-  borderRadius: 18,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: Theme.light.tint,
-  borderWidth: 3,
-  borderColor: Theme.light.card,
-  shadowColor: '#000',
-  shadowOffset: {
-    width: 0,
-    height: 2,
+    position: 'absolute',
+    bottom: 6,
+    right: 6,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Theme.light.tint,
+    borderWidth: 3,
+    borderColor: Theme.light.card,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
-  elevation: 5,
-},
   syncIndicator: {
     position: 'absolute',
     top: -4,

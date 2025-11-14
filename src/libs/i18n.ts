@@ -8,6 +8,7 @@ const resources = {
   fr: {
     translation: {
 
+        sellerSettings: "Paramètres vendeur",
         changeProfilePhoto: "Changer la photo de profil",
         takePhoto: "Prendre une photo",
         chooseFromGallery: "Choisir dans la galerie",
@@ -929,6 +930,7 @@ const resources = {
   en: {
     translation: {
 
+        sellerSettings: "Seller Settings",
         changeProfilePhoto: "Change Profile Photo", 
         takePhoto: "Take Photo",
         chooseFromGallery: "Choose from Gallery",

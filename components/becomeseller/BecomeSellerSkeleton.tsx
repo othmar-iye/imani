@@ -1,4 +1,4 @@
-// components/ProfileSettingsSkeleton.tsx - VERSION AMÉLIORÉE
+// components/BecomeSellerSkeleton.tsx
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
