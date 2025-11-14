@@ -313,10 +313,14 @@ export default function ProfileScreen() {
         return colors.textSecondary;
     }
   };
-
-  const setProfile = () => {
-    router.push('/screens/ProfileSettingsScreen')
-  };
+    // Rediriger vers l'écran de paramètres du profil
+    const setProfile = () => {
+        router.push('/screens/ProfileSettingsScreen')
+    };
+    // Rediriger vers l'écran de vérification ou de demande de vendeur
+    const handleBecomeSeller = () => {
+        router.push('/screens/ProfileSettingsScreen')    
+    };
 
   const handleLogout = () => {
     Alert.alert(
@@ -413,6 +417,7 @@ export default function ProfileScreen() {
     return <ProfileSkeleton colors={colors} refreshing={refreshing} onRefresh={onRefresh} />;
   }
 
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
@@ -430,18 +435,22 @@ export default function ProfileScreen() {
       >
         {/* Header avec composant ProfileHeader */}
         <ProfileHeader
-          profileImageUrl={profileImageUrl}
-          imageError={imageError}
-          userInitials={userInitials}
-          fullName={profileData.fullName}
-          statusText={getStatusText()}
-          statusIcon={getStatusIcon()}
-          statusColor={getStatusColor()}
-          location={profileData.location}
-          isRefetching={isRefetching}
-          onEditProfile={setProfile}
-          colors={colors}
-          editButtonText={t('editProfile')}
+            profileImageUrl={profileImageUrl}
+            imageError={imageError}
+            userInitials={userInitials}
+            fullName={profileData.fullName}
+            email={user?.email || 'email@example.com'} // Ajouter l'email
+            statusText={getStatusText()}
+            statusIcon={getStatusIcon()}
+            statusColor={getStatusColor()}
+            location={profileData.location}
+            isRefetching={isRefetching}
+            onEditProfile={setProfile}
+            onBecomeSeller={handleBecomeSeller} // Nouvelle fonction à créer
+            colors={colors}
+            editButtonText={t('editProfile')}
+            becomeSellerText={t('becomeSeller', 'Devenir vendeur')} // Ajouter cette traduction
+            showBecomeSellerButton={profileData?.sellerStatus === 'member'} // Afficher seulement si membre
         />
 
         {/* Message d'information - pour les statuts "pending" et "rejected" */}

@@ -9,19 +9,24 @@ interface ProfileHeaderProps {
   imageError: boolean;
   userInitials: string;
   fullName: string;
+  email: string; // Nouvelle prop pour l'email
   statusText: string;
   statusIcon: string;
   statusColor: string;
   location: string;
   isRefetching?: boolean;
   onEditProfile: () => void;
+  onBecomeSeller: () => void; // Nouvelle prop pour le bouton "Devenir vendeur"
   colors: {
     card: string;
     text: string;
     textSecondary: string;
     tint: string;
+    background: string;
   };
   editButtonText: string;
+  becomeSellerText: string; // Nouvelle prop pour le texte du bouton
+  showBecomeSellerButton?: boolean; // Pour conditionner l'affichage du bouton
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -29,98 +34,134 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   imageError,
   userInitials,
   fullName,
+  email,
   statusText,
   statusIcon,
   statusColor,
   location,
   isRefetching = false,
   onEditProfile,
+  onBecomeSeller,
   colors,
   editButtonText,
+  becomeSellerText,
+  showBecomeSellerButton = true,
 }) => {
   return (
     <View style={[styles.header, { backgroundColor: colors.card }]}>
-      <View style={styles.avatarSection}>
-        <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
-          {(profileImageUrl && !imageError) ? (
-            <Image 
-              source={{ uri: profileImageUrl }} 
-              style={styles.avatarImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text style={styles.avatarText}>{userInitials}</Text>
+      {/* Section principale avec avatar à gauche et infos à droite */}
+      <View style={styles.profileMainSection}>
+        {/* Avatar à gauche */}
+        <View style={styles.avatarSection}>
+          <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
+            {(profileImageUrl && !imageError) ? (
+              <Image 
+                source={{ uri: profileImageUrl }} 
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.avatarText}>{userInitials}</Text>
+            )}
+          </View>
+          
+          {/* Indicateur de synchronisation */}
+          {isRefetching && (
+            <View style={[styles.syncIndicator, { backgroundColor: colors.tint }]}>
+              <Ionicons name="sync" size={12} color="#FFFFFF" />
+            </View>
           )}
         </View>
-        
-        {/* Indicateur de synchronisation */}
-        {isRefetching && (
-          <View style={[styles.syncIndicator, { backgroundColor: colors.tint }]}>
-            <Ionicons name="sync" size={12} color="#FFFFFF" />
+
+        {/* Infos utilisateur à droite */}
+        <View style={styles.userInfoSection}>
+          <Text style={[styles.userName, { color: colors.text }]}>
+            {fullName}
+          </Text>
+          
+          <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
+            {email}
+          </Text>
+          
+          <View style={styles.statusLocationSection}>
+            <View style={styles.statusContainer}>
+              <Ionicons 
+                name={statusIcon as any} 
+                size={14} 
+                color={statusColor} 
+              />
+              <Text style={[styles.userStatus, { color: statusColor }]}>
+                {statusText}
+              </Text>
+            </View>
+            
+            <Text style={[styles.userLocation, { color: colors.textSecondary }]}>
+              {location}
+            </Text>
           </View>
+        </View>
+      </View>
+
+      {/* Section des boutons en bas */}
+      <View style={styles.buttonsSection}>
+        <CustomButton
+          title={editButtonText}
+          onPress={onEditProfile}
+          variant="outline"
+          size="medium"
+          style={styles.editButton}
+        />
+        
+        {showBecomeSellerButton && (
+          <CustomButton
+            title={becomeSellerText}
+            onPress={onBecomeSeller}
+            variant="primary"
+            size="medium"
+            style={styles.becomeSellerButton}
+          />
         )}
       </View>
-      
-      <Text style={[styles.userName, { color: colors.text }]}>
-        {fullName}
-      </Text>
-      
-      <View style={styles.userInfo}>
-        <Ionicons 
-          name={statusIcon as any} 
-          size={14} 
-          color={statusColor} 
-        />
-        <Text style={[styles.userStatus, { color: statusColor }]}>
-          {statusText}
-        </Text>
-      </View>
-      
-      <Text style={[styles.userLocation, { color: colors.textSecondary }]}>
-        {location}
-      </Text>
-
-      <CustomButton
-        title={editButtonText}
-        onPress={onEditProfile}
-        variant="primary"
-        size="large"
-      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    padding: 24,
-    alignItems: 'center',
+    padding: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    marginBottom: 16,
-    paddingTop: 60,
+    marginBottom: 20,
+    paddingTop: 80,
+    paddingBottom: 40,
+  },
+  profileMainSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
   avatarSection: {
     position: 'relative',
-    marginBottom: 16,
+    marginRight: 16,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 50,
+    borderRadius: 100,
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   syncIndicator: {
@@ -135,23 +176,45 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
+  userInfoSection: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  userName: {
+    fontSize: 20,
+    fontWeight: '700',
     marginBottom: 4,
   },
-  userStatus: {
+  userEmail: {
     fontSize: 14,
+    fontWeight: '400',
+    marginBottom: 12,
+  },
+  statusLocationSection: {
+    gap: 4,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userStatus: {
+    fontSize: 13,
     fontWeight: '500',
     marginLeft: 6,
   },
   userLocation: {
-    fontSize: 14,
-    marginBottom: 16,
+    fontSize: 13,
+    fontWeight: '400',
+  },
+  buttonsSection: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    borderWidth: 1,
+  },
+  becomeSellerButton: {
+    flex: 1,
   },
 });
