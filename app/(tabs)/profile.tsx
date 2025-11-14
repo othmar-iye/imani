@@ -423,7 +423,7 @@ export default function ProfileScreen() {
 
   // Rediriger vers l'écran de paramètres du profil
   const setProfile = () => {
-    router.push('/screens/BecomeSellerScreen')
+    router.push('/screens/EditProfileScreen')
   };
 
   // Rediriger vers l'écran de vérification ou de demande de vendeur

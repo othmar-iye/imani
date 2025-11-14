@@ -2,27 +2,25 @@
 import { AppConfig } from '@/constants/app';
 import { Theme } from '@/constants/theme';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { currentLanguage, changeLanguage } = useLanguage(); // 🆕 resetLanguage supprimé
+  const { currentLanguage, changeLanguage } = useLanguage();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -39,23 +37,6 @@ export default function SettingsScreen() {
   const [themeMode, setThemeMode] = useState<'auto' | 'light' | 'dark'>('auto');
   const [notifications, setNotifications] = useState(true);
   const [biometric, setBiometric] = useState(false);
-  
-  // États pour les informations personnelles
-  const [userInfo, setUserInfo] = useState({
-    fullName: '',
-    email: '',
-  });
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [tempValue, setTempValue] = useState('');
-
-  // États pour le changement de mot de passe
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const themeOptions = [
     { value: 'auto', label: t('system'), icon: 'phone-portrait' },
@@ -68,110 +49,7 @@ export default function SettingsScreen() {
     { value: 'en', label: t('english'), flag: '🇺🇸' },
   ];
 
-  // Charger les données utilisateur au montage du composant
-  React.useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserInfo({
-          fullName: user.user_metadata?.full_name || 'Utilisateur',
-          email: user.email || '',
-        });
-      }
-    } catch (error) {
-      console.error('Erreur chargement données utilisateur:', error);
-    }
-  };
-
-  // Fonction pour changer le mot de passe
-  const handleChangePassword = async () => {
-    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      Alert.alert(
-        t('error'),
-        t('fillAllFields', 'Veuillez remplir tous les champs')
-      );
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      Alert.alert(
-        t('error'),
-        t('passwordsDontMatch', 'Les mots de passe ne correspondent pas')
-      );
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      Alert.alert(
-        t('error'),
-        t('passwordTooShort', 'Le mot de passe doit contenir au moins 6 caractères')
-      );
-      return;
-    }
-
-    setIsChangingPassword(true);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: passwordData.newPassword
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      Alert.alert(
-        t('success'),
-        t('passwordChanged', 'Mot de passe changé avec succès'),
-        [
-          {
-            text: t('ok'),
-            onPress: () => {
-              setShowChangePassword(false);
-              setPasswordData({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
-              });
-            }
-          }
-        ]
-      );
-    } catch (error: any) {
-      console.error('Erreur changement mot de passe:', error);
-      Alert.alert(
-        t('error'),
-        error.message || t('passwordChangeError', 'Erreur lors du changement de mot de passe')
-      );
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
   const settingsSections = [
-    {
-      title: t('personalInfo', 'Informations personnelles'),
-      items: [
-        {
-          icon: 'person',
-          label: t('fullName', 'Nom complet'),
-          type: 'input',
-          value: userInfo.fullName,
-          onPress: () => startEditing('fullName', userInfo.fullName),
-        },
-        {
-          icon: 'mail',
-          label: t('email', 'Email'),
-          type: 'input',
-          value: userInfo.email,
-          onPress: () => startEditing('email', userInfo.email),
-        },
-      ],
-    },
     {
       title: t('appearance'),
       items: [
@@ -211,17 +89,6 @@ export default function SettingsScreen() {
       ],
     },
     {
-      title: t('security'),
-      items: [
-        {
-          icon: 'lock-closed',
-          label: t('changePassword'),
-          type: 'nav',
-          onPress: () => setShowChangePassword(true),
-        },
-      ],
-    },
-    {
       title: t('privacy'),
       items: [
         {
@@ -245,13 +112,13 @@ export default function SettingsScreen() {
           icon: 'help-circle',
           label: t('helpCenter'),
           type: 'nav',
-        //   onPress: () => router.push('/screens/profileOption/HelpCenterScreen'),
+          // onPress: () => router.push('/screens/profileOption/HelpCenterScreen'),
         },
         {
           icon: 'bug',
           label: t('reportIssue'),
           type: 'nav',
-        //   onPress: () => router.push('/screens/profileOption/ReportIssueScreen'),
+          // onPress: () => router.push('/screens/profileOption/ReportIssueScreen'),
         },
         {
           icon: 'star',
@@ -262,45 +129,6 @@ export default function SettingsScreen() {
       ],
     },
   ];
-
-  // Fonctions pour l'édition des champs
-  const startEditing = (field: string, currentValue: string) => {
-    setEditingField(field);
-    setTempValue(currentValue);
-  };
-
-  const saveEditing = async () => {
-    if (editingField && tempValue) {
-      try {
-        // Mettre à jour dans Supabase
-        const { error } = await supabase.auth.updateUser({
-          data: { 
-            ...(editingField === 'fullName' && { full_name: tempValue })
-            // Pour l'email, il faudrait utiliser supabase.auth.updateUser({ email: tempValue })
-            // mais cela nécessite une confirmation
-          }
-        });
-
-        if (error) throw error;
-
-        setUserInfo(prev => ({
-          ...prev,
-          [editingField]: tempValue
-        }));
-        setEditingField(null);
-        setTempValue('');
-        
-        Alert.alert(t('success'), t('profileUpdated', 'Profil mis à jour'));
-      } catch (error: any) {
-        Alert.alert(t('error'), error.message || t('updateError', 'Erreur lors de la mise à jour'));
-      }
-    }
-  };
-
-  const cancelEditing = () => {
-    setEditingField(null);
-    setTempValue('');
-  };
 
   const showThemeSelector = () => {
     Alert.alert(
@@ -403,16 +231,11 @@ export default function SettingsScreen() {
             />
           )}
           
-          {(item.type === 'select' || item.type === 'input' || item.type === 'nav') && (
+          {(item.type === 'select' || item.type === 'nav') && (
             <View style={styles.selectValue}>
               {item.type === 'select' && (
                 <Text style={[styles.selectText, { color: colors.textSecondary }]}>
                   {item.options.find((opt: any) => opt.value === item.value)?.label}
-                </Text>
-              )}
-              {item.type === 'input' && (
-                <Text style={[styles.selectText, { color: colors.textSecondary }]} numberOfLines={1}>
-                  {item.value}
                 </Text>
               )}
               <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
@@ -420,162 +243,6 @@ export default function SettingsScreen() {
           )}
         </View>
       </TouchableOpacity>
-    );
-  };
-
-  const renderEditModal = () => {
-    if (!editingField) return null;
-
-    const getEditTitle = () => {
-      switch (editingField) {
-        case 'fullName': return t('editFullName', 'Modifier le nom complet');
-        case 'email': return t('editEmail', 'Modifier l\'email');
-        default: return '';
-      }
-    };
-
-    const getPlaceholder = () => {
-      switch (editingField) {
-        case 'fullName': return t('enterFullName', 'Entrez votre nom complet');
-        case 'email': return t('enterEmail', 'Entrez votre email');
-        default: return '';
-      }
-    };
-
-    const getKeyboardType = () => {
-      switch (editingField) {
-        case 'email': return 'email-address';
-        default: return 'default';
-      }
-    };
-
-    return (
-      <View style={[styles.editModal, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-        <View style={[styles.editContainer, { backgroundColor: colors.card }]}>
-          <Text style={[styles.editTitle, { color: colors.text }]}>
-            {getEditTitle()}
-          </Text>
-          
-          <TextInput
-            style={[styles.editInput, { 
-              color: colors.text, 
-              borderColor: colors.border,
-              backgroundColor: colors.background 
-            }]}
-            value={tempValue}
-            onChangeText={setTempValue}
-            placeholder={getPlaceholder()}
-            placeholderTextColor={colors.textSecondary}
-            keyboardType={getKeyboardType()}
-            autoFocus
-          />
-
-          <View style={styles.editButtons}>
-            <TouchableOpacity 
-              style={[styles.editButton, { backgroundColor: colors.border }]}
-              onPress={cancelEditing}
-            >
-              <Text style={[styles.editButtonText, { color: colors.text }]}>
-                {t('cancel', 'Annuler')}
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.editButton, { backgroundColor: colors.tint }]}
-              onPress={saveEditing}
-            >
-              <Text style={styles.editButtonTextPrimary}>
-                {t('save', 'Enregistrer')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderChangePasswordModal = () => {
-    if (!showChangePassword) return null;
-
-    return (
-      <View style={[styles.editModal, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-        <View style={[styles.editContainer, { backgroundColor: colors.card }]}>
-          <Text style={[styles.editTitle, { color: colors.text }]}>
-            {t('changePassword')}
-          </Text>
-          
-          {/* Ancien mot de passe */}
-          <TextInput
-            style={[styles.editInput, { 
-              color: colors.text, 
-              borderColor: colors.border,
-              backgroundColor: colors.background 
-            }]}
-            placeholder={t('currentPassword', 'Ancien mot de passe')}
-            placeholderTextColor={colors.textSecondary}
-            secureTextEntry
-            value={passwordData.currentPassword}
-            onChangeText={(text) => setPasswordData(prev => ({ ...prev, currentPassword: text }))}
-          />
-
-          {/* Nouveau mot de passe */}
-          <TextInput
-            style={[styles.editInput, { 
-              color: colors.text, 
-              borderColor: colors.border,
-              backgroundColor: colors.background 
-            }]}
-            placeholder={t('newPassword', 'Nouveau mot de passe')}
-            placeholderTextColor={colors.textSecondary}
-            secureTextEntry
-            value={passwordData.newPassword}
-            onChangeText={(text) => setPasswordData(prev => ({ ...prev, newPassword: text }))}
-          />
-
-          {/* Confirmation mot de passe */}
-          <TextInput
-            style={[styles.editInput, { 
-              color: colors.text, 
-              borderColor: colors.border,
-              backgroundColor: colors.background 
-            }]}
-            placeholder={t('confirmPassword', 'Confirmer le mot de passe')}
-            placeholderTextColor={colors.textSecondary}
-            secureTextEntry
-            value={passwordData.confirmPassword}
-            onChangeText={(text) => setPasswordData(prev => ({ ...prev, confirmPassword: text }))}
-          />
-
-          <View style={styles.editButtons}>
-            <TouchableOpacity 
-              style={[styles.editButton, { backgroundColor: colors.border }]}
-              onPress={() => {
-                setShowChangePassword(false);
-                setPasswordData({
-                  currentPassword: '',
-                  newPassword: '',
-                  confirmPassword: '',
-                });
-              }}
-              disabled={isChangingPassword}
-            >
-              <Text style={[styles.editButtonText, { color: colors.text }]}>
-                {t('cancel', 'Annuler')}
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.editButton, { backgroundColor: colors.tint }]}
-              onPress={handleChangePassword}
-              disabled={isChangingPassword}
-            >
-              <Text style={styles.editButtonTextPrimary}>
-                {isChangingPassword ? t('changing', 'Changement...') : t('change', 'Changer')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
     );
   };
 
@@ -627,12 +294,6 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
-
-      {/* Modal d'édition des informations */}
-      {renderEditModal()}
-
-      {/* Modal de changement de mot de passe */}
-      {renderChangePasswordModal()}
     </View>
   );
 }
@@ -721,55 +382,5 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 13,
     fontWeight: '500',
-  },
-  // Styles pour les modals
-  editModal: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  editContainer: {
-    width: '100%',
-    borderRadius: 12,
-    padding: 20,
-  },
-  editTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  editInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  editButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginTop: 8,
-  },
-  editButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  editButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  editButtonTextPrimary: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

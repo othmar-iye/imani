@@ -3,13 +3,13 @@ import CustomButton from '@/components/CustomButton';
 import { EditFieldModal } from '@/components/EditFieldModal';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ProfileFormItem } from '@/components/ProfileFormItem';
-import { ProfileFormSection } from '@/components/ProfileFormSection';
-import { ProfileSettingsSkeleton } from '@/components/ProfileSettingsSkeleton';
+import { ProfileFormSection } from '@/components/becomeseller/BecomeSellerFormSection';
+import { ProfileSettingsSkeleton } from '@/components/becomeseller/BecomeSellerSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import {
-    compressImage,
-    uploadImageToStorage
+  compressImage,
+  uploadImageToStorage
 } from '@/src/services/ImageService';
 import { NotificationService } from '@/src/services/notificationService';
 import { formatDate, formatPhoneNumber, isValidDate, isValidPhoneNumber } from '@/src/utils/ValidationUtils';
@@ -21,15 +21,15 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Animated,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Alert,
+  Animated,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
 
 // Types pour les données du profil
