@@ -1,7 +1,7 @@
 // components/ValidationInfoCard.tsx
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { InfoBox } from './InfoBox';
+import { InfoBox } from '../InfoBox';
 
 interface ValidationInfoCardProps {
   colors: any;

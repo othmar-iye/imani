@@ -4,11 +4,12 @@ import { Header } from '@/components/Header';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import { categories, Category } from '@/src/data/categories';
+import { allCities } from '@/src/data/cities';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Alert,
@@ -20,6 +21,7 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     useColorScheme,
     View
@@ -27,12 +29,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Import des nouveaux composants
-import { FormInputGroup } from '@/components/FormInputGroup';
-import { ImageGalleryPreview } from '@/components/ImageGalleryPreview';
-import { PriceInput } from '@/components/PriceInput';
-import { ProductFormSection } from '@/components/ProductFormSection';
-import { SelectField } from '@/components/SelectField';
-import { ValidationInfoCard } from '@/components/ValidationInfoCard';
+import { FormInputGroup } from '@/components/selldetail/FormInputGroup';
+import { ImageGalleryPreview } from '@/components/selldetail/ImageGalleryPreview';
+import { PriceInput } from '@/components/selldetail/PriceInput';
+import { ProductFormSection } from '@/components/selldetail/ProductFormSection';
+import { SelectField } from '@/components/selldetail/SelectField';
+import { ValidationInfoCard } from '@/components/selldetail/ValidationInfoCard';
 
 import { NotificationService } from '@/src/services/notificationService';
 
@@ -58,13 +60,6 @@ const CONDITIONS = [
   { id: 'good', label: 'Bon état', value: 'good' },
   { id: 'fair', label: 'État correct', value: 'fair' }
 ];
-
-const LOCATIONS = [
-    'Lubumbashi', 'Likasi', 'Kipushi', 'Kambove', 'Kakanda', 'Kinshasa',
-    'Kasumbalesa', 'Mutoshi', 'Panda', 'Ruwe', 'Shinkolobwe', 'Goma',
-    'Sakania', 'Ankoro', 'Bukama', 'Kamina', 'Malemba Nkulu', 'Matadi',
-    'Nyunzu', 'Kabondo Dianda', 'Kazembe', 'Moba', 'Mwana Muyombo', 'Pweto'
-  ];
 
 // Fonction de compression d'image
 const compressImage = async (
@@ -232,7 +227,7 @@ const TypographicModalItem = ({
   </TouchableOpacity>
 );
 
-// Composant Modal Header Typographique
+// Composant Modal Header Typographique DE BASE (sans recherche)
 const TypographicModalHeader = ({ 
   title, 
   onClose, 
@@ -250,6 +245,59 @@ const TypographicModalHeader = ({
       <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
         Sélectionnez une option
       </Text>
+    </View>
+    <TouchableOpacity 
+      style={styles.closeButton}
+      onPress={onClose}
+    >
+      <Ionicons name="close" size={24} color={colors.text} />
+    </TouchableOpacity>
+  </View>
+);
+
+// Composant Modal Header Typographique AVEC RECHERCHE
+const TypographicModalHeaderWithSearch = ({ 
+  title, 
+  onClose, 
+  colors,
+  searchValue,
+  onSearchChange,
+  placeholder = "Rechercher..."
+}: { 
+  title: string; 
+  onClose: () => void; 
+  colors: any;
+  searchValue: string;
+  onSearchChange: (text: string) => void;
+  placeholder?: string;
+}) => (
+  <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+    <View style={styles.modalHeaderContent}>
+      <Text style={[styles.modalTitle, { color: colors.text }]}>
+        {title}
+      </Text>
+      <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+        Sélectionnez une option
+      </Text>
+      
+      {/* Barre de recherche */}
+      <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+        <Ionicons name="search" size={20} color={colors.textSecondary} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textSecondary}
+          value={searchValue}
+          onChangeText={onSearchChange}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {searchValue.length > 0 && (
+          <TouchableOpacity onPress={() => onSearchChange('')}>
+            <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
     <TouchableOpacity 
       style={styles.closeButton}
@@ -298,8 +346,25 @@ export default function SellDetailsScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  // États pour la recherche de villes
+  const [locationSearch, setLocationSearch] = useState('');
+  const [filteredLocations, setFilteredLocations] = useState<string[]>(allCities);
+
   const selectedCategory = categories.find(cat => cat.name === formData.category);
   const subCategories = selectedCategory?.subCategories || [];
+
+  // Filtrer les villes basées sur la recherche
+  useEffect(() => {
+    if (!locationSearch.trim()) {
+      setFilteredLocations(allCities);
+    } else {
+      const searchTerm = locationSearch.toLowerCase();
+      const filtered = allCities.filter(city => 
+        city.toLowerCase().includes(searchTerm)
+      );
+      setFilteredLocations(filtered);
+    }
+  }, [locationSearch]);
 
   const handleInputChange = (field: keyof ProductFormData, value: string) => {
     setFormData(prev => ({
@@ -327,6 +392,7 @@ export default function SellDetailsScreen() {
   const handleLocationSelect = (location: string) => {
     handleInputChange('location', location);
     setShowLocationModal(false);
+    setLocationSearch(''); // Réinitialiser la recherche
   };
 
   const uploadImages = async (productId: string): Promise<{imageUrls: string[], thumbnailUrl: string}> => {
@@ -535,6 +601,18 @@ export default function SellDetailsScreen() {
     />
   );
 
+  // Réinitialiser la recherche quand la modal s'ouvre/ferme
+  const handleLocationModalOpen = () => {
+    setLocationSearch('');
+    setFilteredLocations(allCities);
+    setShowLocationModal(true);
+  };
+
+  const handleLocationModalClose = () => {
+    setLocationSearch('');
+    setShowLocationModal(false);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView 
@@ -675,7 +753,7 @@ export default function SellDetailsScreen() {
                   label="Localisation"
                   value={formData.location}
                   placeholder={t('sell.chooseLocation', 'Ville')}
-                  onPress={() => setShowLocationModal(true)}
+                  onPress={handleLocationModalOpen}
                   required={true}
                   colors={colors}
                 />
@@ -702,7 +780,7 @@ export default function SellDetailsScreen() {
           </View>
         </ScrollView>
 
-        {/* Modal Catégorie - NOUVEAU DESIGN */}
+        {/* Modal Catégorie */}
         <Modal
           visible={showCategoryModal}
           animationType="slide"
@@ -723,7 +801,7 @@ export default function SellDetailsScreen() {
           </View>
         </Modal>
 
-        {/* Modal Sous-catégorie - NOUVEAU DESIGN */}
+        {/* Modal Sous-catégorie */}
         <Modal
           visible={showSubCategoryModal}
           animationType="slide"
@@ -744,7 +822,7 @@ export default function SellDetailsScreen() {
           </View>
         </Modal>
 
-        {/* Modal Condition - NOUVEAU DESIGN */}
+        {/* Modal Condition */}
         <Modal
           visible={showConditionModal}
           animationType="slide"
@@ -765,23 +843,39 @@ export default function SellDetailsScreen() {
           </View>
         </Modal>
 
-        {/* Modal Localisation - NOUVEAU DESIGN */}
+        {/* Modal Localisation AVEC RECHERCHE */}
         <Modal
           visible={showLocationModal}
           animationType="slide"
           presentationStyle="pageSheet"
         >
           <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-            <TypographicModalHeader
+            <TypographicModalHeaderWithSearch
               title="Localisation"
-              onClose={() => setShowLocationModal(false)}
+              onClose={handleLocationModalClose}
               colors={colors}
+              searchValue={locationSearch}
+              onSearchChange={setLocationSearch}
+              placeholder="Rechercher une ville..."
             />
+            
+            {/* Liste des villes filtrées */}
             <FlatList
-              data={LOCATIONS}
+              data={filteredLocations}
               renderItem={renderLocationItem}
               keyExtractor={item => item}
               style={styles.modalList}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Ionicons name="search-outline" size={48} color={colors.textSecondary} />
+                  <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                    Aucune ville trouvée
+                  </Text>
+                  <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
+                    Essayez avec d'autres termes de recherche
+                  </Text>
+                </View>
+              }
             />
           </View>
         </Modal>
@@ -879,5 +973,38 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 2,
     marginLeft: 12,
+  },
+  // Styles pour la recherche
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 12,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 4,
+  },
+  // Styles pour l'état vide
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 40,
   },
 });
