@@ -2,6 +2,7 @@
 import CustomButton from '@/components/CustomButton';
 import { MenuItem } from '@/components/MenuItem';
 import { MenuSection } from '@/components/MenuSection';
+import { ProfileImagePickerModal } from '@/components/profile/ProfileImagePickerModal';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { ProfileSkeleton } from '@/components/ProfileSkeleton';
 import { Theme } from '@/constants/theme';
@@ -9,6 +10,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -191,6 +193,7 @@ export default function ProfileScreen() {
   const [imageError, setImageError] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   // 🚀 SOLUTION REACT QUERY AVEC ACTUALISATION AUTOMATIQUE
   const { 
@@ -242,6 +245,110 @@ export default function ProfileScreen() {
 
     updateProfileImageUrl();
   }, [profileData?.profilePicture]);
+
+  // Fonctions pour la gestion des photos de profil
+  const handleEditPhoto = () => {
+    setShowImagePicker(true);
+  };
+
+  const takeProfilePhoto = async () => {
+    try {
+      console.log('📸 Ouverture caméra...');
+      
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          t('permissionRequired', 'Permission requise'),
+          t('cameraPermissionMessage', 'Nous avons besoin de votre permission pour utiliser la caméra.')
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('📸 Résultat caméra:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('✅ Photo prise:', result.assets[0].uri);
+        await uploadProfilePhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('❌ Erreur caméra:', error);
+      Alert.alert(
+        t('error', 'Erreur'),
+        t('cameraError', 'Impossible d\'accéder à la caméra.')
+      );
+    }
+  };
+
+  const chooseProfilePhotoFromGallery = async () => {
+    try {
+      console.log('🖼️ Ouverture galerie...');
+      
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          t('permissionRequired', 'Permission requise'), 
+          t('galleryPermissionMessage', 'Nous avons besoin de votre permission pour accéder à vos photos.')
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('🖼️ Résultat galerie:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('✅ Photo sélectionnée:', result.assets[0].uri);
+        await uploadProfilePhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('❌ Erreur galerie:', error);
+      Alert.alert(
+        t('error', 'Erreur'), 
+        t('galleryError', 'Impossible d\'accéder à la galerie photos.')
+      );
+    }
+  };
+
+  const uploadProfilePhoto = async (imageUri: string) => {
+    try {
+      console.log('📤 Upload photo:', imageUri);
+      
+      // Mise à jour IMMÉDIATE de l'image localement
+      setProfileImageUrl(imageUri);
+      setImageError(false);
+      
+      // Feedback utilisateur immédiat
+      Alert.alert(
+        t('success', 'Succès'),
+        t('photoUpdated', 'Photo de profil mise à jour avec succès!'),
+        [{ text: t('ok', 'OK') }]
+      );
+      
+      // Rechargement en arrière-plan
+      refetch();
+      
+    } catch (error) {
+      console.error('❌ Erreur upload:', error);
+      Alert.alert(
+        t('error', 'Erreur'),
+        t('uploadError', 'Erreur lors du téléchargement de la photo.')
+      );
+    }
+  };
 
   // Vérification de sécurité
   if (!user) {
@@ -313,14 +420,16 @@ export default function ProfileScreen() {
         return colors.textSecondary;
     }
   };
-    // Rediriger vers l'écran de paramètres du profil
-    const setProfile = () => {
-        router.push('/screens/ProfileSettingsScreen')
-    };
-    // Rediriger vers l'écran de vérification ou de demande de vendeur
-    const handleBecomeSeller = () => {
-        router.push('/screens/ProfileSettingsScreen')    
-    };
+
+  // Rediriger vers l'écran de paramètres du profil
+  const setProfile = () => {
+    router.push('/screens/ProfileSettingsScreen')
+  };
+
+  // Rediriger vers l'écran de vérification ou de demande de vendeur
+  const handleBecomeSeller = () => {
+    router.push('/screens/ProfileSettingsScreen')    
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -417,7 +526,6 @@ export default function ProfileScreen() {
     return <ProfileSkeleton colors={colors} refreshing={refreshing} onRefresh={onRefresh} />;
   }
 
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
@@ -435,22 +543,23 @@ export default function ProfileScreen() {
       >
         {/* Header avec composant ProfileHeader */}
         <ProfileHeader
-            profileImageUrl={profileImageUrl}
-            imageError={imageError}
-            userInitials={userInitials}
-            fullName={profileData.fullName}
-            email={user?.email || 'email@example.com'} // Ajouter l'email
-            statusText={getStatusText()}
-            statusIcon={getStatusIcon()}
-            statusColor={getStatusColor()}
-            location={profileData.location}
-            isRefetching={isRefetching}
-            onEditProfile={setProfile}
-            onBecomeSeller={handleBecomeSeller} // Nouvelle fonction à créer
-            colors={colors}
-            editButtonText={t('editProfile')}
-            becomeSellerText={t('becomeSeller', 'Devenir vendeur')} // Ajouter cette traduction
-            showBecomeSellerButton={profileData?.sellerStatus === 'member'} // Afficher seulement si membre
+          profileImageUrl={profileImageUrl}
+          imageError={imageError}
+          userInitials={userInitials}
+          fullName={profileData.fullName}
+          email={user?.email || 'email@example.com'}
+          statusText={getStatusText()}
+          statusIcon={getStatusIcon()}
+          statusColor={getStatusColor()}
+          location={profileData.location}
+          isRefetching={isRefetching}
+          onEditProfile={setProfile}
+          onBecomeSeller={handleBecomeSeller}
+          onEditPhoto={handleEditPhoto}
+          colors={colors}
+          editButtonText={t('editProfile')}
+          becomeSellerText={t('becomeSeller', 'Devenir vendeur')}
+          showBecomeSellerButton={profileData?.sellerStatus === 'member'}
         />
 
         {/* Message d'information - pour les statuts "pending" et "rejected" */}
@@ -545,6 +654,14 @@ export default function ProfileScreen() {
           {t('version', 'Version')} 1.0.0
         </Text>
       </ScrollView>
+
+      {/* Modal de sélection de photo */}
+      <ProfileImagePickerModal
+        visible={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onTakePhoto={takeProfilePhoto}
+        onChooseFromGallery={chooseProfilePhotoFromGallery}
+      />
     </View>
   );
 }

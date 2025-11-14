@@ -1,22 +1,24 @@
 // components/ProfileHeader.tsx
 import CustomButton from '@/components/CustomButton';
+import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ProfileHeaderProps {
   profileImageUrl: string | null;
   imageError: boolean;
   userInitials: string;
   fullName: string;
-  email: string; // Nouvelle prop pour l'email
+  email: string;
   statusText: string;
   statusIcon: string;
   statusColor: string;
   location: string;
   isRefetching?: boolean;
   onEditProfile: () => void;
-  onBecomeSeller: () => void; // Nouvelle prop pour le bouton "Devenir vendeur"
+  onBecomeSeller: () => void;
+  onEditPhoto: () => void; // NOUVELLE PROP pour ouvrir la modal photo
   colors: {
     card: string;
     text: string;
@@ -25,8 +27,8 @@ interface ProfileHeaderProps {
     background: string;
   };
   editButtonText: string;
-  becomeSellerText: string; // Nouvelle prop pour le texte du bouton
-  showBecomeSellerButton?: boolean; // Pour conditionner l'affichage du bouton
+  becomeSellerText: string;
+  showBecomeSellerButton?: boolean;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -42,6 +44,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isRefetching = false,
   onEditProfile,
   onBecomeSeller,
+  onEditPhoto, // NOUVELLE PROP
   colors,
   editButtonText,
   becomeSellerText,
@@ -53,17 +56,28 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <View style={styles.profileMainSection}>
         {/* Avatar à gauche */}
         <View style={styles.avatarSection}>
-          <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
-            {(profileImageUrl && !imageError) ? (
-              <Image 
-                source={{ uri: profileImageUrl }} 
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <Text style={styles.avatarText}>{userInitials}</Text>
-            )}
-          </View>
+          <TouchableOpacity 
+            style={styles.avatarContainer}
+            onPress={onEditPhoto} // Ouvre la modal photo au clic
+            activeOpacity={0.7}
+          >
+            <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
+              {(profileImageUrl && !imageError) ? (
+                <Image 
+                  source={{ uri: profileImageUrl }} 
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.avatarText}>{userInitials}</Text>
+              )}
+            </View>
+            
+            {/* Icône d'édition en bas à droite */}
+            <View style={[styles.editIconContainer, { backgroundColor: colors.tint }]}>
+              <Ionicons name="camera" size={16} color="#FFFFFF" />
+            </View>
+          </TouchableOpacity>
           
           {/* Indicateur de synchronisation */}
           {isRefetching && (
@@ -144,6 +158,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: 16,
   },
+  avatarContainer: {
+    position: 'relative',
+  },
   avatar: {
     width: 110,
     height: 110,
@@ -164,6 +181,28 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
+  // NOUVEAU STYLE : Icône d'édition
+  editIconContainer: {
+  position: 'absolute',
+  bottom: 6,
+  right: 6,
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: Theme.light.tint,
+  borderWidth: 3,
+  borderColor: Theme.light.card,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
   syncIndicator: {
     position: 'absolute',
     top: -4,

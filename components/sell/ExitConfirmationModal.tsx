@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
-    marginHorizontal: 8,
-    marginBottom: 8,
+    // SUPPRIMER marginHorizontal et marginBottom
+    width: '100%', // ← OCCUPE 100% DE LA LARGEUR
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

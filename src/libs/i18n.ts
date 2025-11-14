@@ -1,4 +1,4 @@
-// lib/i18n.ts
+// libs/i18n.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
 import i18n from 'i18next';
@@ -7,6 +7,12 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   fr: {
     translation: {
+
+        changeProfilePhoto: "Changer la photo de profil",
+        takePhoto: "Prendre une photo",
+        chooseFromGallery: "Choisir dans la galerie",
+        photoUpdated: "Photo de profil mise à jour avec succès!",
+        uploadError: "Erreur lors du téléchargement de la photo.",
 
         allProducts: {
             title: "Tous les produits",
@@ -51,6 +57,7 @@ const resources = {
             mobileConfirmation: "Vous recevrez une demande de confirmation sur votre mobile"
         },
         delete: "Supprimer",
+
         // ===== NOUVELLES TRADUCTIONS NOTIFICATIONS =====
         notifications: {
 
@@ -852,8 +859,6 @@ const resources = {
       // Upload d'images
       tapToUpload: "Appuyez pour ajouter",
       addPhoto: "Ajouter une photo",
-      takePhoto: "Prendre une photo",
-      chooseFromGallery: "Choisir depuis la galerie",
       chooseSource: "Choisir la source de la photo",
       uploaded: "✓",
       upload: "+",
@@ -927,6 +932,12 @@ const resources = {
 
   en: {
     translation: {
+
+        changeProfilePhoto: "Change Profile Photo", 
+        takePhoto: "Take Photo",
+        chooseFromGallery: "Choose from Gallery",
+        photoUpdated: "Profile photo updated successfully!",
+        uploadError: "Error uploading photo.",
 
         allProducts: {
             title: "All Products",
@@ -1775,8 +1786,6 @@ const resources = {
       // Image upload
       tapToUpload: "Tap to upload",
       addPhoto: "Add Photo",
-      takePhoto: "Take Photo",
-      chooseFromGallery: "Choose from Gallery",
       chooseSource: "Choose photo source",
       uploaded: "✓",
       upload: "+",
