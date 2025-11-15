@@ -781,7 +781,7 @@ export default function ProfileScreen() {
             onTakePhoto={takeProfilePhoto}
             onChooseFromGallery={chooseProfilePhotoFromGallery}
             onDeletePhoto={handleDeletePhoto} // 🆕 Nouvelle fonction à créer
-            hasCurrentPhoto={!!profileData?.profilePicture} // 🆕 Vérifie si une photo existe
+            hasCurrentPhoto={!!profileData?.profilePicture && profileData?.sellerStatus !== 'verified'}
             isUploading={isUploading}
         />
     </View>
