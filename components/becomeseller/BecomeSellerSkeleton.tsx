@@ -1,7 +1,6 @@
 // components/BecomeSellerSkeleton.tsx
-import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -128,32 +127,51 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
-      {/* Header INSTANTANÉ */}
+      {/* Header COMPLÈTEMENT EN SKELETON */}
       <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <Ionicons name="chevron-back" size={24} color={colors.tint} />
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Modifier le profil
-        </Text>
-        <View style={[styles.saveButton, { backgroundColor: colors.tint }]}>
-          <Text style={styles.saveButtonText}>Enregistrer</Text>
-        </View>
+        {/* Bouton retour skeleton */}
+        <AnimatedSkeletonCircle size={40} variant="default" />
+        
+        {/* Titre skeleton */}
+        <AnimatedSkeletonBox 
+          width={120} 
+          height={20} 
+          borderRadius={8}
+          variant="strong"
+        />
+        
+        {/* Bouton sauvegarder skeleton */}
+        <AnimatedSkeletonBox 
+          width={80} 
+          height={32} 
+          borderRadius={8}
+          variant="strong"
+        />
       </View>
 
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Section Avatar Simplifiée - NOUVEAU DESIGN */}
+        {/* Section Avatar Simplifiée - COMPLÈTEMENT EN SKELETON */}
         <View style={[styles.avatarSection, { backgroundColor: colors.card }]}>
-          {/* Titre instantané */}
-          <Text style={[styles.avatarTitle, { color: colors.text }]}>
-            Photo de profil
-          </Text>
+          {/* Titre skeleton */}
+          <AnimatedSkeletonBox 
+            width={120} 
+            height={18} 
+            borderRadius={6}
+            style={{ marginBottom: 4 }}
+            variant="strong"
+          />
           
-          {/* Sous-titre instantané */}
-          <Text style={[styles.avatarSubtitle, { color: colors.textSecondary }]}>
-            Obligatoire pour devenir vendeur
-          </Text>
+          {/* Sous-titre skeleton */}
+          <AnimatedSkeletonBox 
+            width={200} 
+            height={14} 
+            borderRadius={6}
+            style={{ marginBottom: 20 }}
+            variant="default"
+          />
           
           {/* Avatar skeleton */}
           <View style={styles.avatarContainer}>
@@ -170,11 +188,17 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
           />
         </View>
 
-        {/* Section Informations personnelles */}
+        {/* Section Informations personnelles - COMPLÈTEMENT EN SKELETON */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Informations personnelles
-          </Text>
+          {/* Titre section skeleton */}
+          <AnimatedSkeletonBox 
+            width={160} 
+            height={16} 
+            borderRadius={6}
+            style={{ marginBottom: 12, marginLeft: 4 }}
+            variant="strong"
+          />
+          
           <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             {[1, 2].map((item) => (
               <View 
@@ -186,9 +210,11 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                 ]}
               >
                 <View style={styles.skeletonItemLeft}>
-                  <Ionicons name="ellipse-outline" size={20} color={colors.textSecondary} />
+                  {/* Icône skeleton */}
+                  <AnimatedSkeletonCircle size={20} variant="default" />
+                  
                   <View style={styles.skeletonTextContainer}>
-                    {/* Label du champ */}
+                    {/* Label du champ skeleton */}
                     <AnimatedSkeletonBox 
                       width={120} 
                       height={16} 
@@ -196,7 +222,7 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                       style={{ marginBottom: 6 }}
                       variant="default"
                     />
-                    {/* Valeur du champ */}
+                    {/* Valeur du champ skeleton */}
                     <AnimatedSkeletonBox 
                       width={80} 
                       height={14} 
@@ -205,17 +231,29 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                     />
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                {/* Flèche skeleton */}
+                <AnimatedSkeletonBox 
+                  width={16} 
+                  height={16} 
+                  borderRadius={2}
+                  variant="default"
+                />
               </View>
             ))}
           </View>
         </View>
 
-        {/* Section Localisation */}
+        {/* Section Localisation - COMPLÈTEMENT EN SKELETON */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Localisation
-          </Text>
+          {/* Titre section skeleton */}
+          <AnimatedSkeletonBox 
+            width={100} 
+            height={16} 
+            borderRadius={6}
+            style={{ marginBottom: 12, marginLeft: 4 }}
+            variant="strong"
+          />
+          
           <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             {[1, 2].map((item) => (
               <View 
@@ -227,9 +265,11 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                 ]}
               >
                 <View style={styles.skeletonItemLeft}>
-                  <Ionicons name="ellipse-outline" size={20} color={colors.textSecondary} />
+                  {/* Icône skeleton */}
+                  <AnimatedSkeletonCircle size={20} variant="default" />
+                  
                   <View style={styles.skeletonTextContainer}>
-                    {/* Label du champ */}
+                    {/* Label du champ skeleton */}
                     <AnimatedSkeletonBox 
                       width={120} 
                       height={16} 
@@ -237,7 +277,7 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                       style={{ marginBottom: 6 }}
                       variant="default"
                     />
-                    {/* Valeur du champ */}
+                    {/* Valeur du champ skeleton */}
                     <AnimatedSkeletonBox 
                       width={80} 
                       height={14} 
@@ -246,17 +286,29 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                     />
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                {/* Flèche skeleton */}
+                <AnimatedSkeletonBox 
+                  width={16} 
+                  height={16} 
+                  borderRadius={2}
+                  variant="default"
+                />
               </View>
             ))}
           </View>
         </View>
 
-        {/* Section Vérification d'identité */}
+        {/* Section Vérification d'identité - COMPLÈTEMENT EN SKELETON */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Vérification d'identité
-          </Text>
+          {/* Titre section skeleton */}
+          <AnimatedSkeletonBox 
+            width={140} 
+            height={16} 
+            borderRadius={6}
+            style={{ marginBottom: 12, marginLeft: 4 }}
+            variant="strong"
+          />
+          
           <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             {[1, 2, 3].map((item) => (
               <View 
@@ -268,9 +320,11 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                 ]}
               >
                 <View style={styles.skeletonItemLeft}>
-                  <Ionicons name="ellipse-outline" size={20} color={colors.textSecondary} />
+                  {/* Icône skeleton */}
+                  <AnimatedSkeletonCircle size={20} variant="default" />
+                  
                   <View style={styles.skeletonTextContainer}>
-                    {/* Label du champ */}
+                    {/* Label du champ skeleton */}
                     <AnimatedSkeletonBox 
                       width={120} 
                       height={16} 
@@ -278,7 +332,7 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                       style={{ marginBottom: 6 }}
                       variant="default"
                     />
-                    {/* Statut/valeur */}
+                    {/* Statut/valeur skeleton */}
                     <AnimatedSkeletonBox 
                       width={80} 
                       height={14} 
@@ -287,7 +341,13 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
                     />
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                {/* Flèche skeleton */}
+                <AnimatedSkeletonBox 
+                  width={16} 
+                  height={16} 
+                  borderRadius={2}
+                  variant="default"
+                />
               </View>
             ))}
             
@@ -303,12 +363,28 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
           </View>
         </View>
 
-        {/* Information importante INSTANTANÉE */}
+        {/* Information importante - COMPLÈTEMENT EN SKELETON */}
         <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
-          <Ionicons name="information-circle" size={20} color={colors.tint} />
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            La vérification de votre identité est nécessaire pour devenir vendeur. Le traitement peut prendre 24-48h.
-          </Text>
+          {/* Icône information skeleton */}
+          <AnimatedSkeletonCircle size={20} variant="default" />
+          
+          <View style={styles.infoTextContainer}>
+            {/* Titre information skeleton */}
+            <AnimatedSkeletonBox 
+              width={120} 
+              height={14} 
+              borderRadius={4}
+              style={{ marginBottom: 8 }}
+              variant="default"
+            />
+            {/* Description information skeleton */}
+            <AnimatedSkeletonBox 
+              width="100%" 
+              height={36} 
+              borderRadius={4}
+              variant="default"
+            />
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -327,20 +403,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingTop: 60,
   },
-  headerTitle: { 
-    fontSize: 18, 
-    fontWeight: '700',
-  },
-  saveButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
@@ -354,16 +416,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
   },
-  avatarTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  avatarSubtitle: {
-    fontSize: 14,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   avatarContainer: {
     alignItems: 'center',
   },
@@ -371,12 +423,6 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 20,
     marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 12,
-    paddingLeft: 4,
   },
   sectionCard: {
     borderRadius: 12,
@@ -411,16 +457,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
   },
-  infoText: {
+  infoTextContainer: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 18,
   },
   skeletonBox: {
     borderRadius: 6,
   },
   skeletonCircle: {
     borderRadius: 60,
-    alignSelf: 'center',
   },
 });
