@@ -5,14 +5,16 @@ import { ImageUploader } from '@/components/ImageUploader';
 import { ProfileFormItem } from '@/components/ProfileFormItem';
 import { ProfileFormSection } from '@/components/becomeseller/BecomeSellerFormSection';
 import { ProfileSettingsSkeleton } from '@/components/becomeseller/BecomeSellerSkeleton';
+import { ProfileImagePickerModal } from '@/components/profile/ProfileImagePickerModal';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
 import {
-  compressImage,
-  uploadImageToStorage
+    compressImage,
+    uploadImageToStorage
 } from '@/src/services/ImageService';
 import { NotificationService } from '@/src/services/notificationService';
 import { formatDate, formatPhoneNumber, isValidDate, isValidPhoneNumber } from '@/src/utils/ValidationUtils';
+import { compressImage as compressImageUtil, createThumbnail, uploadProfileImageToSupabase } from '@/src/utils/imageUtils';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -21,15 +23,16 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Animated,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View
+    Alert,
+    Animated,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from 'react-native';
 
 // Types pour les données du profil
@@ -42,6 +45,8 @@ interface UserProfile {
   identity_type: 'voter_card' | 'passport' | 'driving_license' | null;
   identity_number: string;
   identity_document_url: string | null;
+  profile_picture_url: string | null;
+  profile_picture_thumbnail_url: string | null;
   verification_status: string;
   updated_at: string;
 }
@@ -74,6 +79,12 @@ export default function ProfileSettingsScreen() {
 
   // États pour les documents
   const [identityDocument, setIdentityDocument] = useState<string | null>(null);
+
+  // États pour l'avatar
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // État local pour gérer les modifications du formulaire
   const [localProfileData, setLocalProfileData] = useState<ProfileFormData>({
@@ -141,6 +152,7 @@ export default function ProfileSettingsScreen() {
   useEffect(() => {
     if (userProfile) {
         setIdentityDocument(userProfile.identity_document_url);
+        setProfileImageUrl(userProfile.profile_picture_thumbnail_url || userProfile.profile_picture_url);
         
         // Initialiser les données locales avec les données du profil
         setLocalProfileData({
@@ -163,6 +175,288 @@ export default function ProfileSettingsScreen() {
     }
   }, [userProfile]);
 
+  // Fonction pour obtenir une URL signée pour les images Supabase
+  const getSignedUrl = async (url: string): Promise<string | null> => {
+    try {
+      if (!url.includes('supabase.co')) return url;
+      
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      const bucket = 'user-documents';
+      
+      const publicIndex = pathParts.indexOf('public');
+      if (publicIndex === -1) return url;
+      
+      const filePath = pathParts.slice(publicIndex + 2).join('/');
+      
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .createSignedUrl(filePath, 3600);
+
+      if (error) {
+        const { data: publicUrlData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+        return publicUrlData.publicUrl;
+      }
+
+      return data?.signedUrl || url;
+    } catch (error) {
+      console.error('❌ Erreur getSignedUrl:', error);
+      return url;
+    }
+  };
+
+  // Mettre à jour l'URL de l'image de profil avec une URL signée si nécessaire
+  React.useEffect(() => {
+    const updateProfileImageUrl = async () => {
+      const imageToDisplay = userProfile?.profile_picture_thumbnail_url || userProfile?.profile_picture_url;
+      
+      if (imageToDisplay) {
+        if (imageToDisplay.includes('supabase.co')) {
+          const signedUrl = await getSignedUrl(imageToDisplay);
+          setProfileImageUrl(signedUrl);
+        } else {
+          setProfileImageUrl(imageToDisplay);
+        }
+      } else {
+        setProfileImageUrl(null);
+      }
+    };
+
+    updateProfileImageUrl();
+  }, [userProfile?.profile_picture_thumbnail_url, userProfile?.profile_picture_url]);
+
+  // Fonctions pour la gestion des photos de profil
+  const handleEditPhoto = () => {
+    setShowImagePicker(true);
+  };
+
+  const takeProfilePhoto = async () => {
+    try {
+      console.log('📸 Ouverture caméra...');
+      
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          t('permissionRequired', 'Permission requise'),
+          t('cameraPermissionMessage', 'Nous avons besoin de votre permission pour utiliser la caméra.')
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('📸 Résultat caméra:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('✅ Photo prise:', result.assets[0].uri);
+        await uploadProfilePhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('❌ Erreur caméra:', error);
+      Alert.alert(
+        t('error', 'Erreur'),
+        t('cameraError', 'Impossible d\'accéder à la caméra.')
+      );
+    }
+  };
+
+  const chooseProfilePhotoFromGallery = async () => {
+    try {
+      console.log('🖼️ Ouverture galerie...');
+      
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          t('permissionRequired', 'Permission requise'), 
+          t('galleryPermissionMessage', 'Nous avons besoin de votre permission pour accéder à vos photos.')
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('🖼️ Résultat galerie:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('✅ Photo sélectionnée:', result.assets[0].uri);
+        await uploadProfilePhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('❌ Erreur galerie:', error);
+      Alert.alert(
+        t('error', 'Erreur'), 
+        t('galleryError', 'Impossible d\'accéder à la galerie photos.')
+      );
+    }
+  };
+
+  const uploadProfilePhoto = async (imageUri: string) => {
+    try {
+      console.log('📤 Début upload photo profil:', imageUri);
+      
+      if (!user) {
+        throw new Error('Utilisateur non connecté');
+      }
+
+      setIsUploading(true);
+      setShowImagePicker(false);
+
+      // Mise à jour IMMÉDIATE de l'image localement pour un feedback visuel
+      setProfileImageUrl(imageUri);
+      setImageError(false);
+
+      // 🎯 MÊME PROCÉDURE QUE ProfileScreen :
+      // ÉTAPE 1: Préparer les images (compression + thumbnail)
+      console.log('🔄 Compression image principale...');
+      const compressedImageUri = await compressImageUtil(imageUri, 0.8, 800, 800);
+      
+      console.log('🔄 Création thumbnail...');
+      const thumbnailUri = await createThumbnail(imageUri, 0.6, 200, 200);
+
+      // ÉTAPE 2: Upload vers Supabase Storage
+      const timestamp = Date.now();
+      const mainFileName = `profile-pictures/${user.id}/main-${timestamp}.jpg`;
+      const thumbnailFileName = `profile-pictures/${user.id}/thumbnail-${timestamp}.jpg`;
+
+      console.log('📤 Upload image principale...');
+      const mainImageUrl = await uploadProfileImageToSupabase(compressedImageUri, mainFileName);
+      
+      console.log('📤 Upload thumbnail...');
+      const thumbnailUrl = await uploadProfileImageToSupabase(thumbnailUri, thumbnailFileName);
+
+      // ÉTAPE 3: Mettre à jour la table user_profiles
+      console.log('💾 Mise à jour base de données...');
+      
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          profile_picture_url: mainImageUrl,
+          profile_picture_thumbnail_url: thumbnailUrl, // 🎯 THUMBNAIL ICI
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
+        });
+
+      if (updateError) {
+        console.error('❌ Erreur mise à jour profil:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ Photo de profil mise à jour avec succès!');
+      
+      // Mettre à jour l'URL affichée avec la nouvelle image
+      setProfileImageUrl(thumbnailUrl || mainImageUrl);
+      
+      // Forcer le rechargement des données
+      await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
+      
+      Alert.alert(
+        t('success', 'Succès'),
+        t('photoUpdated', 'Photo de profil mise à jour avec succès!'),
+        [{ text: t('ok', 'OK') }]
+      );
+      
+    } catch (error: any) {
+      console.error('❌ Erreur upload complète:', error);
+      
+      let errorMessage = t('uploadError', 'Erreur lors du téléchargement de la photo.');
+      
+      if (error.message?.includes('storage')) {
+        errorMessage = 'Erreur de stockage. Vérifiez les permissions du bucket.';
+      } else if (error.message?.includes('fetch')) {
+        errorMessage = 'Impossible de lire le fichier image.';
+      }
+      
+      Alert.alert(
+        t('error', 'Erreur'),
+        errorMessage
+      );
+      
+      // Recharger les données originales en cas d'erreur
+      await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    try {
+        if (!user) return;
+
+        Alert.alert(
+        t('deletePhotoTitle', 'Supprimer la photo'),
+        t('deletePhotoMessage', 'Êtes-vous sûr de vouloir supprimer votre photo de profil ?'),
+        [
+            {
+            text: t('cancel', 'Annuler'),
+            style: 'cancel',
+            },
+            {
+            text: t('delete', 'Supprimer'),
+            style: 'destructive',
+            onPress: async () => {
+                // Mettre à jour l'état local immédiatement
+                setProfileImageUrl(null);
+                
+                // Mettre à jour la base de données
+                const { error } = await supabase
+                .from('user_profiles')
+                .upsert({
+                    id: user.id,
+                    profile_picture_url: null,
+                    profile_picture_thumbnail_url: null,
+                    updated_at: new Date().toISOString(),
+                });
+
+                if (error) {
+                console.error('❌ Erreur suppression photo:', error);
+                Alert.alert(t('error', 'Erreur'), t('deletePhotoError', 'Erreur lors de la suppression.'));
+                // Recharger les données en cas d'erreur
+                await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+                } else {
+                console.log('✅ Photo supprimée avec succès');
+                await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+                }
+            },
+            },
+        ]
+        );
+    } catch (error) {
+        console.error('❌ Erreur suppression photo:', error);
+        Alert.alert(t('error', 'Erreur'), t('deletePhotoError', 'Erreur lors de la suppression.'));
+    }
+  };
+
+  // Fonction pour générer les initiales
+  const getInitials = (name: string): string => {
+    if (!name) return 'U';
+    
+    const names = name.trim().split(' ').filter(n => n.length > 0);
+    
+    if (names.length === 0) return 'U';
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  };
+
+  const userInitials = getInitials(user?.user_metadata?.full_name || '');
+
   // Fonction pour sauvegarder le profil
   const saveProfileData = async (formData: ProfileFormData): Promise<boolean> => {
     console.log('🟡 Début sauvegarde profil...');
@@ -170,6 +464,11 @@ export default function ProfileSettingsScreen() {
     if (!user) {
       console.log('🔴 Utilisateur non connecté');
       throw new Error(t('userNotConnected'));
+    }
+
+    // VÉRIFICATION OBLIGATOIRE DE LA PHOTO DE PROFIL
+    if (!userProfile?.profile_picture_url && !profileImageUrl) {
+      throw new Error('PHOTO_PROFILE_REQUIRED');
     }
 
     try {
@@ -299,7 +598,9 @@ export default function ProfileSettingsScreen() {
       let errorMessage = t('saveError');
       
       // Messages d'erreur spécifiques
-      if (error.message?.includes('non connecté') || error.message?.includes('not connected')) {
+      if (error.message === 'PHOTO_PROFILE_REQUIRED') {
+        errorMessage = t('photoProfileRequired', 'Photo de profil requise pour devenir vendeur');
+      } else if (error.message?.includes('non connecté') || error.message?.includes('not connected')) {
         errorMessage = t('userNotConnected');
       } else if (error.message?.includes('storage') || error.message?.includes('upload')) {
         errorMessage = t('uploadError');
@@ -618,6 +919,16 @@ export default function ProfileSettingsScreen() {
       return;
     }
 
+    // VÉRIFICATION OBLIGATOIRE DE LA PHOTO DE PROFIL
+    if (!userProfile?.profile_picture_url && !profileImageUrl) {
+      Alert.alert(
+        t('photoRequired'),
+        t('photoProfileRequired', 'Photo de profil requise pour devenir vendeur'),
+        [{ text: t('okText') }]
+      );
+      return;
+    }
+
     // Vérifier si au moins une information a été modifiée
     const hasChanges = 
         localProfileData.phoneNumber !== (userProfile?.phone_number || '') ||
@@ -814,7 +1125,59 @@ export default function ProfileSettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Sections du profil - PLUS DE PHOTO DE PROFIL */}
+        {/* Section Avatar Simplifiée */}
+        <View style={[styles.avatarSection, { backgroundColor: colors.card }]}>
+          <Text style={[styles.avatarTitle, { color: colors.text }]}>
+            {t('profilePhoto', 'Photo de profil')}
+          </Text>
+          <Text style={[styles.avatarSubtitle, { color: colors.textSecondary }]}>
+            {t('photoRequiredForSeller', 'Obligatoire pour devenir vendeur')}
+          </Text>
+          
+          <View style={styles.avatarContainer}>
+            <TouchableOpacity 
+              style={styles.avatarTouchable}
+              onPress={handleEditPhoto}
+              activeOpacity={0.7}
+              disabled={isUploading}
+            >
+              <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
+                {(profileImageUrl && !imageError && !isUploading) ? (
+                  <Image 
+                    source={{ uri: profileImageUrl }} 
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  !isUploading && (
+                    <Text style={styles.avatarText}>{userInitials}</Text>
+                  )
+                )}
+                
+                {isUploading && (
+                  <View style={[styles.uploadOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+                    <Ionicons name="cloud-upload" size={24} color="#FFFFFF" />
+                  </View>
+                )}
+              </View>
+              
+              {!isUploading && (
+                <View style={[styles.editIconContainer, { backgroundColor: colors.tint }]}>
+                  <Ionicons name="camera" size={16} color="#FFFFFF" />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {!profileImageUrl && (
+            <Text style={[styles.avatarWarning, { color: '#FF9500' }]}>
+              {t('photoRequiredWarning', 'Photo de profil requise')}
+            </Text>
+          )}
+        </View>
+
+        {/* Sections du profil */}
         {profileSections.map((section, sectionIndex) => (
           <ProfileFormSection
             key={sectionIndex}
@@ -841,6 +1204,17 @@ export default function ProfileSettingsScreen() {
         onTextChange={handleTextChange}
         onSave={saveEditing}
         onCancel={cancelEditing}
+      />
+
+      {/* Modal de sélection de photo */}
+      <ProfileImagePickerModal
+        visible={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onTakePhoto={takeProfilePhoto}
+        onChooseFromGallery={chooseProfilePhotoFromGallery}
+        onDeletePhoto={handleDeletePhoto}
+        hasCurrentPhoto={!!profileImageUrl}
+        isUploading={isUploading}
       />
     </View>
   );
@@ -876,7 +1250,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
-    marginTop: 25,
   },
   uploadItem: {
     marginBottom: 16,
@@ -905,6 +1278,75 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 16,
     marginBottom: 24,
+    textAlign: 'center',
+  },
+  // Styles pour la section avatar
+  avatarSection: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  avatarTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  avatarSubtitle: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  avatarContainer: {
+    alignItems: 'center',
+  },
+  avatarTouchable: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  editIconContainer: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  uploadOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+  },
+  avatarWarning: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 12,
     textAlign: 'center',
   },
 });

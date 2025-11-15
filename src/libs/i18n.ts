@@ -8,6 +8,28 @@ const resources = {
   fr: {
     translation: {
 
+        // NOUVELLES TRADUCTIONS POUR LA PHOTO DE PROFIL OBLIGATOIRE
+        profilePhoto: "Photo de profil",
+        photoRequiredForSeller: "Obligatoire pour devenir vendeur",
+        photoRequiredWarning: "Photo de profil requise",
+        photoProfileRequired: "Photo de profil requise pour devenir vendeur",
+        photoRequired: "Photo requise",
+
+        // Pour la section avatar dans BecomeSeller
+        avatarSection: {
+        title: "Photo de profil",
+        subtitle: "Votre photo aide à établir la confiance avec les acheteurs",
+        required: "Requis pour vendre",
+        uploadNow: "Ajouter une photo",
+        changePhoto: "Changer la photo"
+        },
+
+        // Pour les validations
+        incompleteIdentity: "Identité incomplète",
+        completeAllIdentityFields: "Veuillez remplir tous les champs d'identité",
+        duplicateData: "Données en double détectées",
+        userNotConnected: "Utilisateur non connecté",
+
         // NOUVELLES TRADUCTIONS POUR LA PHOTO DE PROFIL
         deleteCurrentPhoto: "Supprimer la photo actuelle",
         deletePhotoTitle: "Supprimer la photo",
@@ -948,6 +970,28 @@ const resources = {
 
   en: {
     translation: {
+
+        // NEW TRANSLATIONS FOR MANDATORY PROFILE PHOTO
+        profilePhoto: "Profile Photo", 
+        photoRequiredForSeller: "Required to become a seller",
+        photoRequiredWarning: "Profile photo required",
+        photoProfileRequired: "Profile photo required to become a seller",
+        photoRequired: "Photo required",
+
+        // For avatar section in BecomeSeller
+        avatarSection: {
+        title: "Profile Photo",
+        subtitle: "Your photo helps build trust with buyers", 
+        required: "Required for selling",
+        uploadNow: "Add photo",
+        changePhoto: "Change photo"
+        },
+
+        // For validations
+        incompleteIdentity: "Incomplete identity",
+        completeAllIdentityFields: "Please complete all identity fields", 
+        duplicateData: "Duplicate data detected",
+        userNotConnected: "User not connected",
 
         // NEW TRANSLATIONS FOR PROFILE PHOTO
         deleteCurrentPhoto: "Delete current photo", 

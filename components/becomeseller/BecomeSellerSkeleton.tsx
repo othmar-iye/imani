@@ -143,18 +143,34 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Section Photo de profil - Titre instantané, photo skeleton */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {/* Section Avatar Simplifiée - NOUVEAU DESIGN */}
+        <View style={[styles.avatarSection, { backgroundColor: colors.card }]}>
+          {/* Titre instantané */}
+          <Text style={[styles.avatarTitle, { color: colors.text }]}>
             Photo de profil
           </Text>
-          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-            {/* Photo de profil - Élément visuel principal */}
-            <AnimatedSkeletonCircle size={120} variant="strong" />
+          
+          {/* Sous-titre instantané */}
+          <Text style={[styles.avatarSubtitle, { color: colors.textSecondary }]}>
+            Obligatoire pour devenir vendeur
+          </Text>
+          
+          {/* Avatar skeleton */}
+          <View style={styles.avatarContainer}>
+            <AnimatedSkeletonCircle size={100} variant="strong" />
           </View>
+
+          {/* Message d'avertissement skeleton */}
+          <AnimatedSkeletonBox 
+            width={150} 
+            height={16} 
+            borderRadius={8}
+            style={{ marginTop: 12 }}
+            variant="default"
+          />
         </View>
 
-        {/* Section Informations personnelles - Titre instantané, champs skeleton */}
+        {/* Section Informations personnelles */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Informations personnelles
@@ -195,7 +211,7 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
           </View>
         </View>
 
-        {/* Section Localisation - Titre instantané, champs skeleton */}
+        {/* Section Localisation */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Localisation
@@ -236,7 +252,7 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
           </View>
         </View>
 
-        {/* Section Vérification d'identité - Titre instantané, champs skeleton */}
+        {/* Section Vérification d'identité */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Vérification d'identité
@@ -275,7 +291,7 @@ export const ProfileSettingsSkeleton: React.FC<ProfileSettingsSkeletonProps> = (
               </View>
             ))}
             
-            {/* Upload document skeleton - Élément important */}
+            {/* Upload document skeleton */}
             <View style={styles.uploadItem}>
               <AnimatedSkeletonBox 
                 width="100%" 
@@ -328,8 +344,30 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
-    marginTop: 25,
   },
+  // Styles pour la section avatar simplifiée
+  avatarSection: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  avatarTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  avatarSubtitle: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  avatarContainer: {
+    alignItems: 'center',
+  },
+  // Styles pour les sections classiques
   section: {
     paddingHorizontal: 20,
     marginBottom: 24,

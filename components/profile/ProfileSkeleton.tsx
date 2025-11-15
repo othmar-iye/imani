@@ -145,48 +145,100 @@ export const ProfileSkeleton: React.FC<ProfileSkeletonProps> = ({
           ) : undefined
         }
       >
-        {/* Header Skeleton */}
+        {/* Header Skeleton - AVEC NOUVEAU DESIGN */}
         <View style={[styles.header, { backgroundColor: colors.card }]}>
-          {/* Avatar - Élément principal */}
-          <AnimatedSkeletonCircle size={100} variant="strong" />
-          
-          {/* Nom */}
-          <AnimatedSkeletonBox 
-            width={150} 
-            height={24} 
-            borderRadius={6}
-            style={{ marginBottom: 8 }}
-            variant="strong"
-          />
-          
-          {/* Email */}
-          <AnimatedSkeletonBox 
-            width={100} 
-            height={16} 
-            borderRadius={4}
-            style={{ marginBottom: 4 }}
-            variant="default"
-          />
-          
-          {/* Localisation */}
-          <AnimatedSkeletonBox 
-            width={120} 
-            height={14} 
-            borderRadius={4}
-            style={{ marginBottom: 16 }}
-            variant="default"
-          />
-          
-          {/* Bouton modifier */}
-          <AnimatedSkeletonBox 
-            width={120} 
-            height={44} 
-            borderRadius={12}
-            variant="strong"
-          />
+          {/* Section principale avec avatar à gauche et infos à droite */}
+          <View style={styles.profileMainSection}>
+            {/* Avatar à gauche */}
+            <View style={styles.avatarSection}>
+              <AnimatedSkeletonCircle size={110} variant="strong" />
+            </View>
+
+            {/* Infos utilisateur à droite */}
+            <View style={styles.userInfoSection}>
+              {/* Nom */}
+              <AnimatedSkeletonBox 
+                width={150} 
+                height={20} 
+                borderRadius={4}
+                style={{ marginBottom: 4 }}
+                variant="strong"
+              />
+              
+              {/* Email */}
+              <AnimatedSkeletonBox 
+                width={120} 
+                height={14} 
+                borderRadius={4}
+                style={{ marginBottom: 12 }}
+                variant="default"
+              />
+              
+              {/* Statut et localisation */}
+              <View style={styles.statusLocationSection}>
+                {/* Statut */}
+                <AnimatedSkeletonBox 
+                  width={100} 
+                  height={13} 
+                  borderRadius={4}
+                  style={{ marginBottom: 4 }}
+                  variant="default"
+                />
+                
+                {/* Localisation */}
+                <AnimatedSkeletonBox 
+                  width={80} 
+                  height={13} 
+                  borderRadius={4}
+                  variant="default"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Section des boutons en bas */}
+          <View style={styles.buttonsSection}>
+            {/* Bouton Modifier profil */}
+            <AnimatedSkeletonBox 
+              width="48%" 
+              height={44} 
+              borderRadius={12}
+              variant="strong"
+            />
+            
+            {/* Bouton Devenir vendeur */}
+            <AnimatedSkeletonBox 
+              width="48%" 
+              height={44} 
+              borderRadius={12}
+              variant="strong"
+            />
+          </View>
         </View>
 
-        {/* Stats Skeleton */}
+        {/* Message d'information conditionnel */}
+        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+          <View style={styles.infoContent}>
+            <AnimatedSkeletonCircle size={24} variant="default" />
+            <View style={styles.infoTextContainer}>
+              <AnimatedSkeletonBox 
+                width={120} 
+                height={16} 
+                borderRadius={4}
+                style={{ marginBottom: 8 }}
+                variant="strong"
+              />
+              <AnimatedSkeletonBox 
+                width="100%" 
+                height={36} 
+                borderRadius={4}
+                variant="default"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Stats Section - SEULEMENT pour vendeurs vérifiés */}
         <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
           {[1, 2, 3].map((_, index) => (
             <View key={index} style={styles.statItem}>
@@ -214,52 +266,93 @@ export const ProfileSkeleton: React.FC<ProfileSkeletonProps> = ({
 
         {/* Menu Items Skeleton */}
         <View style={[styles.menuSection, { backgroundColor: colors.background }]}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item, index) => (
-            <View
-              key={item}
-              style={[
-                styles.menuItem,
-                { 
-                  backgroundColor: colors.card,
-                  marginBottom: index === 8 ? 0 : 8,
-                }
-              ]}
-            >
-              <View style={styles.menuItemLeft}>
-                {/* Icône */}
-                <AnimatedSkeletonBox 
-                  width={22} 
-                  height={22} 
-                  borderRadius={4}
-                  variant="default"
-                />
-                {/* Texte menu */}
-                <AnimatedSkeletonBox 
-                  width={150} 
-                  height={16} 
-                  borderRadius={4}
-                  variant="default"
-                />
-              </View>
-              
-              <View style={styles.menuItemRight}>
-                {/* Badge (pour les premières items) */}
-                {index < 3 && (
-                  <AnimatedSkeletonCircle 
-                    size={20} 
-                    variant="strong"
+          {/* Items pour vendeurs vérifiés */}
+          <View style={styles.menuGroup}>
+            {[1, 2].map((item) => (
+              <View
+                key={`verified-${item}`}
+                style={[
+                  styles.menuItem,
+                  { 
+                    backgroundColor: colors.card,
+                    marginBottom: 8,
+                  }
+                ]}
+              >
+                <View style={styles.menuItemLeft}>
+                  {/* Icône */}
+                  <AnimatedSkeletonBox 
+                    width={22} 
+                    height={22} 
+                    borderRadius={4}
+                    variant="default"
                   />
-                )}
-                {/* Flèche */}
-                <AnimatedSkeletonBox 
-                  width={16} 
-                  height={16} 
-                  borderRadius={2}
-                  variant="default"
-                />
+                  {/* Texte menu */}
+                  <AnimatedSkeletonBox 
+                    width={150} 
+                    height={16} 
+                    borderRadius={4}
+                    variant="default"
+                  />
+                </View>
+                
+                <View style={styles.menuItemRight}>
+                  {/* Badge count */}
+                  <AnimatedSkeletonCircle size={20} variant="strong" />
+                  {/* Flèche */}
+                  <AnimatedSkeletonBox 
+                    width={16} 
+                    height={16} 
+                    borderRadius={2}
+                    variant="default"
+                  />
+                </View>
               </View>
-            </View>
-          ))}
+            ))}
+          </View>
+
+          {/* Items pour tous les utilisateurs */}
+          <View style={styles.menuGroup}>
+            {[1, 2, 3, 4, 5, 6, 7].map((item, index) => (
+              <View
+                key={`all-${item}`}
+                style={[
+                  styles.menuItem,
+                  { 
+                    backgroundColor: colors.card,
+                    marginBottom: index === 6 ? 0 : 8,
+                  }
+                ]}
+              >
+                <View style={styles.menuItemLeft}>
+                  {/* Icône */}
+                  <AnimatedSkeletonBox 
+                    width={22} 
+                    height={22} 
+                    borderRadius={4}
+                    variant="default"
+                  />
+                  {/* Texte menu */}
+                  <AnimatedSkeletonBox 
+                    width={150} 
+                    height={16} 
+                    borderRadius={4}
+                    variant="default"
+                  />
+                </View>
+                
+                <View style={styles.menuItemRight}>
+                  {/* Flèche */}
+                  <AnimatedSkeletonBox 
+                    width={16} 
+                    height={16} 
+                    borderRadius={2}
+                    variant="default"
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
         </View>
 
         {/* Version Skeleton */}
@@ -270,6 +363,7 @@ export const ProfileSkeleton: React.FC<ProfileSkeletonProps> = ({
           style={{ 
             alignSelf: 'center',
             marginTop: 10,
+            marginBottom: 20,
           }}
           variant="default"
         />
@@ -289,14 +383,54 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
   },
+  // Header styles pour correspondre au nouveau design
   header: {
-    padding: 24,
-    alignItems: 'center',
+    padding: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    marginBottom: 16,
-    paddingTop: 60,
+    marginBottom: 20,
+    paddingTop: 80,
+    paddingBottom: 40,
   },
+  profileMainSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  avatarSection: {
+    position: 'relative',
+    marginRight: 16,
+  },
+  userInfoSection: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  statusLocationSection: {
+    gap: 4,
+  },
+  buttonsSection: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  // Info card
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 20,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+  },
+  infoContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+  },
+  infoTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  // Stats section
   statsSection: {
     flexDirection: 'row',
     marginHorizontal: 20,
@@ -316,9 +450,13 @@ const styles = StyleSheet.create({
     width: 1,
     height: '50%',
   },
+  // Menu section
   menuSection: {
     paddingHorizontal: 20,
     marginBottom: 20,
+  },
+  menuGroup: {
+    marginBottom: 16,
   },
   menuItem: {
     flexDirection: 'row',
