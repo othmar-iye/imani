@@ -7,6 +7,7 @@ import { ProfileImagePickerModal } from '@/components/profile/ProfileImagePicker
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
 import { Theme } from '@/constants/theme';
 import { useAuth } from '@/src/context/AuthContext';
+import { compressImage, createThumbnail, uploadProfileImageToSupabase } from '@/src/utils/imageUtils';
 import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +27,7 @@ interface ProfileStats {
 interface ProfileData {
   fullName: string;
   profilePicture: string | null;
+  profilePictureThumbnail: string | null;
   sellerStatus: 'member' | 'pending' | 'verified' | 'rejected';
   location: string;
   stats: ProfileStats;
@@ -41,6 +43,7 @@ interface UserProfile {
   identity_number: string;
   identity_document_url: string | null;
   profile_picture_url: string | null;
+  profile_picture_thumbnail_url: string | null;
   verification_status: string;
   updated_at: string;
 }
@@ -78,7 +81,8 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
     // Utiliser les données de user_profiles si disponibles, sinon les métadonnées de l'user
     const profileData: ProfileData = {
       fullName: user?.user_metadata?.full_name || 'Utilisateur',
-      profilePicture: userProfile?.profile_picture_thumbnail_url || userProfile?.profile_picture_url || getProfilePicture(user),
+      profilePicture: userProfile?.profile_picture_url || getProfilePicture(user),
+      profilePictureThumbnail: userProfile?.profile_picture_thumbnail_url || userProfile?.profile_picture_url || getProfilePicture(user),
       sellerStatus: getSellerStatus(userProfile?.verification_status),
       location: userProfile?.city || 'Lubumbashi, RDC',
       stats: {
@@ -108,6 +112,7 @@ const fetchProfileData = async (user: any): Promise<ProfileData> => {
     return {
       fullName: user?.user_metadata?.full_name || 'Utilisateur',
       profilePicture: getProfilePicture(user),
+      profilePictureThumbnail: getProfilePicture(user),
       sellerStatus: 'member',
       location: 'Lubumbashi, RDC',
       stats: {
@@ -194,6 +199,7 @@ export default function ProfileScreen() {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // 🚀 SOLUTION REACT QUERY AVEC ACTUALISATION AUTOMATIQUE
   const { 
@@ -228,23 +234,26 @@ export default function ProfileScreen() {
     }
   }, [refetch]);
 
-  // Mettre à jour l'URL de l'image de profil avec une URL signée si nécessaire
-  React.useEffect(() => {
-    const updateProfileImageUrl = async () => {
-      if (profileData?.profilePicture) {
-        if (profileData.profilePicture.includes('supabase.co')) {
-          const signedUrl = await getSignedUrl(profileData.profilePicture);
-          setProfileImageUrl(signedUrl);
-        } else {
-          setProfileImageUrl(profileData.profilePicture);
-        }
-      } else {
-        setProfileImageUrl(null);
-      }
-    };
+   // Mettre à jour l'URL de l'image de profil avec une URL signée si nécessaire
+   React.useEffect(() => {
+        const updateProfileImageUrl = async () => {
+            // 🆕 PRIORITÉ AU THUMBNAIL pour l'avatar
+            const imageToDisplay = profileData?.profilePictureThumbnail || profileData?.profilePicture;
+            
+            if (imageToDisplay) {
+            if (imageToDisplay.includes('supabase.co')) {
+                const signedUrl = await getSignedUrl(imageToDisplay);
+                setProfileImageUrl(signedUrl);
+            } else {
+                setProfileImageUrl(imageToDisplay);
+            }
+            } else {
+            setProfileImageUrl(null);
+            }
+        };
 
-    updateProfileImageUrl();
-  }, [profileData?.profilePicture]);
+        updateProfileImageUrl();
+    }, [profileData?.profilePictureThumbnail, profileData?.profilePicture]);
 
   // Fonctions pour la gestion des photos de profil
   const handleEditPhoto = () => {
@@ -325,30 +334,140 @@ export default function ProfileScreen() {
 
   const uploadProfilePhoto = async (imageUri: string) => {
     try {
-      console.log('📤 Upload photo:', imageUri);
+      console.log('📤 Début upload photo profil:', imageUri);
       
-      // Mise à jour IMMÉDIATE de l'image localement
+      if (!user) {
+        throw new Error('Utilisateur non connecté');
+      }
+
+      setIsUploading(true);
+      setShowImagePicker(false);
+
+      // Mise à jour IMMÉDIATE de l'image localement pour un feedback visuel
       setProfileImageUrl(imageUri);
       setImageError(false);
+
+      // ÉTAPE 1: Préparer les images (compression + thumbnail)
+      console.log('🔄 Compression image principale...');
+      const compressedImageUri = await compressImage(imageUri, 0.8, 800, 800);
       
-      // Feedback utilisateur immédiat
+      console.log('🔄 Création thumbnail...');
+      const thumbnailUri = await createThumbnail(imageUri, 0.6, 200, 200);
+
+      // ÉTAPE 2: Upload vers Supabase Storage
+      const timestamp = Date.now();
+      const mainFileName = `profile-pictures/${user.id}/main-${timestamp}.jpg`;
+      const thumbnailFileName = `profile-pictures/${user.id}/thumbnail-${timestamp}.jpg`;
+
+      console.log('📤 Upload image principale...');
+      const mainImageUrl = await uploadProfileImageToSupabase(compressedImageUri, mainFileName);
+      
+      console.log('📤 Upload thumbnail...');
+      const thumbnailUrl = await uploadProfileImageToSupabase(thumbnailUri, thumbnailFileName);
+
+      // ÉTAPE 3: Mettre à jour la table user_profiles
+      console.log('💾 Mise à jour base de données...');
+      
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          profile_picture_url: mainImageUrl,
+          profile_picture_thumbnail_url: thumbnailUrl,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
+        });
+
+      if (updateError) {
+        console.error('❌ Erreur mise à jour profil:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ Photo de profil mise à jour avec succès!');
+      
+      // Mettre à jour l'URL affichée avec la nouvelle image
+      setProfileImageUrl(mainImageUrl);
+      
+      // Forcer le rechargement des données
+      await refetch();
+      
       Alert.alert(
         t('success', 'Succès'),
         t('photoUpdated', 'Photo de profil mise à jour avec succès!'),
         [{ text: t('ok', 'OK') }]
       );
       
-      // Rechargement en arrière-plan
-      refetch();
+    } catch (error: any) {
+      console.error('❌ Erreur upload complète:', error);
       
-    } catch (error) {
-      console.error('❌ Erreur upload:', error);
+      let errorMessage = t('uploadError', 'Erreur lors du téléchargement de la photo.');
+      
+      if (error.message?.includes('storage')) {
+        errorMessage = 'Erreur de stockage. Vérifiez les permissions du bucket.';
+      } else if (error.message?.includes('fetch')) {
+        errorMessage = 'Impossible de lire le fichier image.';
+      }
+      
       Alert.alert(
         t('error', 'Erreur'),
-        t('uploadError', 'Erreur lors du téléchargement de la photo.')
+        errorMessage
       );
+      
+      // Recharger les données originales en cas d'erreur
+      await refetch();
+    } finally {
+      setIsUploading(false);
     }
   };
+
+  const handleDeletePhoto = async () => {
+    try {
+        if (!user) return;
+
+        Alert.alert(
+        t('deletePhotoTitle', 'Supprimer la photo'),
+        t('deletePhotoMessage', 'Êtes-vous sûr de vouloir supprimer votre photo de profil ?'),
+        [
+            {
+            text: t('cancel', 'Annuler'),
+            style: 'cancel',
+            },
+            {
+            text: t('delete', 'Supprimer'),
+            style: 'destructive',
+            onPress: async () => {
+                // Mettre à jour l'état local immédiatement
+                setProfileImageUrl(null);
+                
+                // Mettre à jour la base de données
+                const { error } = await supabase
+                .from('user_profiles')
+                .upsert({
+                    id: user.id,
+                    profile_picture_url: null,
+                    profile_picture_thumbnail_url: null,
+                    updated_at: new Date().toISOString(),
+                });
+
+                if (error) {
+                console.error('❌ Erreur suppression photo:', error);
+                Alert.alert(t('error', 'Erreur'), t('deletePhotoError', 'Erreur lors de la suppression.'));
+                // Recharger les données en cas d'erreur
+                await refetch();
+                } else {
+                console.log('✅ Photo supprimée avec succès');
+                await refetch();
+                }
+            },
+            },
+        ]
+        );
+    } catch (error) {
+        console.error('❌ Erreur suppression photo:', error);
+        Alert.alert(t('error', 'Erreur'), t('deletePhotoError', 'Erreur lors de la suppression.'));
+    }
+    };
 
   // Vérification de sécurité
   if (!user) {
@@ -552,7 +671,7 @@ export default function ProfileScreen() {
           statusIcon={getStatusIcon()}
           statusColor={getStatusColor()}
           location={profileData.location}
-          isRefetching={isRefetching}
+          isRefetching={isRefetching || isUploading}
           onEditProfile={setProfile}
           onBecomeSeller={handleBecomeSeller}
           onEditPhoto={handleEditPhoto}
@@ -656,12 +775,15 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Modal de sélection de photo */}
-      <ProfileImagePickerModal
-        visible={showImagePicker}
-        onClose={() => setShowImagePicker(false)}
-        onTakePhoto={takeProfilePhoto}
-        onChooseFromGallery={chooseProfilePhotoFromGallery}
-      />
+        <ProfileImagePickerModal
+            visible={showImagePicker}
+            onClose={() => setShowImagePicker(false)}
+            onTakePhoto={takeProfilePhoto}
+            onChooseFromGallery={chooseProfilePhotoFromGallery}
+            onDeletePhoto={handleDeletePhoto} // 🆕 Nouvelle fonction à créer
+            hasCurrentPhoto={!!profileData?.profilePicture} // 🆕 Vérifie si une photo existe
+            isUploading={isUploading}
+        />
     </View>
   );
 }

@@ -8,6 +8,25 @@ const resources = {
   fr: {
     translation: {
 
+        // NOUVELLES TRADUCTIONS POUR LA PHOTO DE PROFIL
+        deleteCurrentPhoto: "Supprimer la photo actuelle",
+        deletePhotoTitle: "Supprimer la photo",
+        deletePhotoMessage: "Êtes-vous sûr de vouloir supprimer votre photo de profil ?",
+        deletePhotoError: "Erreur lors de la suppression de la photo",
+        uploadingPhoto: "Téléchargement de la photo...",
+        uploading: "Envoi...",
+
+        // TRADUCTIONS POUR LE LOADER D'UPLOAD
+        camera: "Caméra",
+        images: "Galerie",
+        selectExistingPhoto: "Sélectionner une photo existante",
+        useCamera: "Utiliser votre caméra",
+        choosePhotoSource: "Choisissez une source pour votre photo",
+
+        // TRADUCTIONS POUR LES ÉTATS D'UPLOAD
+        cloudUpload: "Téléversement",
+        sync: "Synchronisation",
+
         sellerSettings: "Paramètres vendeur",
         changeProfilePhoto: "Changer la photo de profil",
         takePhoto: "Prendre une photo",
@@ -929,6 +948,25 @@ const resources = {
 
   en: {
     translation: {
+
+        // NEW TRANSLATIONS FOR PROFILE PHOTO
+        deleteCurrentPhoto: "Delete current photo", 
+        deletePhotoTitle: "Delete photo",
+        deletePhotoMessage: "Are you sure you want to delete your profile photo?",
+        deletePhotoError: "Error deleting photo",
+        uploadingPhoto: "Uploading photo...",
+        uploading: "Uploading...",
+
+        // TRANSLATIONS FOR UPLOAD LOADER
+        camera: "Camera",
+        images: "Gallery", 
+        selectExistingPhoto: "Select existing photo",
+        useCamera: "Use your camera",
+        choosePhotoSource: "Choose a source for your photo",
+
+        // TRANSLATIONS FOR UPLOAD STATES
+        cloudUpload: "Uploading",
+        sync: "Syncing",
 
         sellerSettings: "Seller Settings",
         changeProfilePhoto: "Change Profile Photo", 

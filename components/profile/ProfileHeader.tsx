@@ -4,7 +4,7 @@ import { Theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ProfileHeaderProps {
   profileImageUrl: string | null;
@@ -17,6 +17,7 @@ interface ProfileHeaderProps {
   statusColor: string;
   location: string;
   isRefetching?: boolean;
+  isUploading?: boolean; // 🆕 Nouvelle prop pour l'upload
   onEditProfile: () => void;
   onBecomeSeller: () => void;
   onEditPhoto: () => void;
@@ -43,6 +44,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   statusColor,
   location,
   isRefetching = false,
+  isUploading = false, // 🆕 Valeur par défaut
   onEditProfile,
   onBecomeSeller,
   onEditPhoto,
@@ -94,29 +96,48 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             style={styles.avatarContainer}
             onPress={onEditPhoto}
             activeOpacity={0.7}
+            disabled={isUploading} // 🆕 Désactiver pendant l'upload
           >
             <View style={[styles.avatar, { backgroundColor: (profileImageUrl && !imageError) ? 'transparent' : colors.tint }]}>
-              {(profileImageUrl && !imageError) ? (
+              {/* 🆕 Overlay de chargement pendant l'upload */}
+              {isUploading && (
+                 <View style={[styles.uploadIndicator, { backgroundColor: colors.tint }]}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                </View>
+              )}
+              
+              {(profileImageUrl && !imageError && !isUploading) ? (
                 <Image 
                   source={{ uri: profileImageUrl }} 
                   style={styles.avatarImage}
                   resizeMode="cover"
                 />
               ) : (
-                <Text style={styles.avatarText}>{userInitials}</Text>
+                !isUploading && ( // 🆕 Ne pas afficher les initiales pendant l'upload
+                  <Text style={styles.avatarText}>{userInitials}</Text>
+                )
               )}
             </View>
             
-            {/* Icône d'édition en bas à droite */}
-            <View style={[styles.editIconContainer, { backgroundColor: colors.tint }]}>
-              <Ionicons name="camera" size={16} color="#FFFFFF" />
-            </View>
+            {/* Icône d'édition en bas à droite - Cachée pendant l'upload */}
+            {!isUploading && (
+              <View style={[styles.editIconContainer, { backgroundColor: colors.tint }]}>
+                <Ionicons name="camera" size={16} color="#FFFFFF" />
+              </View>
+            )}
           </TouchableOpacity>
           
-          {/* Indicateur de synchronisation */}
-          {isRefetching && (
+          {/* Indicateur de synchronisation - Caché pendant l'upload */}
+          {isRefetching && !isUploading && (
             <View style={[styles.syncIndicator, { backgroundColor: colors.tint }]}>
               <Ionicons name="sync" size={12} color="#FFFFFF" />
+            </View>
+          )}
+
+          {/* 🆕 Indicateur d'upload en cours */}
+          {isUploading && (
+            <View style={[styles.uploadIndicator, { backgroundColor: colors.tint }]}>
+              <Ionicons name="cloud-upload" size={12} color="#FFFFFF" />
             </View>
           )}
         </View>
@@ -158,6 +179,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           variant="outline"
           size="medium"
           style={styles.editButton}
+          disabled={isUploading} // 🆕 Désactiver pendant l'upload
         />
         
         {/* Bouton conditionnel selon le statut */}
@@ -168,6 +190,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             variant={sellerButtonConfig.variant}
             size="medium"
             style={styles.becomeSellerButton}
+            disabled={isUploading} // 🆕 Désactiver pendant l'upload
           />
         )}
       </View>
@@ -238,6 +261,19 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   syncIndicator: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  // 🆕 Styles pour l'indicateur d'upload
+  uploadIndicator: {
     position: 'absolute',
     top: -4,
     right: -4,

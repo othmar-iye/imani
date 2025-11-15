@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
     Animated,
     Modal,
     StyleSheet,
@@ -18,6 +19,9 @@ interface ProfileImagePickerModalProps {
   onClose: () => void;
   onTakePhoto: () => void;
   onChooseFromGallery: () => void;
+  onDeletePhoto?: () => void; // 🆕 Nouvelle prop pour supprimer la photo
+  hasCurrentPhoto?: boolean; // 🆕 Pour savoir si une photo existe
+  isUploading?: boolean;
 }
 
 export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = ({
@@ -25,6 +29,9 @@ export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = (
   onClose,
   onTakePhoto,
   onChooseFromGallery,
+  onDeletePhoto, // 🆕 Nouvelle prop
+  hasCurrentPhoto = false, // 🆕 Par défaut false
+  isUploading = false,
 }) => {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
@@ -33,7 +40,7 @@ export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = (
   // Références pour les animations
   const slideAnim = useRef(new Animated.Value(300)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const actionTimeoutRef = useRef<number | null>(null); // CORRECTION : number au lieu de NodeJS.Timeout
+  const actionTimeoutRef = useRef<number | null>(null);
 
   const colors = {
     background: isDark ? Theme.dark.background : Theme.light.background,
@@ -41,6 +48,7 @@ export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = (
     text: isDark ? Theme.dark.text : Theme.light.text,
     textSecondary: isDark ? '#8E8E93' : '#666666',
     tint: isDark ? Theme.dark.tint : Theme.light.tint,
+    error: isDark ? '#FF453A' : '#FF3B30', // 🆕 Couleur rouge pour la suppression
   };
 
   // Nettoyer les timeouts
@@ -74,30 +82,45 @@ export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = (
     }
   }, [visible]);
 
-  // SOLUTION : Fermer d'abord, puis exécuter l'action après un délai
-  const handleTakePhoto = () => {
+  // 🆕 Gestion de la suppression de photo
+  const handleDeletePhoto = () => {
+    if (isUploading) return; // 🚫 Empêcher l'action pendant l'upload
+    
     onClose(); // Fermer IMMÉDIATEMENT la modal
     
-    // Attendre que la modal soit complètement fermée avant d'ouvrir la caméra
+    // Attendre que la modal soit complètement fermée avant de supprimer
+    actionTimeoutRef.current = setTimeout(() => {
+      console.log('🗑️ Suppression photo après fermeture modal');
+      onDeletePhoto?.();
+    }, 400) as unknown as number;
+  };
+
+  const handleTakePhoto = () => {
+    if (isUploading) return;
+    
+    onClose();
+    
     actionTimeoutRef.current = setTimeout(() => {
       console.log('🚀 Ouverture caméra après fermeture modal');
       onTakePhoto();
-    }, 400) as unknown as number; // CORRECTION : cast en number
+    }, 400) as unknown as number;
   };
 
   const handleChooseFromGallery = () => {
-    onClose(); // Fermer IMMÉDIATEMENT la modal
+    if (isUploading) return;
     
-    // Attendre que la modal soit complètement fermée avant d'ouvrir la galerie
+    onClose();
+    
     actionTimeoutRef.current = setTimeout(() => {
       console.log('🚀 Ouverture galerie après fermeture modal');
       onChooseFromGallery();
-    }, 400) as unknown as number; // CORRECTION : cast en number
+    }, 400) as unknown as number;
   };
 
   // Fonction pour fermer la modal avec animation
   const closeModal = () => {
-    // Annuler tout timeout en cours
+    if (isUploading) return;
+    
     if (actionTimeoutRef.current) {
       clearTimeout(actionTimeoutRef.current);
       actionTimeoutRef.current = null;
@@ -118,6 +141,27 @@ export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = (
       onClose();
     });
   };
+
+  // 🆕 Modal d'upload en cours
+  if (isUploading) {
+    return (
+      <Modal
+        visible={visible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.uploadingOverlay}>
+          <View style={[styles.uploadingContent, { backgroundColor: colors.card }]}>
+            <ActivityIndicator size="large" color={colors.tint} />
+            <Text style={[styles.uploadingText, { color: colors.text }]}>
+              {t('uploadingPhoto', 'Téléchargement de la photo...')}
+            </Text>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -167,6 +211,19 @@ export const ProfileImagePickerModal: React.FC<ProfileImagePickerModalProps> = (
                 {t('chooseFromGallery', 'Choisir dans la galerie')}
               </Text>
             </TouchableOpacity>
+
+            {/* 🆕 Option Supprimer la photo - Afficher seulement si une photo existe */}
+            {hasCurrentPhoto && onDeletePhoto && (
+              <TouchableOpacity 
+                style={[styles.optionButton, { borderBottomColor: 'rgba(0, 0, 0, 0.08)' }]}
+                onPress={handleDeletePhoto}
+              >
+                <Ionicons name="trash-outline" size={22} color={colors.error} />
+                <Text style={[styles.optionText, { color: colors.error }]}>
+                  {t('deleteCurrentPhoto', 'Supprimer la photo actuelle')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Bouton Annuler */}
@@ -249,5 +306,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: -0.2,
+  },
+  uploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadingContent: {
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  uploadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
